@@ -273,7 +273,7 @@ int32_t proxy_u::s_completion_cb(subr &a_subr,
                                  resp &a_resp)
 {
         //NDBG_PRINT("%ss_completion_cb%s\n", ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF);
-        a_subr.m_session.m_access_info.m_resp_status = (http_status_t)a_resp.get_status();
+        a_subr.m_session->m_access_info.m_resp_status = (http_status_t)a_resp.get_status();
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -287,7 +287,7 @@ int32_t proxy_u::s_error_cb(subr &a_subr,
                             const char *a_error_str)
 {
         //NDBG_PRINT("%ss_error_cb%s\n", ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF);
-        rqst_h::send_json_resp_err(a_subr.m_session,
+        rqst_h::send_json_resp_err(*a_subr.m_session,
                                    false,
                                    // TODO use supports keep-alives from client request
                                    a_status);

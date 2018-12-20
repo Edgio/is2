@@ -275,7 +275,7 @@ int32_t ups_session::queue_input(void)
                 return STATUS_OK;
         }
         int32_t l_s;
-        l_s = m_subr.m_session.m_t_srvr.queue_event(&m_evr_readable,
+        l_s = m_subr.m_session->m_t_srvr.queue_event(&m_evr_readable,
                                                     ups_session::evr_event_readable_cb,
                                                     m_nconn);
         if(l_s != STATUS_OK)
@@ -1045,14 +1045,14 @@ int32_t ups_session::evr_event_writeable_cb(void *a_data)
 void ups_session::subr_enqueue(subr &a_subr)
 {
         // attach to upstream object if missing
-        if(!a_subr.m_session.m_u)
+        if(!a_subr.m_session->m_u)
         {
-                subr_u *l_subr_u = new subr_u(a_subr.m_session);
+                subr_u *l_subr_u = new subr_u(*(a_subr.m_session));
                 l_subr_u->queue(a_subr);
-                a_subr.m_session.m_u = l_subr_u;
+                a_subr.m_session->m_u = l_subr_u;
         }
         a_subr.m_state = subr::SUBR_STATE_QUEUED;
-        t_srvr &l_t_srvr = a_subr.m_session.m_t_srvr;
+        t_srvr &l_t_srvr = a_subr.m_session->m_t_srvr;
         l_t_srvr.m_subr_list.push_back(&a_subr);
         a_subr.m_i_q = --(l_t_srvr.m_subr_list.end());
         ++l_t_srvr.m_subr_list_size;
@@ -1124,7 +1124,7 @@ int32_t ups_session::subr_start(subr &a_subr)
         // -------------------------------------------------
         // try get idle from proxy pool
         // -------------------------------------------------
-        t_srvr &l_t_srvr = a_subr.m_session.m_t_srvr;
+        t_srvr &l_t_srvr = a_subr.m_session->m_t_srvr;
         const t_conf &l_t_conf = *(l_t_srvr.m_t_conf);
         nconn_pool &l_proxy_pool = l_t_srvr.m_nconn_proxy_pool;
         nconn *l_nconn = NULL;
@@ -1273,14 +1273,14 @@ int32_t ups_session::subr_start(subr &a_subr)
         // ---------------------------------------
         if(a_subr.m_u &&
            (a_subr.m_u->ups_get_type() == proxy_u::S_UPS_TYPE_PROXY) &&
-           (a_subr.m_session.m_out_q))
+           (a_subr.m_session->m_out_q))
         {
-                l_ups->m_in_q = a_subr.m_session.m_out_q;
+                l_ups->m_in_q = a_subr.m_session->m_out_q;
                 l_ups->m_in_q_detached = true;
         }
         else
         {
-                l_ups->m_in_q = a_subr.m_session.m_t_srvr.get_nbq(NULL);
+                l_ups->m_in_q = a_subr.m_session->m_t_srvr.get_nbq(NULL);
         }
         l_ups->m_resp->set_q(l_ups->m_in_q);
         // ---------------------------------------
@@ -1374,7 +1374,7 @@ int32_t ups_session::cancel_evr_timer(void)
                 return STATUS_OK;
         }
         int32_t l_status;
-        l_status = m_subr.m_session.m_t_srvr.cancel_event(m_evr_timeout);
+        l_status = m_subr.m_session->m_t_srvr.cancel_event(m_evr_timeout);
         if(l_status != STATUS_OK)
         {
                 return STATUS_ERROR;
@@ -1394,7 +1394,7 @@ int32_t ups_session::cancel_evr_readable(void)
                 return STATUS_OK;
         }
         int32_t l_status;
-        l_status = m_subr.m_session.m_t_srvr.cancel_event(m_evr_readable);
+        l_status = m_subr.m_session->m_t_srvr.cancel_event(m_evr_readable);
         if(l_status != STATUS_OK)
         {
                 return STATUS_ERROR;
@@ -1414,7 +1414,7 @@ int32_t ups_session::cancel_evr_writeable(void)
                 return STATUS_OK;
         }
         int32_t l_status;
-        l_status = m_subr.m_session.m_t_srvr.cancel_event(m_evr_writeable);
+        l_status = m_subr.m_session->m_t_srvr.cancel_event(m_evr_writeable);
         if(l_status != STATUS_OK)
         {
                 return STATUS_ERROR;
@@ -1430,7 +1430,7 @@ int32_t ups_session::cancel_evr_writeable(void)
 int32_t ups_session::cancel_timer(void *a_timer)
 {
         int32_t l_s;
-        l_s = m_subr.m_session.m_t_srvr.cancel_event(a_timer);
+        l_s = m_subr.m_session->m_t_srvr.cancel_event(a_timer);
         if(l_s != STATUS_OK)
         {
                 return STATUS_ERROR;

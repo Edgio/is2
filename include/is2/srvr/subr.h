@@ -107,9 +107,10 @@ public:
         nbq *m_body_q;
         error_cb_t m_error_cb;
         completion_cb_t m_completion_cb;
+        void *m_data;
         bool m_detach_resp;
         uint64_t m_uid;
-        session &m_session;
+        session *m_session;
         host_info m_host_info;
         uint64_t m_start_time_ms;
         uint64_t m_end_time_ms;

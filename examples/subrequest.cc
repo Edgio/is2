@@ -122,7 +122,7 @@ int32_t subrequest_handler::s_completion_cb(ns_is2::subr &a_subr,
         printf("COMPLETE: a_nconn: %p\n", &a_nconn);
         const char l_resp[] = "{\"msg\": \"hello\"}";
         int32_t l_s;
-        l_s = create_response(a_subr.m_session, l_resp, strlen(l_resp));
+        l_s = create_response(*a_subr.m_session, l_resp, strlen(l_resp));
         (void)l_s;
         return STATUS_OK;
 }
@@ -139,7 +139,7 @@ int32_t subrequest_handler::s_error_cb(ns_is2::subr &a_subr,
         printf("ERROR: a_nconn: %p\n", &a_nconn);
         const char l_resp[] = "{\"msg\": \"error\"}";
         int32_t l_s;
-        l_s = create_response(a_subr.m_session, l_resp, strlen(l_resp));
+        l_s = create_response(*a_subr.m_session, l_resp, strlen(l_resp));
         (void)l_s;
         return STATUS_OK;
 }

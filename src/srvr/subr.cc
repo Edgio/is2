@@ -62,9 +62,10 @@ subr::subr(session &a_session):
         m_body_q(NULL),
         m_error_cb(NULL),
         m_completion_cb(NULL),
+        m_data(NULL),
         m_detach_resp(false),
         m_uid(0),
-        m_session(a_session),
+        m_session(&a_session),
         m_host_info(),
         m_start_time_ms(0),
         m_end_time_ms(0),
@@ -511,7 +512,7 @@ int32_t subr::cancel(void)
                 if(m_ups_session)
                 {
                         ups_session::teardown(m_ups_session,
-                                              m_session.m_t_srvr,
+                                              m_session->m_t_srvr,
                                               *m_ups_session->m_nconn,
                                               HTTP_STATUS_GATEWAY_TIMEOUT);
                 }
@@ -597,7 +598,7 @@ int32_t subr::create_request(nbq &ao_q)
         // -------------------------------------------
         if (!l_specd_ua)
         {
-                const std::string &l_ua = m_session.m_t_srvr.get_server_name();
+                const std::string &l_ua = m_session->m_t_srvr.get_server_name();
                 nbq_write_header(ao_q, "User-Agent", strlen("User-Agent"),
                                 l_ua.c_str(), l_ua.length());
         }
