@@ -35,7 +35,7 @@ class resp : public hmsg
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         resp();
         ~resp();
@@ -48,24 +48,24 @@ public:
         // Debug
         void show();
         // -------------------------------------------------
-        // Public members
+        // public members
         // -------------------------------------------------
-        // ---------------------------------------
+        // -------------------------------------------------
         // raw http request offsets
-        // ---------------------------------------
+        // -------------------------------------------------
         cr_t m_p_status;
         // TODO REMOVE
         const char *m_tls_info_protocol_str;
         const char *m_tls_info_cipher_str;
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         resp& operator=(const resp &);
         resp(const resp &);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         http_status_t m_status;
 };
