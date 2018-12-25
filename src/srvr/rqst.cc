@@ -53,7 +53,9 @@ rqst::rqst(void):
         m_url_host(),
         m_url_path(),
         m_url_query(),
-        m_url_fragment()
+        m_url_fragment(),
+        m_query_list(NULL),
+        m_query_map(NULL)
 {
         init(true);
 }
@@ -68,12 +70,17 @@ rqst::~rqst(void)
         // -------------------------------------------------
         // delete query args
         // -------------------------------------------------
-        for(mutable_arg_list_t::iterator i_q = m_query_list->begin();
-            i_q != m_query_list->end();
-            ++i_q)
+        if(m_query_list)
         {
-                if(i_q->m_key) { free(i_q->m_key); i_q->m_key = NULL; }
-                if(i_q->m_val) { free(i_q->m_val); i_q->m_val = NULL; }
+                for(mutable_arg_list_t::iterator i_q = m_query_list->begin();
+                    i_q != m_query_list->end();
+                    ++i_q)
+                {
+                        if(i_q->m_key) { free(i_q->m_key); i_q->m_key = NULL; }
+                        if(i_q->m_val) { free(i_q->m_val); i_q->m_val = NULL; }
+                }
+                delete m_query_list;
+                m_query_list = NULL;
         }
         if(m_query_map) { delete m_query_map; m_query_map = NULL; }
 }
