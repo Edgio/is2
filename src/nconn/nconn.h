@@ -29,7 +29,7 @@
 #include "is2/nconn/scheme.h"
 #include "is2/nconn/conn_status.h"
 #include "is2/nconn/host_info.h"
-#include "evr/evr.h"
+#include "is2/evr/evr.h"
 // For memcpy -TODO move into impl file
 #include <stdlib.h>
 #include <string.h>

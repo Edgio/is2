@@ -30,7 +30,7 @@
 #include <signal.h>
 #include <string>
 #include <list>
-#include "evr/evr.h"
+#include "is2/evr/evr.h"
 #include "is2/nconn/scheme.h"
 #include "dns/nresolver.h"
 #include "srvr/nconn_pool.h"

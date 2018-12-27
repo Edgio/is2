@@ -35,7 +35,7 @@
   #define ASYNC_DNS_SUPPORT 1
 #endif
 #ifdef ASYNC_DNS_SUPPORT
-#include "evr/evr.h"
+#include "is2/evr/evr.h"
 #endif
 //: ----------------------------------------------------------------------------
 //: Constants

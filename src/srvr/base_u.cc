@@ -24,7 +24,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "is2/srvr/base_u.h"
-#include "evr/evr.h"
+#include "is2/evr/evr.h"
 #include "is2/srvr/session.h"
 namespace ns_is2 {
 //: ----------------------------------------------------------------------------

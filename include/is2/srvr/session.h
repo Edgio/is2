@@ -25,6 +25,7 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
+#include "is2/evr/evr.h"
 #include "is2/srvr/access.h"
 #include "is2/srvr/default_rqst_h.h"
 #include "is2/nconn/host_info.h"
@@ -42,10 +43,6 @@ class lsnr;
 class session;
 class base_u;
 class subr;
-struct evr_event;
-#ifndef evr_event_t
-typedef struct evr_event evr_event_t;
-#endif
 #ifndef resp_done_cb_t
 // TODO move to handler specific resp cb...
 typedef int32_t (*resp_done_cb_t)(session &);
@@ -106,11 +103,8 @@ public:
         int32_t cancel_evr_readable(void);
         int32_t cancel_evr_writeable(void);
         const std::string &get_server_name(void);
-        // *************************************************
-        // -------------------------------------------------
-        // subrequest support
-        // -------------------------------------------------
-        // *************************************************
+        int32_t add_timer(uint32_t a_time_ms, evr_event_cb_t a_cb, void *a_data, void **ao_event);
+        evr_loop *get_evr_loop(void);
         int32_t subr_enqueue(subr &a_subr);
 private:
         // -------------------------------------------------
