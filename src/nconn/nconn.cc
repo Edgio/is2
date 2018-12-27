@@ -24,7 +24,7 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "support/ndebug.h"
-#include "nconn/nconn.h"
+#include "is2/nconn/nconn.h"
 #include "is2/support/nbq.h"
 #include "is2/status.h"
 #include "is2/support/time_util.h"
@@ -305,16 +305,8 @@ nconn::nconn(void):
       m_evr_fd(),
       m_scheme(SCHEME_NONE),
       m_label(),
-#if 0
-      m_stat(),
-      m_collect_stats_flag(false),
-#endif
       m_ctx(NULL),
       m_data(NULL),
-#if 0
-      m_connect_start_time_us(0),
-      m_request_start_time_us(0),
-#endif
       m_conn_status(CONN_STATUS_OK),
       m_last_error(""),
       m_host_data(NULL),
@@ -322,9 +314,6 @@ nconn::nconn(void):
       m_host_info_is_set(false),
       m_num_reqs_per_conn(-1),
       m_num_reqs(0),
-#if 0
-      m_connect_only(false),
-#endif
       m_remote_sa(),
       m_remote_sa_len(0),
       m_nc_state(NC_STATE_FREE),
@@ -336,13 +325,6 @@ nconn::nconn(void):
       m_alpn_buf_len(0),
       m_timer_obj(NULL)
 {
-#if 0
-        // Set stats
-        if(m_collect_stats_flag)
-        {
-                conn_stat_init(m_stat);
-        }
-#endif
         //NDBG_PRINT("%s--CONN--%s last_state: %d this: %p\n", ANSI_COLOR_FG_GREEN, ANSI_COLOR_OFF, m_nc_state, this);
 }
 //: ----------------------------------------------------------------------------
@@ -381,15 +363,4 @@ const std::string &nconn_get_last_error_str(nconn &a_nconn)
 {
         return a_nconn.get_last_error();
 }
-#if 0
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-void conn_stat_init(conn_stat_t &a_stat)
-{
-        bzero(&a_stat, sizeof(conn_stat_t));
-}
-#endif
 } // ns_is2

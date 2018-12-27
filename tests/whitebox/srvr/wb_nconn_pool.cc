@@ -25,7 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "is2/nconn/scheme.h"
-#include "nconn/nconn.h"
+#include "is2/nconn/nconn.h"
 #include "srvr/nconn_pool.h"
 //: ----------------------------------------------------------------------------
 //: Tests
