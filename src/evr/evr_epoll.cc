@@ -24,7 +24,7 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "evr/evr_epoll.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "is2/support/trace.h"
 #include "is2/status.h"
 #include <sys/epoll.h>

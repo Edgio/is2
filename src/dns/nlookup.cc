@@ -23,7 +23,7 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "dns/nlookup.h"
 #include "is2/support/time_util.h"
 #include "is2/nconn/host_info.h"

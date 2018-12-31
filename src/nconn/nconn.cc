@@ -23,7 +23,7 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "is2/nconn/nconn.h"
 #include "is2/support/nbq.h"
 #include "is2/status.h"

@@ -24,7 +24,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "srvr/nconn_pool.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "nconn/nconn_tcp.h"
 #include "nconn/nconn_tls.h"
 #include "is2/status.h"

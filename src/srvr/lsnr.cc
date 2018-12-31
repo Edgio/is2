@@ -24,7 +24,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "srvr/t_srvr.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "nconn/nconn_tls.h"
 #include "is2/status.h"
 #include "is2/support/trace.h"

@@ -24,7 +24,7 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "evr/evr_kqueue.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "is2/status.h"
 #include <sys/types.h>
 #include <sys/event.h>

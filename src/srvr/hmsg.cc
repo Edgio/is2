@@ -26,7 +26,7 @@
 #include "is2/status.h"
 #include "is2/srvr/hmsg.h"
 #include "is2/support/nbq.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "http_parser/http_parser.h"
 #include <stdlib.h>
 namespace ns_is2 {

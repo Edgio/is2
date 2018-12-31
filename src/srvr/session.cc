@@ -25,7 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "srvr/t_srvr.h"
 #include "srvr/ups_session.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "http_parser/http_parser.h"
 #include "is2/nconn/nconn.h"
 #include "is2/support/nbq.h"

@@ -24,7 +24,7 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "nconn/nconn_tcp.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "is2/support/time_util.h"
 #include "is2/support/trace.h"
 #include <unistd.h>

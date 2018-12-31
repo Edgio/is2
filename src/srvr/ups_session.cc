@@ -25,7 +25,7 @@
 //: ----------------------------------------------------------------------------
 #include "srvr/t_srvr.h"
 #include "srvr/ups_session.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "nconn/nconn_tls.h"
 #include "http_parser/http_parser.h"
 #include "dns/nresolver.h"
@@ -131,7 +131,7 @@ ups_session::ups_session(subr &a_subr):
         m_body_q(NULL),
         m_keepalive(false),
 #endif
-        m_detach_resp(false),
+        m_detach_resp(a_subr.m_detach_resp),
         m_again(false),
         m_timeout_ms(10000),
         m_last_active_ms(0),
@@ -220,27 +220,26 @@ int32_t ups_session::teardown(ups_session *a_ups,
                 // -------------------------------------------------
 #if 0
                 subr_log_status(a_status);
-                if(m_subr)
+                m_subr->set_end_time_ms(get_time_ms());
+#endif
+                bool l_detach_resp = l_ups.m_subr.m_detach_resp;
+#if 0
+                subr::error_cb_t l_error_cb = m_subr->get_error_cb();
+                if(l_error_cb)
                 {
-                        m_subr->set_end_time_ms(get_time_ms());
-                        bool l_detach_resp = m_subr->m_detach_resp;
-                        subr::error_cb_t l_error_cb = m_subr->get_error_cb();
-                        if(l_error_cb)
+                        const char *l_err_str = NULL;
+                        if(m_nconn)
                         {
-                                const char *l_err_str = NULL;
-                                if(m_nconn)
-                                {
-                                        l_err_str = m_nconn->get_last_error().c_str();
-                                }
-                                l_error_cb(*(m_subr), m_nconn, a_status, l_err_str);
-                                // TODO Check status...
+                                l_err_str = m_nconn->get_last_error().c_str();
                         }
-                        if(l_detach_resp)
-                        {
-                                m_subr = NULL;
-                        }
+                        l_error_cb(*(m_subr), m_nconn, a_status, l_err_str);
+                        // TODO Check status...
                 }
 #endif
+                if(l_detach_resp)
+                {
+                        l_ups.m_out_q = NULL;
+                }
                 // -------------------------------------------------
                 // TODO FIX!!!
                 // -------------------------------------------------
@@ -436,10 +435,10 @@ static int32_t run_state_machine(void *a_data, evr_mode_t a_conn_mode)
         // **************************************************
         // --------------------------------------------------
         //NDBG_PRINT("%sRUN_STATE_MACHINE%s: CONN[%p] STATE[%d] MODE: %d --START\n",
-        //                ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF, &l_nconn, l_nconn.get_state(), a_conn_mode);
+        //            ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF, &l_nconn, l_nconn.get_state(), a_conn_mode);
 state_top:
         //NDBG_PRINT("%sRUN_STATE_MACHINE%s: CONN[%p] STATE[%d] MODE: %d\n",
-        //                ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, &l_nconn, l_nconn.get_state(), a_conn_mode);
+        //            ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF, &l_nconn, l_nconn.get_state(), a_conn_mode);
         switch(l_nconn.get_state())
         {
         // -------------------------------------------------
@@ -562,6 +561,7 @@ state_top:
                         char *l_buf = NULL;
                         uint64_t l_off = l_in_q->get_cur_write_offset();
                         l_s = l_nconn.nc_read(l_in_q, &l_buf, l_read);
+                        //NDBG_PRINT("nc_read: status[%d]\n", l_s);
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
@@ -635,7 +635,6 @@ state_top:
                                 {
                                         return STATUS_OK;
                                 }
-                                //NDBG_PRINT("add_idle\n");
                                 l_nconn.set_data(NULL);
                                 int32_t l_status;
                                 l_status = l_t_srvr.m_nconn_proxy_pool.add_idle(&l_nconn);
@@ -688,12 +687,12 @@ state_top:
                                 //              l_buf,
                                 //              (int)l_off,
                                 //              (int)l_read);
-                                l_hmsg->m_cur_buf = l_in_q->b_write_data_ptr();
+                                l_hmsg->m_cur_buf = l_buf;
+                                l_hmsg->m_cur_off = l_off;
                                 l_parse_status = http_parser_execute(l_hmsg->m_http_parser,
                                                                      l_hmsg->m_http_parser_settings,
                                                                      reinterpret_cast<const char *>(l_buf),
                                                                      l_read);
-                                l_hmsg->m_cur_off = l_off;
                                 //NDBG_PRINT("STATUS: %lu\n", l_parse_status);
                                 if(l_parse_status < (size_t)l_read)
                                 {
@@ -770,9 +769,7 @@ state_top:
                                         l_hmsg_keep_alive = l_ups->m_resp->m_supports_keep_alives;
                                 }
                                 bool l_nconn_can_reuse = l_nconn.can_reuse();
-                                // TODO FIX!!!
-                                //bool l_keepalive = l_ups->m_keepalive;
-                                bool l_keepalive = true;
+                                bool l_keepalive = l_ups->m_subr.m_keepalive;
                                 bool l_detach_resp = l_ups->m_detach_resp;
                                 // -------------------------
                                 // complete request
@@ -824,6 +821,7 @@ state_top:
                                 // -------------------------
                                 // set idle
                                 // -------------------------
+                                l_ups = NULL;
                                 l_idle = true;
                                 goto state_top;
                         }
@@ -839,17 +837,10 @@ state_top:
                         {
                                 l_out_q = l_ups->m_out_q;
                         }
-                        else
+                        if(!l_out_q ||
+                           !l_out_q->read_avail())
                         {
-                                // for reading junk disassociated from upstream session
-                                TRC_WARN("l_out_q == t_srvr orphan out q\n");
-                                l_out_q = l_t_srvr.m_orphan_out_q;
-                                l_out_q->reset_write();
-                        }
-                        if(!l_out_q)
-                        {
-                                TRC_ERROR("l_out_q == NULL\n");
-                                return STATUS_ERROR;
+                                return STATUS_OK;
                         }
                         // ---------------------------------
                         // write

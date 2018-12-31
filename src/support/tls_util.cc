@@ -28,7 +28,7 @@
 //: ----------------------------------------------------------------------------
 #include "hostcheck/hostcheck.h"
 #include "support/tls_util.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "is2/status.h"
 #include "is2/support/trace.h"
 #include <pthread.h>

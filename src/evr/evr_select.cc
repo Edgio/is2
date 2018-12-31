@@ -24,7 +24,7 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "evr/evr_select.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "is2/status.h"
 #include <string.h>
 #include <errno.h>

@@ -27,7 +27,7 @@
 #include "is2/support/trace.h"
 #include "nconn/nconn_tls.h"
 #include "support/tls_util.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>

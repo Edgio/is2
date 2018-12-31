@@ -23,7 +23,7 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include <string>
 #include <stdlib.h>
 #include <stdio.h>

@@ -24,7 +24,7 @@
 //: includes
 //: ----------------------------------------------------------------------------
 #include "is2/status.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "is2/srvr/stat.h"
 #include <stdio.h>
 #define __STDC_FORMAT_MACROS 1
