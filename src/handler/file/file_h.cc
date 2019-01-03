@@ -27,7 +27,7 @@
 #include "srvr/t_srvr.h"
 #include "handler/file/mime_types.h"
 #include "is2/support/string_util.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "is2/support/nbq.h"
 #include "is2/status.h"
 #include "is2/support/trace.h"

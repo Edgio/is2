@@ -26,8 +26,8 @@
 #include "is2/status.h"
 #include "is2/support/trace.h"
 #include "is2/support/time_util.h"
-#include "support/ndebug.h"
-#include "evr/evr.h"
+#include "is2/evr/evr.h"
+#include "is2/support/ndebug.h"
 #include "evr/evr_select.h"
 #include "evr/evr_epoll.h"
 #include <stdlib.h>

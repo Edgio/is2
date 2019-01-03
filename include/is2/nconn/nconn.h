@@ -29,7 +29,7 @@
 #include "is2/nconn/scheme.h"
 #include "is2/nconn/conn_status.h"
 #include "is2/nconn/host_info.h"
-#include "evr/evr.h"
+#include "is2/evr/evr.h"
 // For memcpy -TODO move into impl file
 #include <stdlib.h>
 #include <string.h>
@@ -58,23 +58,6 @@ namespace ns_is2 {
 //: ----------------------------------------------------------------------------
 class nbq;
 struct host_info;
-#if 0
-//: ----------------------------------------------------------------------------
-//: Types
-//: ----------------------------------------------------------------------------
-// conn stat
-typedef struct conn_stat_struct
-{
-        uint32_t m_body_bytes;
-        uint32_t m_total_bytes;
-        uint64_t m_tt_connect_us;
-        uint64_t m_tt_first_read_us;
-        uint64_t m_tt_completion_us;
-        int32_t m_last_state;
-        int32_t m_error;
-} conn_stat_t;
-void conn_stat_init(conn_stat_t &a_stat);
-#endif
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: ----------------------------------------------------------------------------
@@ -136,13 +119,6 @@ public:
         // -------------------------------------------------
         void set_evr_loop(evr_loop * a_evr_loop) {m_evr_loop = a_evr_loop;}
         evr_loop *get_evr_loop(void) {return m_evr_loop;}
-#if 0
-        // -------------------------------------------------
-        // Stats
-        // -------------------------------------------------
-        void reset_stats(void) { conn_stat_init(m_stat); }
-        const conn_stat_t &get_stats(void) const { return m_stat;}
-#endif
         // -------------------------------------------------
         // Getters
         // -------------------------------------------------
@@ -151,13 +127,6 @@ public:
         uint32_t get_pool_id(void) {return m_pool_id;}
         const std::string &get_label(void) {return m_label;}
         scheme_t get_scheme(void) {return m_scheme;}
-#if 0
-        bool get_collect_stats_flag(void) {return m_collect_stats_flag;}
-        uint64_t get_request_start_time_us(void) {return m_request_start_time_us;}
-        uint64_t get_stat_tt_connect_us(void) {return m_stat.m_tt_connect_us;}
-        uint64_t get_connect_start_time_us(void) {return m_connect_start_time_us;}
-        bool get_connect_only(void) { return m_connect_only;}
-#endif
         const std::string &get_last_error(void) { return m_last_error;}
         conn_status_t get_status(void) { return m_conn_status;}
         void *get_host_data(void) { return m_host_data;}
@@ -191,19 +160,6 @@ public:
         void set_host_data(void *a_host_data) { m_host_data = a_host_data;}
         void set_host_info(const host_info &a_host_info) {m_host_info = a_host_info; m_host_info_is_set = true;}
         void set_num_reqs_per_conn(int64_t a_n) {m_num_reqs_per_conn = a_n;}
-#if 0
-        void set_collect_stats(bool a_flag) {m_collect_stats_flag = a_flag;}
-        void set_connect_only(bool a_flag) {m_connect_only = a_flag;}
-        void set_connected_cb(nconn_data_cb_t a_cb) {m_connected_cb = a_cb;}
-        void set_read_cb(nconn_cb_t a_cb) {m_read_cb = a_cb;}
-        void set_read_cb_data(void * a_data) {m_read_cb_data = a_data;}
-        void set_write_cb(nconn_cb_t a_cb) {m_write_cb = a_cb;}
-        void set_collect_stats_flag(bool a_val) {m_collect_stats_flag = a_val;}
-        void set_request_start_time_us(uint64_t a_val) {m_request_start_time_us = a_val;}
-        void set_stat_tt_completion_us(uint64_t a_val){ m_stat.m_tt_completion_us = a_val;}
-        void set_stat_tt_connect_us(uint64_t a_val){ m_stat.m_tt_connect_us = a_val;}
-        void set_connect_start_time_us(uint64_t a_val) {m_connect_start_time_us = a_val;}
-#endif
         void set_status(conn_status_t a_status) { m_conn_status = a_status;}
         void setup_evr_fd(evr_event_cb_t a_read_cb,
                           evr_event_cb_t a_write_cb,
@@ -274,16 +230,8 @@ public:
         evr_fd_t m_evr_fd;
         scheme_t m_scheme;
         std::string m_label;
-#if 0
-        conn_stat_t m_stat;
-        bool m_collect_stats_flag;
-#endif
         void *m_ctx;
         void *m_data;
-#if 0
-        uint64_t m_connect_start_time_us;
-        uint64_t m_request_start_time_us;
-#endif
         conn_status_t m_conn_status;
         std::string m_last_error;
         void *m_host_data;
@@ -291,9 +239,6 @@ public:
         bool m_host_info_is_set;
         int64_t m_num_reqs_per_conn;
         int64_t m_num_reqs;
-#if 0
-        bool m_connect_only;
-#endif
         sockaddr_storage m_remote_sa;
         socklen_t m_remote_sa_len;
 private:

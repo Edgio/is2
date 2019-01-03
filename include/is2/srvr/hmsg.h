@@ -45,7 +45,7 @@ class hmsg
 {
 public:
         // -------------------------------------------------
-        // Public types
+        // public types
         // -------------------------------------------------
         // hobj type
         typedef enum type_enum {
@@ -54,7 +54,7 @@ public:
                 TYPE_RESP
         } type_t;
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         hmsg();
         virtual ~hmsg();
@@ -74,7 +74,7 @@ public:
         // Debug
         virtual void show() = 0;
         // -------------------------------------------------
-        // Public members
+        // public members
         // -------------------------------------------------
         // Parser settings
         http_parser_settings *m_http_parser_settings;
@@ -83,17 +83,17 @@ public:
         uint64_t m_cur_off;
         char * m_cur_buf;
         bool m_save;
-        // ---------------------------------------
+        // -------------------------------------------------
         // raw http request offsets
-        // ---------------------------------------
+        // -------------------------------------------------
         cr_list_t m_p_h_list_key;
         cr_list_t m_p_h_list_val;
         cr_t m_p_body;
         int m_http_major;
         int m_http_minor;
-        // ---------------------------------------
+        // -------------------------------------------------
         // ...
-        // ---------------------------------------
+        // -------------------------------------------------
         //uint16_t m_status;
         bool m_complete;
         bool m_supports_keep_alives;
@@ -109,7 +109,7 @@ protected:
         mutable_data_map_list_t *m_header_map;
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         hmsg(const hmsg &);

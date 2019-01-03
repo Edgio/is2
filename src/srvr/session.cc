@@ -23,16 +23,16 @@
 //: ----------------------------------------------------------------------------
 //: includes
 //: ----------------------------------------------------------------------------
-#include "evr/evr.h"
 #include "srvr/t_srvr.h"
 #include "srvr/ups_session.h"
-#include "support/ndebug.h"
-#include "nconn/nconn.h"
+#include "is2/support/ndebug.h"
 #include "http_parser/http_parser.h"
+#include "is2/nconn/nconn.h"
 #include "is2/support/nbq.h"
 #include "is2/support/trace.h"
-#include "is2/srvr/rqst.h"
 #include "is2/status.h"
+#include "is2/evr/evr.h"
+#include "is2/srvr/rqst.h"
 #include "is2/srvr/base_u.h"
 #include "is2/srvr/lsnr.h"
 #include "is2/srvr/subr.h"
@@ -1172,7 +1172,24 @@ const std::string &session::get_server_name(void)
 {
         return m_t_srvr.get_server_name();
 }
-
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t session::add_timer(uint32_t a_time_ms, evr_event_cb_t a_cb, void *a_data, void **ao_event)
+{
+        return m_t_srvr.add_timer(a_time_ms, a_cb, a_data, ao_event);
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+evr_loop *session::get_evr_loop(void)
+{
+        return m_t_srvr.get_evr_loop();
+}
 //: ----------------------------------------------------------------------------
 //: API Responses
 //: ----------------------------------------------------------------------------

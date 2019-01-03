@@ -26,7 +26,7 @@
 #include "catch/catch.hpp"
 #include "is2/srvr/rqst.h"
 #include "is2/support/nbq.h"
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include <string.h>
 //: ----------------------------------------------------------------------------
 //: constants

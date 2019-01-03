@@ -23,7 +23,7 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#include "support/ndebug.h"
+#include "is2/support/ndebug.h"
 #include "srvr/cb.h"
 #include "is2/srvr/rqst.h"
 #include "is2/srvr/resp.h"
