@@ -441,6 +441,7 @@ bool edge::match_route(const char *a_route,
         //                pattern_str(m_pattern).c_str(), a_route.c_str());
         // Match parameters if has one
         const char *l_route_ptr = a_route;
+        uint32_t l_route_len = a_route_len;
         uint32_t l_len = 0;
         for(pattern_t::const_iterator i_part = m_pattern.begin();
             i_part != m_pattern.end();
@@ -465,6 +466,7 @@ bool edge::match_route(const char *a_route,
                         //           i_part->m_str.c_str(), l_val.c_str());
                         ao_url_pmap[i_part->m_str] = l_val;
                         l_route_ptr += i_char;
+                        l_route_len -= i_char;
                 }
                 else if(i_part->m_type == PART_TYPE_STRING)
                 {
@@ -482,6 +484,7 @@ bool edge::match_route(const char *a_route,
                         else
                         {
                                 l_route_ptr += i_part->m_str.length();
+                                l_route_len -= i_part->m_str.length();
                                 l_len += i_part->m_str.length();
                                 //NDBG_PRINT("Stri: %s l_len: %d\n",
                                 //           i_part->m_str.c_str(), l_len);
@@ -490,7 +493,9 @@ bool edge::match_route(const char *a_route,
                 else if(i_part->m_type == PART_TYPE_TERMINAL)
                 {
                         // capture everything after the terminal in a special parameter map '*'
-                        ao_url_pmap["*"] = std::string(l_route_ptr);
+                        std::string l_rem;
+                        l_rem.assign(l_route_ptr, l_route_len);
+                        ao_url_pmap["*"] = l_rem;
                         ao_suffix.clear();
                         return true;
                 }
@@ -502,7 +507,7 @@ bool edge::match_route(const char *a_route,
         }
         else
         {
-                ao_suffix.assign(l_route_ptr);
+                ao_suffix.assign(l_route_ptr, l_route_len);
         }
         //NDBG_PRINT("%sMATCH!!!!%s: ao_suffix: %s\n",
         //           ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, ao_suffix.c_str());
@@ -952,10 +957,13 @@ const void *node::find_route(const char *a_route,
                 //                pattern_str((*i_edge)->m_pattern).c_str());
                 if((*i_edge)->match_route(a_route, a_route_len, l_url_param_map, l_suffix))
                 {
-                        //NDBG_PRINT("%sFIND_ROUTE%s: MATCH_ROUTE %s == %s. Remainder: %s len(%d)\n",
-                        //                ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF,
-                        //                pattern_str((*i_edge)->m_pattern).c_str(),
-                        //                a_route.c_str(), l_suffix.c_str(), (int)l_suffix.length());
+                        //NDBG_PRINT("%sFIND_ROUTE%s: MATCH_ROUTE %s == %.*s. Remainder: %s len(%d)\n",
+                        //           ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF,
+                        //           pattern_str((*i_edge)->m_pattern).c_str(),
+                        //           (int)a_route_len,
+                        //           a_route,
+                        //           l_suffix.c_str(),
+                        //           (int)l_suffix.length());
                         if(!l_suffix.length())
                         {
                                 // TODO better way to update map???
