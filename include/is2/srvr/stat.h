@@ -1,11 +1,11 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
+//: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    hlx.h
+//: \file:    stat.h
 //: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    03/11/2015
+//: \author:  Reed P Morrison
+//: \date:    4/19/2016
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -34,8 +34,6 @@ namespace ns_is2 {
 //: Types
 //: ----------------------------------------------------------------------------
 typedef std::map<uint16_t, uint32_t > status_code_count_map_t;
-// TODO DEBUG???
-//typedef std::map<std::string, void *> subr_pending_resolv_map_t;
 //: ----------------------------------------------------------------------------
 //: xstat
 //: ----------------------------------------------------------------------------
@@ -72,159 +70,54 @@ typedef struct xstat_struct
 //: ----------------------------------------------------------------------------
 typedef struct t_stat_cntr_struct
 {
-        // Stats
-        xstat_t m_upsv_stat_us_connect;
-        xstat_t m_upsv_stat_us_first_response;
-        xstat_t m_upsv_stat_us_end_to_end;
-        // Dns stats
-        uint64_t m_dns_resolve_req;
-        uint64_t m_dns_resolve_active;
-        uint64_t m_dns_resolved;
-        uint64_t m_dns_resolve_ev;
-        // Upstream stats
-        uint64_t m_upsv_conn_started;
-        uint64_t m_upsv_conn_completed;
+        // Response stats
+        uint64_t m_reqs;
+        uint64_t m_bytes_read;
+        uint64_t m_bytes_written;
+        uint64_t m_resp_status_2xx;
+        uint64_t m_resp_status_3xx;
+        uint64_t m_resp_status_4xx;
+        uint64_t m_resp_status_5xx;
+        // upstream stats
         uint64_t m_upsv_reqs;
-        uint64_t m_upsv_idle_killed;
-        uint64_t m_upsv_subr_queued;
-        // Upstream resp
-        uint64_t m_upsv_resp;
+        uint64_t m_upsv_bytes_read;
+        uint64_t m_upsv_bytes_written;
         uint64_t m_upsv_resp_status_2xx;
         uint64_t m_upsv_resp_status_3xx;
         uint64_t m_upsv_resp_status_4xx;
         uint64_t m_upsv_resp_status_5xx;
-        // clnt counts
-        uint64_t m_upsv_errors;
-        uint64_t m_upsv_bytes_read;
-        uint64_t m_upsv_bytes_written;
-        // Server stats
-        uint64_t m_clnt_conn_started;
-        uint64_t m_clnt_conn_completed;
-        uint64_t m_clnt_reqs;
-        uint64_t m_clnt_idle_killed;
-        // Response stats
-        uint64_t m_clnt_resp;
-        uint64_t m_clnt_resp_status_2xx;
-        uint64_t m_clnt_resp_status_3xx;
-        uint64_t m_clnt_resp_status_4xx;
-        uint64_t m_clnt_resp_status_5xx;
-        // clnt counts
-        uint64_t m_clnt_errors;
-        uint64_t m_clnt_bytes_read;
-        uint64_t m_clnt_bytes_written;
-        // Pool stats
-        uint64_t m_pool_conn_active;
-        uint64_t m_pool_conn_idle;
-        uint64_t m_pool_proxy_conn_active;
-        uint64_t m_pool_proxy_conn_idle;
-        uint64_t m_pool_clnt_free;
-        uint64_t m_pool_clnt_used;
-        uint64_t m_pool_resp_free;
-        uint64_t m_pool_resp_used;
-        uint64_t m_pool_rqst_free;
-        uint64_t m_pool_rqst_used;
-        uint64_t m_pool_nbq_free;
-        uint64_t m_pool_nbq_used;
-        // Totals
-        uint64_t m_total_run;
-        uint64_t m_total_add_timer;
         t_stat_cntr_struct():
-                m_upsv_stat_us_connect(),
-                m_upsv_stat_us_first_response(),
-                m_upsv_stat_us_end_to_end(),
-                m_dns_resolve_req(0),
-                m_dns_resolve_active(0),
-                m_dns_resolved(0),
-                m_dns_resolve_ev(0),
-                m_upsv_conn_started(0),
-                m_upsv_conn_completed(0),
+                m_reqs(0),
+                m_bytes_read(0),
+                m_bytes_written(0),
+                m_resp_status_2xx(0),
+                m_resp_status_3xx(0),
+                m_resp_status_4xx(0),
+                m_resp_status_5xx(0),
                 m_upsv_reqs(0),
-                m_upsv_idle_killed(0),
-                m_upsv_subr_queued(0),
-                m_upsv_resp(0),
+                m_upsv_bytes_read(0),
+                m_upsv_bytes_written(0),
                 m_upsv_resp_status_2xx(0),
                 m_upsv_resp_status_3xx(0),
                 m_upsv_resp_status_4xx(0),
-                m_upsv_resp_status_5xx(0),
-                m_upsv_errors(0),
-                m_upsv_bytes_read(0),
-                m_upsv_bytes_written(0),
-                m_clnt_conn_started(0),
-                m_clnt_conn_completed(0),
-                m_clnt_reqs(0),
-                m_clnt_idle_killed(0),
-                m_clnt_resp(0),
-                m_clnt_resp_status_2xx(0),
-                m_clnt_resp_status_3xx(0),
-                m_clnt_resp_status_4xx(0),
-                m_clnt_resp_status_5xx(0),
-                m_clnt_errors(0),
-                m_clnt_bytes_read(0),
-                m_clnt_bytes_written(0),
-                m_pool_conn_active(0),
-                m_pool_conn_idle(0),
-                m_pool_proxy_conn_active(0),
-                m_pool_proxy_conn_idle(0),
-                m_pool_clnt_free(0),
-                m_pool_clnt_used(0),
-                m_pool_resp_free(0),
-                m_pool_resp_used(0),
-                m_pool_rqst_free(0),
-                m_pool_rqst_used(0),
-                m_pool_nbq_free(0),
-                m_pool_nbq_used(0),
-                m_total_run(0),
-                m_total_add_timer(0)
+                m_upsv_resp_status_5xx(0)
         {}
         void clear()
         {
-                m_upsv_stat_us_connect.clear();
-                m_upsv_stat_us_connect.clear();
-                m_upsv_stat_us_first_response.clear();
-                m_upsv_stat_us_end_to_end.clear();
-                m_dns_resolve_req = 0;
-                m_dns_resolve_active = 0;
-                m_dns_resolved = 0;
-                m_dns_resolve_ev = 0;
-                m_upsv_conn_started = 0;
-                m_upsv_conn_completed = 0;
+                m_reqs = 0;
+                m_bytes_read = 0;
+                m_bytes_written = 0;
+                m_resp_status_2xx = 0;
+                m_resp_status_3xx = 0;
+                m_resp_status_4xx = 0;
+                m_resp_status_5xx = 0;
                 m_upsv_reqs = 0;
-                m_upsv_idle_killed = 0;
-                m_upsv_subr_queued = 0;
-                m_upsv_resp = 0;
+                m_upsv_bytes_read = 0;
+                m_upsv_bytes_written = 0;
                 m_upsv_resp_status_2xx = 0;
                 m_upsv_resp_status_3xx = 0;
                 m_upsv_resp_status_4xx = 0;
                 m_upsv_resp_status_5xx = 0;
-                m_upsv_errors = 0;
-                m_upsv_bytes_read = 0;
-                m_upsv_bytes_written = 0;
-                m_clnt_conn_started = 0;
-                m_clnt_conn_completed = 0;
-                m_clnt_reqs = 0;
-                m_clnt_idle_killed = 0;
-                m_clnt_resp = 0;
-                m_clnt_resp_status_2xx = 0;
-                m_clnt_resp_status_3xx = 0;
-                m_clnt_resp_status_4xx = 0;
-                m_clnt_resp_status_5xx = 0;
-                m_clnt_errors = 0;
-                m_clnt_bytes_read = 0;
-                m_clnt_bytes_written = 0;
-                m_pool_conn_active = 0;
-                m_pool_conn_idle = 0;
-                m_pool_proxy_conn_active = 0;
-                m_pool_proxy_conn_idle = 0;
-                m_pool_clnt_free = 0;
-                m_pool_clnt_used = 0;
-                m_pool_resp_free = 0;
-                m_pool_resp_used = 0;
-                m_pool_rqst_free = 0;
-                m_pool_rqst_used = 0;
-                m_pool_nbq_free = 0;
-                m_pool_nbq_used = 0;
-                m_total_run = 0;
-                m_total_add_timer = 0;
         }
 } t_stat_cntr_t;
 typedef std::list <t_stat_cntr_t> t_stat_cntr_list_t;
@@ -234,20 +127,18 @@ typedef std::list <t_stat_cntr_t> t_stat_cntr_list_t;
 typedef struct t_stat_calc_struct
 {
         // clnt
-        uint64_t m_clnt_req_delta;
-        uint64_t m_clnt_resp_delta;
-        float m_clnt_req_s;
-        float m_clnt_bytes_read_s;
-        float m_clnt_bytes_write_s;
-        float m_clnt_resp_status_2xx_pcnt;
-        float m_clnt_resp_status_3xx_pcnt;
-        float m_clnt_resp_status_4xx_pcnt;
-        float m_clnt_resp_status_5xx_pcnt;
-        // ups
+        uint64_t m_req_delta;
+        float m_req_s;
+        float m_bytes_read_s;
+        float m_bytes_write_s;
+        float m_resp_status_2xx_pcnt;
+        float m_resp_status_3xx_pcnt;
+        float m_resp_status_4xx_pcnt;
+        float m_resp_status_5xx_pcnt;
+        // upstream
         uint64_t m_upsv_req_delta;
         uint64_t m_upsv_resp_delta;
         float m_upsv_req_s;
-        float m_upsv_resp_s;
         float m_upsv_bytes_read_s;
         float m_upsv_bytes_write_s;
         float m_upsv_resp_status_2xx_pcnt;
@@ -255,19 +146,17 @@ typedef struct t_stat_calc_struct
         float m_upsv_resp_status_4xx_pcnt;
         float m_upsv_resp_status_5xx_pcnt;
         t_stat_calc_struct():
-                m_clnt_req_delta(0),
-                m_clnt_resp_delta(0),
-                m_clnt_req_s(0.0),
-                m_clnt_bytes_read_s(0.0),
-                m_clnt_bytes_write_s(0.0),
-                m_clnt_resp_status_2xx_pcnt(0.0),
-                m_clnt_resp_status_3xx_pcnt(0.0),
-                m_clnt_resp_status_4xx_pcnt(0.0),
-                m_clnt_resp_status_5xx_pcnt(0.0),
+                m_req_delta(0),
+                m_req_s(0.0),
+                m_bytes_read_s(0.0),
+                m_bytes_write_s(0.0),
+                m_resp_status_2xx_pcnt(0.0),
+                m_resp_status_3xx_pcnt(0.0),
+                m_resp_status_4xx_pcnt(0.0),
+                m_resp_status_5xx_pcnt(0.0),
                 m_upsv_req_delta(0),
                 m_upsv_resp_delta(0),
                 m_upsv_req_s(0.0),
-                m_upsv_resp_s(0.0),
                 m_upsv_bytes_read_s(0.0),
                 m_upsv_bytes_write_s(0.0),
                 m_upsv_resp_status_2xx_pcnt(0.0),
@@ -277,16 +166,14 @@ typedef struct t_stat_calc_struct
         {}
         void clear()
         {
-                m_clnt_req_delta = 0;
-                m_clnt_resp_delta = 0;
-                m_clnt_req_s = 0.0;
-                m_upsv_resp_s = 0.0;
-                m_clnt_bytes_read_s = 0.0;
-                m_clnt_bytes_write_s = 0.0;
-                m_clnt_resp_status_2xx_pcnt = 0.0;
-                m_clnt_resp_status_3xx_pcnt = 0.0;
-                m_clnt_resp_status_4xx_pcnt = 0.0;
-                m_clnt_resp_status_5xx_pcnt = 0.0;
+                m_req_delta = 0;
+                m_req_s = 0.0;
+                m_bytes_read_s = 0.0;
+                m_bytes_write_s = 0.0;
+                m_resp_status_2xx_pcnt = 0.0;
+                m_resp_status_3xx_pcnt = 0.0;
+                m_resp_status_4xx_pcnt = 0.0;
+                m_resp_status_5xx_pcnt = 0.0;
                 m_upsv_req_delta = 0;
                 m_upsv_resp_delta = 0;
                 m_upsv_req_s = 0.0;
@@ -307,4 +194,3 @@ void clear_stat(xstat_t &ao_stat);
 void show_stat(const xstat_t &ao_stat);
 } //namespace ns_is2 {
 #endif
-

@@ -96,7 +96,6 @@ SET(SRCS
     support/trace.cc
     support/uri.cc
     support/date_util.cc
-    support/stat.cc
     support/os.cc
     # -----------------------------------
     # evr
@@ -137,6 +136,7 @@ SET(SRCS
     srvr/nconn_pool.cc
     srvr/subr.cc
     srvr/ups_session.cc
+    srvr/stat.cc
     # -----------------------------------
     # handler file
     # -----------------------------------

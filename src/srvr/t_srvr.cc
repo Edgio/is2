@@ -59,6 +59,7 @@ t_srvr::t_srvr(const t_conf *a_t_conf):
         m_t_run_thread(),
         m_orphan_in_q(NULL),
         m_orphan_out_q(NULL),
+        m_stat(),
         m_t_conf(a_t_conf),
         // *************************************************
         // -------------------------------------------------

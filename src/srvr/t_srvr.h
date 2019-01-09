@@ -32,6 +32,7 @@
 #include <list>
 #include "is2/evr/evr.h"
 #include "is2/nconn/scheme.h"
+#include "is2/srvr/stat.h"
 #include "dns/nresolver.h"
 #include "srvr/nconn_pool.h"
 //: ----------------------------------------------------------------------------
@@ -174,6 +175,7 @@ public:
         // Orphan q's
         nbq *m_orphan_in_q;
         nbq *m_orphan_out_q;
+        t_stat_cntr_t m_stat;
         const t_conf *m_t_conf;
         // -------------------------------------------------
         // *************************************************
