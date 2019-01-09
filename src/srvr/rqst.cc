@@ -103,6 +103,9 @@ void rqst::init(bool a_save)
         m_url_query.clear();
         m_url_fragment.clear();
         m_url_parsed = false;
+        // -------------------------------------------------
+        // settings
+        // -------------------------------------------------
         if(m_http_parser_settings)
         {
                 m_http_parser_settings->on_status = hp_on_status;
@@ -119,6 +122,23 @@ void rqst::init(bool a_save)
                 http_parser_init(m_http_parser, HTTP_REQUEST);
                 m_http_parser->data = this;
         }
+        if(m_url_buf) { free(m_url_buf); m_url_buf = NULL; m_url_buf_len = 0;}
+        // -------------------------------------------------
+        // delete query args
+        // -------------------------------------------------
+        if(m_query_list)
+        {
+                for(mutable_arg_list_t::iterator i_q = m_query_list->begin();
+                    i_q != m_query_list->end();
+                    ++i_q)
+                {
+                        if(i_q->m_key) { free(i_q->m_key); i_q->m_key = NULL; }
+                        if(i_q->m_val) { free(i_q->m_val); i_q->m_val = NULL; }
+                }
+                delete m_query_list;
+                m_query_list = NULL;
+        }
+        if(m_query_map) { delete m_query_map; m_query_map = NULL; }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -228,6 +248,7 @@ const char *rqst::get_method_str()
 //: ----------------------------------------------------------------------------
 const mutable_arg_list_t& rqst::get_query_list()
 {
+
         // -------------------------------------------------
         // create query list
         // -------------------------------------------------
@@ -239,8 +260,8 @@ const mutable_arg_list_t& rqst::get_query_list()
                 int32_t l_s;
                 l_s = parse_args(*m_query_list,
                                  l_invalid_cnt,
-                                 m_url_query.m_data,
-                                 m_url_query.m_len,
+                                 get_url_query().m_data,
+                                 get_url_query().m_len,
                                  '&');
                 if(l_s != STATUS_OK)
                 {
