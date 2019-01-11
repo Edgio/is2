@@ -76,6 +76,7 @@ typedef struct t_conf
         nresolver *m_nresolver;
         std::string m_server_name;
         bool m_dns_use_sync;
+        uint32_t m_stat_update_ms;
         // -------------------------------------------------
         // tls server config
         // -------------------------------------------------
@@ -112,6 +113,7 @@ typedef struct t_conf
                 m_nresolver(NULL),
                 m_server_name("srvr"),
                 m_dns_use_sync(false),
+                m_stat_update_ms(0),
                 m_tls_server_ctx(NULL),
                 m_tls_server_ctx_key(),
                 m_tls_server_ctx_crt(),
@@ -166,6 +168,9 @@ public:
         srvr *get_srvr_instance(void) { return m_srvr; }
         void set_srvr_instance(srvr *a_srvr) { m_srvr = a_srvr; }
         int32_t run_loop(void);
+        int32_t get_stat(t_stat_cntr_t &ao_stat);
+        static int32_t s_stat_update(void *a_data);
+        void stat_update(void);
         // -------------------------------------------------
         // Public members
         // -------------------------------------------------
@@ -176,6 +181,8 @@ public:
         nbq *m_orphan_in_q;
         nbq *m_orphan_out_q;
         t_stat_cntr_t m_stat;
+        t_stat_cntr_t m_stat_cache;
+        pthread_mutex_t m_stat_cache_mutex;
         const t_conf *m_t_conf;
         // -------------------------------------------------
         // *************************************************

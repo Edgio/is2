@@ -52,6 +52,8 @@ srvr::srvr(void):
         m_dns_use_ai_cache(true),
         m_dns_ai_cache_file(NRESOLVER_DEFAULT_AI_CACHE_FILE),
         m_start_time_ms(0),
+        m_stat_last_ms(0),
+        m_stat_last(),
         m_t_srvr_list(),
         m_is_initd(false)
 {
@@ -109,9 +111,6 @@ srvr::~srvr()
         }
 }
 //: ----------------------------------------------------------------------------
-//:                               Getters
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
@@ -148,9 +147,6 @@ bool srvr::is_running(void)
         return false;
 }
 //: ----------------------------------------------------------------------------
-//:                               Setters
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
@@ -176,6 +172,117 @@ void srvr::set_num_parallel(uint32_t a_num_parallel)
 void srvr::set_num_reqs_per_conn(int32_t a_num_reqs_per_conn)
 {
         m_t_conf->m_num_reqs_per_conn = a_num_reqs_per_conn;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+void srvr::set_update_stats_ms(uint32_t a_update_ms)
+{
+        m_t_conf->m_stat_update_ms = a_update_ms;
+}
+//: ----------------------------------------------------------------------------
+//: \details: Aggregate thread stats.
+//: \return:  NA
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+static void aggregate_stat(t_stat_cntr_t &ao_total, const t_stat_cntr_t &a_stat)
+{
+        // -------------------------------------------------
+        // client
+        // -------------------------------------------------
+        ao_total.m_reqs += a_stat.m_reqs;
+        ao_total.m_bytes_read += a_stat.m_bytes_read;
+        ao_total.m_bytes_written += a_stat.m_bytes_written;
+        ao_total.m_resp_status_2xx += a_stat.m_resp_status_2xx;
+        ao_total.m_resp_status_3xx += a_stat.m_resp_status_3xx;
+        ao_total.m_resp_status_4xx += a_stat.m_resp_status_4xx;
+        ao_total.m_resp_status_5xx += a_stat.m_resp_status_5xx;
+        // -------------------------------------------------
+        // upstream
+        // -------------------------------------------------
+        ao_total.m_upsv_reqs += a_stat.m_upsv_reqs;
+        ao_total.m_upsv_bytes_read += a_stat.m_upsv_bytes_read;
+        ao_total.m_upsv_bytes_written += a_stat.m_upsv_bytes_written;
+        ao_total.m_upsv_resp_status_2xx += a_stat.m_upsv_resp_status_2xx;
+        ao_total.m_upsv_resp_status_3xx += a_stat.m_upsv_resp_status_3xx;
+        ao_total.m_upsv_resp_status_4xx += a_stat.m_upsv_resp_status_4xx;
+        ao_total.m_upsv_resp_status_5xx += a_stat.m_upsv_resp_status_5xx;
+}
+//: ----------------------------------------------------------------------------
+//: \details: Get srvr stats
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+void srvr::get_stat(t_stat_cntr_t &ao_stat, t_stat_calc_t &ao_calc_stat)
+{
+        t_stat_cntr_t l_cur_stat;
+        t_stat_calc_t l_cur_calc_stat;
+        uint64_t l_cur_time_ms = get_time_ms();
+        uint64_t l_delta_ms = l_cur_time_ms - m_stat_last_ms;
+        // -------------------------------------------------
+        // aggregate
+        // -------------------------------------------------
+        ao_stat.clear();
+        t_stat_cntr_list_t l_stat_list;
+        for(t_srvr_list_t::const_iterator i_client = m_t_srvr_list.begin();
+           i_client != m_t_srvr_list.end();
+           ++i_client)
+        {
+                // Get stuff from client...
+                t_stat_cntr_t l_stat;
+                int32_t l_s;
+                l_s = (*i_client)->get_stat(l_stat);
+                if(l_s != STATUS_OK)
+                {
+                        // TODO -do nothing...
+                        continue;
+                }
+                l_stat_list.emplace(l_stat_list.begin(), l_stat);
+                aggregate_stat(l_cur_stat, l_stat);
+        }
+        // -------------------------------------------------
+        // client calc'd stats
+        // -------------------------------------------------
+        l_cur_calc_stat.m_req_delta = l_cur_stat.m_reqs - m_stat_last.m_reqs;
+        if(l_cur_calc_stat.m_req_delta > 0)
+        {
+                l_cur_calc_stat.m_resp_status_2xx_pcnt = 100.0*((float)(l_cur_stat.m_resp_status_2xx - m_stat_last.m_resp_status_2xx))/((float)l_cur_calc_stat.m_req_delta);
+                l_cur_calc_stat.m_resp_status_3xx_pcnt = 100.0*((float)(l_cur_stat.m_resp_status_3xx - m_stat_last.m_resp_status_3xx))/((float)l_cur_calc_stat.m_req_delta);
+                l_cur_calc_stat.m_resp_status_4xx_pcnt = 100.0*((float)(l_cur_stat.m_resp_status_4xx - m_stat_last.m_resp_status_4xx))/((float)l_cur_calc_stat.m_req_delta);
+                l_cur_calc_stat.m_resp_status_5xx_pcnt = 100.0*((float)(l_cur_stat.m_resp_status_5xx - m_stat_last.m_resp_status_5xx))/((float)l_cur_calc_stat.m_req_delta);
+        }
+        if(l_delta_ms > 0)
+        {
+                l_cur_calc_stat.m_req_s = ((float)l_cur_calc_stat.m_req_delta*1000)/((float)l_delta_ms);
+                l_cur_calc_stat.m_bytes_read_s = ((float)((l_cur_stat.m_bytes_read - m_stat_last.m_bytes_read)*1000))/((float)l_delta_ms);
+                l_cur_calc_stat.m_bytes_write_s = ((float)((l_cur_stat.m_bytes_written - m_stat_last.m_bytes_written)*1000))/((float)l_delta_ms);
+        }
+        // -------------------------------------------------
+        // upstream calc'd stats
+        // -------------------------------------------------
+        l_cur_calc_stat.m_upsv_req_delta = l_cur_stat.m_upsv_reqs - m_stat_last.m_upsv_reqs;
+        if(l_cur_calc_stat.m_upsv_req_delta > 0)
+        {
+                l_cur_calc_stat.m_upsv_resp_status_2xx_pcnt = 100.0*((float)(l_cur_stat.m_upsv_resp_status_2xx - m_stat_last.m_upsv_resp_status_2xx))/((float)l_cur_calc_stat.m_upsv_req_delta);
+                l_cur_calc_stat.m_upsv_resp_status_3xx_pcnt = 100.0*((float)(l_cur_stat.m_upsv_resp_status_3xx - m_stat_last.m_upsv_resp_status_3xx))/((float)l_cur_calc_stat.m_upsv_req_delta);
+                l_cur_calc_stat.m_upsv_resp_status_4xx_pcnt = 100.0*((float)(l_cur_stat.m_upsv_resp_status_4xx - m_stat_last.m_upsv_resp_status_4xx))/((float)l_cur_calc_stat.m_upsv_req_delta);
+                l_cur_calc_stat.m_upsv_resp_status_5xx_pcnt = 100.0*((float)(l_cur_stat.m_upsv_resp_status_5xx - m_stat_last.m_upsv_resp_status_5xx))/((float)l_cur_calc_stat.m_upsv_req_delta);
+        }
+        if(l_delta_ms > 0)
+        {
+                l_cur_calc_stat.m_upsv_req_s = ((float)l_cur_calc_stat.m_upsv_req_delta*1000)/((float)l_delta_ms);
+                l_cur_calc_stat.m_upsv_bytes_read_s = ((float)((l_cur_stat.m_upsv_bytes_read - m_stat_last.m_upsv_bytes_read)*1000))/((float)l_delta_ms);
+                l_cur_calc_stat.m_upsv_bytes_write_s = ((float)((l_cur_stat.m_upsv_bytes_written - m_stat_last.m_upsv_bytes_written)*1000))/((float)l_delta_ms);
+        }
+        // -------------------------------------------------
+        // copy
+        // -------------------------------------------------
+        ao_stat = l_cur_stat;
+        ao_calc_stat = l_cur_calc_stat;
+        m_stat_last = l_cur_stat;
+        m_stat_last_ms = l_cur_time_ms;
 }
 //: ----------------------------------------------------------------------------
 //: \details: Global timeout for connect/read/write

@@ -637,7 +637,8 @@ state_top:
                         // ---------------------------------
                         // send expect response -if signal
                         // ---------------------------------
-                        if(l_cs->m_rqst && l_cs->m_rqst->m_expect)
+                        if(l_cs->m_rqst &&
+                           l_cs->m_rqst->m_expect)
                         {
                                 nbq l_nbq(64);
                                 const char l_exp_reply[] = "HTTP/1.1 100 Continue\r\n\r\n";
@@ -654,7 +655,7 @@ state_top:
                         if((l_cs->m_rqst &&
                             l_cs->m_rqst->m_complete))
                         {
-                                //if(l_t_srvr) { ++l_t_srvr->m_stat.m_clnt_reqs; }
+                                if(l_t_srvr) { ++l_t_srvr->m_stat.m_reqs; }
                                 int32_t l_rs = STATUS_OK;
                                 l_rs = l_cs->handle_req();
                                 if(l_rs != STATUS_OK)
@@ -1129,6 +1130,22 @@ int32_t session::handle_req(void)
                 return STATUS_ERROR;
         }
         return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+void session::log_status(uint16_t a_status)
+{
+        t_stat_cntr_t& l_stat = m_t_srvr.m_stat;
+        //++l_stat.m_resp;
+        uint16_t l_status = m_access_info.m_resp_status;
+        if((l_status >= 100) && (l_status < 200)) {/* TODO log 1xx's? */}
+        else if((l_status >= 200) && (l_status < 300)){++l_stat.m_resp_status_2xx;}
+        else if((l_status >= 300) && (l_status < 400)){++l_stat.m_resp_status_3xx;}
+        else if((l_status >= 400) && (l_status < 500)){++l_stat.m_resp_status_4xx;}
+        else if((l_status >= 500) && (l_status < 600)){++l_stat.m_resp_status_5xx;}
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO

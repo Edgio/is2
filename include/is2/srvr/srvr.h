@@ -30,6 +30,7 @@
 #include <list>
 #include <pthread.h>
 #include "is2/nconn/conn_status.h"
+#include "is2/srvr/stat.h"
 //: ----------------------------------------------------------------------------
 //: Extern Fwd Decl's
 //: ----------------------------------------------------------------------------
@@ -81,6 +82,9 @@ public:
         void set_resp_done_cb(resp_done_cb_t a_cb);
         void set_num_parallel(uint32_t a_num_parallel);
         void set_num_reqs_per_conn(int32_t a_num_reqs_per_conn);
+        void set_update_stats_ms(uint32_t a_update_ms);
+        void get_stat(t_stat_cntr_t &ao_stat, t_stat_calc_t &ao_calc_stat);
+        void display_stat(void);
         // Server name
         void set_server_name(const std::string &a_name);
         const std::string &get_server_name(void) const;
@@ -143,6 +147,8 @@ private:
         bool m_dns_use_ai_cache;
         std::string m_dns_ai_cache_file;
         uint64_t m_start_time_ms;
+        uint64_t m_stat_last_ms;
+        t_stat_cntr_t m_stat_last;
         t_srvr_list_t m_t_srvr_list;
         bool m_is_initd;
 };

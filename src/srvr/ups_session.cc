@@ -219,7 +219,6 @@ int32_t ups_session::teardown(ups_session *a_ups,
                 // TODO FIX!!!
                 // -------------------------------------------------
 #if 0
-                subr_log_status(a_status);
                 m_subr->set_end_time_ms(get_time_ms());
 #endif
                 bool l_detach_resp = l_ups.m_subr.m_detach_resp;
@@ -283,6 +282,39 @@ int32_t ups_session::queue_input(void)
                 return STATUS_ERROR;
         }
         return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+void ups_session::log_status(uint16_t a_status)
+{
+        if(!m_subr.m_session)
+        {
+                return;
+        }
+        t_srvr& l_t_srvr = m_subr.m_session->m_t_srvr;
+        t_stat_cntr_t& l_stat =l_t_srvr.m_stat;
+        //++(l_stat.m_upsv_resp);
+        uint16_t l_status;
+        if(m_resp)
+        {
+                l_status = m_resp->get_status();
+        }
+        else if(a_status)
+        {
+                l_status = a_status;
+        }
+        else
+        {
+                l_status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+        }
+        if((l_status >= 100) && (l_status < 200)) {/* TODO log 1xx's? */}
+        else if((l_status >= 200) && (l_status < 300)){++l_stat.m_upsv_resp_status_2xx;}
+        else if((l_status >= 300) && (l_status < 400)){++l_stat.m_upsv_resp_status_3xx;}
+        else if((l_status >= 400) && (l_status < 500)){++l_stat.m_upsv_resp_status_4xx;}
+        else if((l_status >= 500) && (l_status < 600)){++l_stat.m_upsv_resp_status_5xx;}
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -561,6 +593,7 @@ state_top:
                         char *l_buf = NULL;
                         uint64_t l_off = l_in_q->get_cur_write_offset();
                         l_s = l_nconn.nc_read(l_in_q, &l_buf, l_read);
+                        l_t_srvr.m_stat.m_upsv_bytes_read += l_read;
                         //NDBG_PRINT("nc_read: status[%d]\n", l_s);
                         // ---------------------------------
                         // handle error
@@ -774,7 +807,12 @@ state_top:
                                 // -------------------------
                                 // complete request
                                 // -------------------------
-                                //subr_log_status(0);
+                                // log status
+                                if(l_ups->m_resp)
+                                {
+                                        l_ups->log_status(l_ups->m_resp->get_status());
+                                }
+                                //log_status(0);
                                 //m_subr->set_end_time_ms(get_time_ms());
                                 // Get vars -completion -can delete subr object
                                 if(l_ups->m_subr.m_completion_cb)
@@ -848,6 +886,7 @@ state_top:
                         uint32_t l_written = 0;
                         int32_t l_s = nconn::NC_STATUS_OK;
                         l_s = l_nconn.nc_write(l_out_q, l_written);
+                        l_t_srvr.m_stat.m_upsv_bytes_written += l_written;
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
@@ -1259,9 +1298,9 @@ int32_t ups_session::subr_start(subr &a_subr)
         l_ups->m_resp->m_http_parser->data = l_ups->m_resp;
         l_ups->m_resp = l_ups->m_resp;
         l_ups->m_resp->m_expect_resp_body_flag = a_subr.get_expect_resp_body_flag();
-        // ---------------------------------------
+        // -------------------------------------------------
         // in q
-        // ---------------------------------------
+        // -------------------------------------------------
         if(a_subr.m_u &&
            (a_subr.m_u->ups_get_type() == proxy_u::S_UPS_TYPE_PROXY) &&
            (a_subr.m_session->m_out_q))
@@ -1274,9 +1313,9 @@ int32_t ups_session::subr_start(subr &a_subr)
                 l_ups->m_in_q = a_subr.m_session->m_t_srvr.get_nbq(NULL);
         }
         l_ups->m_resp->set_q(l_ups->m_in_q);
-        // ---------------------------------------
+        // -------------------------------------------------
         // out q
-        // ---------------------------------------
+        // -------------------------------------------------
         if(!l_ups->m_out_q)
         {
                 l_ups->m_out_q = l_t_srvr.get_nbq(NULL);
@@ -1285,18 +1324,18 @@ int32_t ups_session::subr_start(subr &a_subr)
         {
                 l_ups->m_out_q->reset_read();
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // create request
-        // ---------------------------------------
+        // -------------------------------------------------
         l_s = a_subr.create_request(*(l_ups->m_out_q));
         if(STATUS_OK != l_s)
         {
                 return ups_session::evr_fd_error_cb(l_nconn);
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // stats
-        // ---------------------------------------
-        //++m_stat.m_upsv_reqs;
+        // -------------------------------------------------
+        // TODO???
         //a_subr.set_start_time_ms(get_time_ms());
         //if(l_nconn->get_collect_stats_flag())
         //{
@@ -1304,9 +1343,10 @@ int32_t ups_session::subr_start(subr &a_subr)
         //}
         //l_ups->set_last_active_ms(get_time_ms());
         //l_ups->set_timeout_ms(a_subr.get_timeout_ms());
-        // ---------------------------------------
+        ++l_t_srvr.m_stat.m_upsv_reqs;
+        // -------------------------------------------------
         // idle timer
-        // ---------------------------------------
+        // -------------------------------------------------
         l_s = l_t_srvr.add_timer(l_ups->m_timeout_ms,
                                  ups_session::evr_event_timeout_cb,
                                  l_nconn,
@@ -1315,44 +1355,11 @@ int32_t ups_session::subr_start(subr &a_subr)
         {
                 return ups_session::evr_fd_error_cb(l_nconn);
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // start writing request
-        // ---------------------------------------
+        // -------------------------------------------------
         return ups_session::evr_fd_writeable_cb(l_nconn);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-#if 0
-void ups_session::subr_log_status(uint16_t a_status)
-{
-        if(!m_t_srvr)
-        {
-                return;
-        }
-        ++(m_t_srvr->m_stat.m_upsv_resp);
-        uint16_t l_status;
-        if(m_resp)
-        {
-                l_status = m_resp->get_status();
-        }
-        else if(a_status)
-        {
-                l_status = a_status;
-        }
-        else
-        {
-                l_status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-        }
-        if((l_status >= 100) && (l_status < 200)) {/* TODO log 1xx's? */}
-        else if((l_status >= 200) && (l_status < 300)){++m_t_srvr->m_stat.m_upsv_resp_status_2xx;}
-        else if((l_status >= 300) && (l_status < 400)){++m_t_srvr->m_stat.m_upsv_resp_status_3xx;}
-        else if((l_status >= 400) && (l_status < 500)){++m_t_srvr->m_stat.m_upsv_resp_status_4xx;}
-        else if((l_status >= 500) && (l_status < 600)){++m_t_srvr->m_stat.m_upsv_resp_status_5xx;}
-}
-#endif
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO

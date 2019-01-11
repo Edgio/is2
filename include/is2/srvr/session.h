@@ -98,6 +98,7 @@ public:
         int32_t queue_output(void);
         int32_t teardown(void);
         int32_t handle_req(void);
+        void log_status(uint16_t a_status = 0);
         int32_t add_evr_timer(uint32_t a_ms);
         int32_t cancel_evr_timer(void);
         int32_t cancel_evr_readable(void);

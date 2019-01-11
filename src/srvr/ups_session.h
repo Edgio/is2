@@ -44,6 +44,7 @@ public:
         ~ups_session(void);
         int32_t cancel_timer(void *a_timer);
         int32_t queue_input(void);
+        void log_status(uint16_t a_status = 0);
         // -------------------------------------------------
         // Public Static (class) methods
         // -------------------------------------------------
