@@ -272,7 +272,9 @@ int32_t session::teardown(void)
         //NDBG_PRINT("%sTEARDOWN%s: this: %p m_nconn: %p m_rqst: %p\n",
         //           ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
         //           this, m_nconn, m_rqst);
+        // -------------------------------------------------
         // cancel timer
+        // -------------------------------------------------
         int32_t l_s;
         l_s = cancel_evr_timer();
         // TODO Check status
@@ -525,6 +527,7 @@ state_top:
                         char *l_buf = NULL;
                         uint64_t l_off = l_in_q->get_cur_write_offset();
                         l_s = l_nconn->nc_read(l_in_q, &l_buf, l_read);
+                        if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_read += l_read; }
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
@@ -642,10 +645,10 @@ state_top:
                         {
                                 nbq l_nbq(64);
                                 const char l_exp_reply[] = "HTTP/1.1 100 Continue\r\n\r\n";
-                                l_nbq.write(l_exp_reply, sizeof(l_exp_reply));
+                                l_nbq.write(l_exp_reply, strlen(l_exp_reply));
                                 uint32_t l_w;
                                 l_nconn->nc_write(&l_nbq, l_w);
-                                //if(l_t_srvr) { l_t_srvr->m_stat.m_uv_bytes_written += l_w;}
+                                if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_written += strlen(l_exp_reply);}
                                 l_cs->m_access_info.m_bytes_out += l_w;
                                 l_cs->m_rqst->m_expect = false;
                         }
@@ -717,6 +720,7 @@ state_top:
                         uint32_t l_written = 0;
                         int32_t l_s = nconn::NC_STATUS_OK;
                         l_s = l_nconn->nc_write(l_out_q, l_written);
+                        if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_written += l_written; }
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
@@ -851,6 +855,7 @@ state_top:
                                                 }
                                                 l_cs->m_access_info.clear();
                                         }
+                                        l_cs->log_status();
                                         l_cs->m_out_q->reset_write();
                                         if(!l_shutdown &&
                                            (l_cs->m_rqst != NULL) &&
@@ -1134,7 +1139,7 @@ int32_t session::handle_req(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-void session::log_status(uint16_t a_status)
+void session::log_status(void)
 {
         t_stat_cntr_t& l_stat = m_t_srvr.m_stat;
         //++l_stat.m_resp;
