@@ -66,7 +66,7 @@ private:
         file_h& operator=(const file_h &);
         file_h(const file_h &);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         std::string m_root;
         std::string m_index;
@@ -85,7 +85,7 @@ public:
         // -------------------------------------------------
         static const uint32_t S_UPS_TYPE_FILE = 0xFFFF000A;
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         file_u(session &a_session);
         ~file_u();
@@ -100,13 +100,13 @@ public:
         uint32_t ups_get_type(void) { return S_UPS_TYPE_FILE;}
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         file_u& operator=(const file_u &);
         file_u(const file_u &);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         int m_fd;
         size_t m_size;

@@ -849,8 +849,6 @@ state_top:
                                                 {
                                                         // TODO Do nothing???
                                                 }
-                                                // TODO only resp done cb for clnt's with ups?
-                                                //l_cs->log_status(0);
                                                 l_cs->m_access_info.clear();
                                         }
                                         l_cs->m_out_q->reset_write();
@@ -1206,6 +1204,15 @@ int32_t session::add_timer(uint32_t a_time_ms, evr_event_cb_t a_cb, void *a_data
 evr_loop *session::get_evr_loop(void)
 {
         return m_t_srvr.get_evr_loop();
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+srvr& session::get_srvr(void)
+{
+        return *(m_t_srvr.get_srvr_instance());
 }
 //: ----------------------------------------------------------------------------
 //: API Responses

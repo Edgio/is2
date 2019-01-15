@@ -40,7 +40,7 @@ class base_u
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         base_u(session &a_session);
         virtual ~base_u() {};
@@ -72,7 +72,7 @@ protected:
         bool m_shutdown;
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         base_u& operator=(const base_u &);

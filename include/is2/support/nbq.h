@@ -40,7 +40,7 @@ class nbq
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         nbq(uint32_t a_bsize);
         ~nbq();
@@ -98,13 +98,13 @@ public:
         void set_max_read_queue(int64_t a_val) {m_max_read_queue = a_val;}
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         nbq& operator=(const nbq &);
         nbq(const nbq &);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         // Block list
         nb_list_t m_q;

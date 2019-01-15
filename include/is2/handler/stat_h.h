@@ -1,11 +1,11 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
+//: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
-//: \file:    default_rqst_h.h
+//: \file:    stat_h.h
 //: \details: TODO
 //: \author:  Reed P. Morrison
-//: \date:    03/11/2015
+//: \date:    12/12/2015
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -20,35 +20,41 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef _DEFAULT_RQST_H
-#define _DEFAULT_RQST_H
+#ifndef _STAT_H_H
+#define _STAT_H_H
 //: ----------------------------------------------------------------------------
-//: Includes
+//: includes
 //: ----------------------------------------------------------------------------
-#include "is2/srvr/rqst_h.h"
+#include "is2/srvr/default_rqst_h.h"
 namespace ns_is2 {
 //: ----------------------------------------------------------------------------
-//: default_rqst_h
+//: file_h
 //: ----------------------------------------------------------------------------
-class default_rqst_h: public rqst_h
+class stat_h: public default_rqst_h
 {
 public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        default_rqst_h(void);
-        ~default_rqst_h();
+        stat_h(void);
+        ~stat_h();
         h_resp_t do_get(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap);
-        h_resp_t do_post(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap);
-        h_resp_t do_put(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap);
-        h_resp_t do_delete(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap);
-        h_resp_t do_default(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap);
-        // Do default method override
-        bool get_do_default(void);
+        int32_t set_route(const std::string &a_route);
 private:
+        // -------------------------------------------------
+        // private methods
+        // -------------------------------------------------
         // Disallow copy/assign
-        default_rqst_h& operator=(const default_rqst_h &);
-        default_rqst_h(const default_rqst_h &);
+        stat_h& operator=(const stat_h &);
+        stat_h(const stat_h &);
+        // stats
+        h_resp_t get_stats(session &a_session, rqst &a_rqst);
+        h_resp_t get_proxy_connections(session &a_session, rqst &a_rqst);
+        h_resp_t get_version(session &a_session, rqst &a_rqst);
+        // -------------------------------------------------
+        // private members
+        // -------------------------------------------------
+        std::string m_route;
 };
-}
+} //namespace ns_is2 {
 #endif

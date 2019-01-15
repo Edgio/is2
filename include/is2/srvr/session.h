@@ -43,6 +43,7 @@ class lsnr;
 class session;
 class base_u;
 class subr;
+class srvr;
 #ifndef resp_done_cb_t
 // TODO move to handler specific resp cb...
 typedef int32_t (*resp_done_cb_t)(session &);
@@ -53,7 +54,7 @@ typedef int32_t (*resp_done_cb_t)(session &);
 class session {
 public:
         // -------------------------------------------------
-        // Public members
+        // public members
         // -------------------------------------------------
         nconn *m_nconn;
         t_srvr &m_t_srvr;
@@ -69,11 +70,11 @@ public:
         access_info m_access_info;
         resp_done_cb_t m_resp_done_cb;
         // -------------------------------------------------
-        // Public static default
+        // public static default
         // -------------------------------------------------
         static default_rqst_h s_default_rqst_h;
         // -------------------------------------------------
-        // Public Static (class) methods
+        // public static (class) methods
         // -------------------------------------------------
         static int32_t evr_fd_readable_cb(void *a_data);
         static int32_t evr_fd_writeable_cb(void *a_data);
@@ -82,7 +83,7 @@ public:
         static int32_t evr_event_readable_cb(void *a_data);
         static int32_t evr_event_writeable_cb(void *a_data);
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         session(t_srvr &a_t_srvr);
         ~session(void);
@@ -106,16 +107,17 @@ public:
         const std::string &get_server_name(void);
         int32_t add_timer(uint32_t a_time_ms, evr_event_cb_t a_cb, void *a_data, void **ao_event);
         evr_loop *get_evr_loop(void);
+        srvr &get_srvr(void);
         int32_t subr_enqueue(subr &a_subr);
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         session& operator=(const session &);
         session(const session &);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         uint64_t m_last_active_ms;
         uint32_t m_timeout_ms;

@@ -68,5 +68,10 @@ ADD_EXECUTABLE(subrequest_cmd subrequest.cc)
 ADD_DEPENDENCIES(subrequest_cmd is2)
 SET_TARGET_PROPERTIES(subrequest_cmd PROPERTIES OUTPUT_NAME "subrequest")
 TARGET_LINK_LIBRARIES(subrequest_cmd ${LIBRARIES} is2 ssl crypto pthread)
-
-
+# ------------------------------------------------------------------------------
+# w_stat
+# ------------------------------------------------------------------------------
+ADD_EXECUTABLE(w_stat_cmd w_stat.cc)
+ADD_DEPENDENCIES(w_stat_cmd is2)
+SET_TARGET_PROPERTIES(w_stat_cmd PROPERTIES OUTPUT_NAME "w_stat")
+TARGET_LINK_LIBRARIES(w_stat_cmd ${LIBRARIES} is2 ssl crypto pthread)

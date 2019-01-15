@@ -43,7 +43,7 @@ class api_resp
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         api_resp(void);
         ~api_resp();
@@ -64,13 +64,13 @@ public:
         int32_t serialize(nbq &ao_q);
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         api_resp& operator=(const api_resp &);
         api_resp(const api_resp &);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         http_status_t m_status;
         kv_map_list_t m_headers;

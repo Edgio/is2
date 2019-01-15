@@ -50,7 +50,7 @@ class lsnr
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         lsnr(uint16_t a_port=12345, scheme_t a_scheme = SCHEME_TCP);
         ~lsnr();
@@ -77,14 +77,14 @@ public:
         static int32_t evr_fd_readable_cb(void *a_data);
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         lsnr& operator=(const lsnr &);
         lsnr(const lsnr &);
         int32_t init_client_conn(nconn *a_nconn);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         scheme_t m_scheme;
         uint32_t m_local_addr_v4;

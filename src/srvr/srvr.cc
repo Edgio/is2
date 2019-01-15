@@ -51,13 +51,17 @@ srvr::srvr(void):
         m_lsnr_list(),
         m_dns_use_ai_cache(true),
         m_dns_ai_cache_file(NRESOLVER_DEFAULT_AI_CACHE_FILE),
+        m_t_srvr_list(),
+        m_is_initd(false),
         m_start_time_ms(0),
+        m_stat_mutex(),
+        m_stat_update_ms(S_STAT_UPDATE_MS_DEFAULT),
         m_stat_last_ms(0),
         m_stat_last(),
-        m_t_srvr_list(),
-        m_is_initd(false)
+        m_stat_calc_last()
 {
         m_t_conf = new t_conf();
+        pthread_mutex_init(&m_stat_mutex, NULL);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -109,6 +113,7 @@ srvr::~srvr()
             delete m_t_conf;
             m_t_conf = NULL;
         }
+        pthread_mutex_destroy(&m_stat_mutex);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -178,7 +183,7 @@ void srvr::set_num_reqs_per_conn(int32_t a_num_reqs_per_conn)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-void srvr::set_update_stats_ms(uint32_t a_update_ms)
+void srvr::set_stat_update_ms(uint32_t a_update_ms)
 {
         m_t_conf->m_stat_update_ms = a_update_ms;
 }
@@ -215,16 +220,27 @@ static void aggregate_stat(t_stat_cntr_t &ao_total, const t_stat_cntr_t &a_stat)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-void srvr::get_stat(t_stat_cntr_t &ao_stat, t_stat_calc_t &ao_calc_stat)
+void srvr::get_stat(t_stat_cntr_t &ao_stat, t_stat_calc_t &ao_calc_stat, bool a_no_cache)
 {
-        t_stat_cntr_t l_cur_stat;
-        t_stat_calc_t l_cur_calc_stat;
+        pthread_mutex_lock(&m_stat_mutex);
         uint64_t l_cur_time_ms = get_time_ms();
         uint64_t l_delta_ms = l_cur_time_ms - m_stat_last_ms;
+        // -------------------------------------------------
+        // check if can return cache
+        // -------------------------------------------------
+        if(!a_no_cache &&
+          (l_delta_ms < m_stat_update_ms))
+        {
+                ao_stat = m_stat_last;
+                ao_calc_stat = m_stat_calc_last;
+                pthread_mutex_unlock(&m_stat_mutex);
+                return;
+        }
         // -------------------------------------------------
         // aggregate
         // -------------------------------------------------
         ao_stat.clear();
+        ao_calc_stat.clear();
         t_stat_cntr_list_t l_stat_list;
         for(t_srvr_list_t::const_iterator i_client = m_t_srvr_list.begin();
            i_client != m_t_srvr_list.end();
@@ -240,49 +256,49 @@ void srvr::get_stat(t_stat_cntr_t &ao_stat, t_stat_calc_t &ao_calc_stat)
                         continue;
                 }
                 l_stat_list.emplace(l_stat_list.begin(), l_stat);
-                aggregate_stat(l_cur_stat, l_stat);
+                aggregate_stat(ao_stat, l_stat);
         }
         // -------------------------------------------------
         // client calc'd stats
         // -------------------------------------------------
-        l_cur_calc_stat.m_req_delta = l_cur_stat.m_reqs - m_stat_last.m_reqs;
-        if(l_cur_calc_stat.m_req_delta > 0)
+        ao_calc_stat.m_req_delta = ao_stat.m_reqs - m_stat_last.m_reqs;
+        if(ao_calc_stat.m_req_delta > 0)
         {
-                l_cur_calc_stat.m_resp_status_2xx_pcnt = 100.0*((float)(l_cur_stat.m_resp_status_2xx - m_stat_last.m_resp_status_2xx))/((float)l_cur_calc_stat.m_req_delta);
-                l_cur_calc_stat.m_resp_status_3xx_pcnt = 100.0*((float)(l_cur_stat.m_resp_status_3xx - m_stat_last.m_resp_status_3xx))/((float)l_cur_calc_stat.m_req_delta);
-                l_cur_calc_stat.m_resp_status_4xx_pcnt = 100.0*((float)(l_cur_stat.m_resp_status_4xx - m_stat_last.m_resp_status_4xx))/((float)l_cur_calc_stat.m_req_delta);
-                l_cur_calc_stat.m_resp_status_5xx_pcnt = 100.0*((float)(l_cur_stat.m_resp_status_5xx - m_stat_last.m_resp_status_5xx))/((float)l_cur_calc_stat.m_req_delta);
+                ao_calc_stat.m_resp_status_2xx_pcnt = 100.0*((float)(ao_stat.m_resp_status_2xx - m_stat_last.m_resp_status_2xx))/((float)ao_calc_stat.m_req_delta);
+                ao_calc_stat.m_resp_status_3xx_pcnt = 100.0*((float)(ao_stat.m_resp_status_3xx - m_stat_last.m_resp_status_3xx))/((float)ao_calc_stat.m_req_delta);
+                ao_calc_stat.m_resp_status_4xx_pcnt = 100.0*((float)(ao_stat.m_resp_status_4xx - m_stat_last.m_resp_status_4xx))/((float)ao_calc_stat.m_req_delta);
+                ao_calc_stat.m_resp_status_5xx_pcnt = 100.0*((float)(ao_stat.m_resp_status_5xx - m_stat_last.m_resp_status_5xx))/((float)ao_calc_stat.m_req_delta);
         }
         if(l_delta_ms > 0)
         {
-                l_cur_calc_stat.m_req_s = ((float)l_cur_calc_stat.m_req_delta*1000)/((float)l_delta_ms);
-                l_cur_calc_stat.m_bytes_read_s = ((float)((l_cur_stat.m_bytes_read - m_stat_last.m_bytes_read)*1000))/((float)l_delta_ms);
-                l_cur_calc_stat.m_bytes_write_s = ((float)((l_cur_stat.m_bytes_written - m_stat_last.m_bytes_written)*1000))/((float)l_delta_ms);
+                ao_calc_stat.m_req_s = ((float)ao_calc_stat.m_req_delta*1000)/((float)l_delta_ms);
+                ao_calc_stat.m_bytes_read_s = ((float)((ao_stat.m_bytes_read - m_stat_last.m_bytes_read)*1000))/((float)l_delta_ms);
+                ao_calc_stat.m_bytes_write_s = ((float)((ao_stat.m_bytes_written - m_stat_last.m_bytes_written)*1000))/((float)l_delta_ms);
         }
         // -------------------------------------------------
         // upstream calc'd stats
         // -------------------------------------------------
-        l_cur_calc_stat.m_upsv_req_delta = l_cur_stat.m_upsv_reqs - m_stat_last.m_upsv_reqs;
-        if(l_cur_calc_stat.m_upsv_req_delta > 0)
+        ao_calc_stat.m_upsv_req_delta = ao_stat.m_upsv_reqs - m_stat_last.m_upsv_reqs;
+        if(ao_calc_stat.m_upsv_req_delta > 0)
         {
-                l_cur_calc_stat.m_upsv_resp_status_2xx_pcnt = 100.0*((float)(l_cur_stat.m_upsv_resp_status_2xx - m_stat_last.m_upsv_resp_status_2xx))/((float)l_cur_calc_stat.m_upsv_req_delta);
-                l_cur_calc_stat.m_upsv_resp_status_3xx_pcnt = 100.0*((float)(l_cur_stat.m_upsv_resp_status_3xx - m_stat_last.m_upsv_resp_status_3xx))/((float)l_cur_calc_stat.m_upsv_req_delta);
-                l_cur_calc_stat.m_upsv_resp_status_4xx_pcnt = 100.0*((float)(l_cur_stat.m_upsv_resp_status_4xx - m_stat_last.m_upsv_resp_status_4xx))/((float)l_cur_calc_stat.m_upsv_req_delta);
-                l_cur_calc_stat.m_upsv_resp_status_5xx_pcnt = 100.0*((float)(l_cur_stat.m_upsv_resp_status_5xx - m_stat_last.m_upsv_resp_status_5xx))/((float)l_cur_calc_stat.m_upsv_req_delta);
+                ao_calc_stat.m_upsv_resp_status_2xx_pcnt = 100.0*((float)(ao_stat.m_upsv_resp_status_2xx - m_stat_last.m_upsv_resp_status_2xx))/((float)ao_calc_stat.m_upsv_req_delta);
+                ao_calc_stat.m_upsv_resp_status_3xx_pcnt = 100.0*((float)(ao_stat.m_upsv_resp_status_3xx - m_stat_last.m_upsv_resp_status_3xx))/((float)ao_calc_stat.m_upsv_req_delta);
+                ao_calc_stat.m_upsv_resp_status_4xx_pcnt = 100.0*((float)(ao_stat.m_upsv_resp_status_4xx - m_stat_last.m_upsv_resp_status_4xx))/((float)ao_calc_stat.m_upsv_req_delta);
+                ao_calc_stat.m_upsv_resp_status_5xx_pcnt = 100.0*((float)(ao_stat.m_upsv_resp_status_5xx - m_stat_last.m_upsv_resp_status_5xx))/((float)ao_calc_stat.m_upsv_req_delta);
         }
         if(l_delta_ms > 0)
         {
-                l_cur_calc_stat.m_upsv_req_s = ((float)l_cur_calc_stat.m_upsv_req_delta*1000)/((float)l_delta_ms);
-                l_cur_calc_stat.m_upsv_bytes_read_s = ((float)((l_cur_stat.m_upsv_bytes_read - m_stat_last.m_upsv_bytes_read)*1000))/((float)l_delta_ms);
-                l_cur_calc_stat.m_upsv_bytes_write_s = ((float)((l_cur_stat.m_upsv_bytes_written - m_stat_last.m_upsv_bytes_written)*1000))/((float)l_delta_ms);
+                ao_calc_stat.m_upsv_req_s = ((float)ao_calc_stat.m_upsv_req_delta*1000)/((float)l_delta_ms);
+                ao_calc_stat.m_upsv_bytes_read_s = ((float)((ao_stat.m_upsv_bytes_read - m_stat_last.m_upsv_bytes_read)*1000))/((float)l_delta_ms);
+                ao_calc_stat.m_upsv_bytes_write_s = ((float)((ao_stat.m_upsv_bytes_written - m_stat_last.m_upsv_bytes_written)*1000))/((float)l_delta_ms);
         }
         // -------------------------------------------------
         // copy
         // -------------------------------------------------
-        ao_stat = l_cur_stat;
-        ao_calc_stat = l_cur_calc_stat;
-        m_stat_last = l_cur_stat;
+        m_stat_last = ao_stat;
+        m_stat_calc_last = ao_calc_stat;
         m_stat_last_ms = l_cur_time_ms;
+        pthread_mutex_unlock(&m_stat_mutex);
 }
 //: ----------------------------------------------------------------------------
 //: \details: Global timeout for connect/read/write

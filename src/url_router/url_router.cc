@@ -317,7 +317,7 @@ class node
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         node();
         ~node();
@@ -335,7 +335,7 @@ public:
         int32_t collision_test(pattern_t a_pattern);
         void display_trie(uint32_t a_indent);
         // -------------------------------------------------
-        // Public members
+        // public members
         // -------------------------------------------------
         uint32_t m_endpoint;
         edge_list_t m_edge_list;
@@ -356,7 +356,7 @@ class edge
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         edge(const pattern_t &a_pattern, node *a_child);
         ~edge();
@@ -366,7 +366,7 @@ public:
                          url_pmap_t &ao_url_pmap,
                          std::string &ao_suffix);
         // -------------------------------------------------
-        // Public members
+        // public members
         // -------------------------------------------------
         pattern_t m_pattern;
         node *m_child;           // practically, this is never null, as that'd be an edge with no endpoint
