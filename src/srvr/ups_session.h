@@ -42,7 +42,6 @@ public:
         // -------------------------------------------------
         ups_session(subr &a_subr);
         ~ups_session(void);
-        int32_t cancel_timer(void *a_timer);
         int32_t queue_input(void);
         void log_status(uint16_t a_status = 0);
         // -------------------------------------------------
@@ -54,18 +53,11 @@ public:
         static int32_t evr_event_timeout_cb(void *a_data);
         static int32_t evr_event_readable_cb(void *a_data);
         static int32_t evr_event_writeable_cb(void *a_data);
-        // -------------------------------------------------
-        // teardown
-        // -------------------------------------------------
+        int32_t cancel_evr_timer(void);
         static int32_t teardown(ups_session *a_ups,
                                 t_srvr &a_t_srvr,
                                 nconn &a_nconn,
                                 http_status_t a_status);
-        // *************************************************
-        // -------------------------------------------------
-        // subrequest support
-        // -------------------------------------------------
-        // *************************************************
         static void subr_enqueue(subr &a_subr);
         static int32_t subr_dequeue(void *a_data);
         static int32_t subr_start(subr &a_subr);
@@ -92,7 +84,6 @@ private:
         // Disallow copy/assign
         ups_session& operator=(const ups_session &);
         ups_session(const ups_session &);
-        int32_t cancel_evr_timer(void);
         int32_t cancel_evr_readable(void);
         int32_t cancel_evr_writeable(void);
 };

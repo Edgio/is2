@@ -53,6 +53,20 @@ nconn_pool::nconn_pool(uint64_t a_max_active_size,
 //: ----------------------------------------------------------------------------
 nconn_pool::~nconn_pool(void)
 {
+        // -------------------------------------------------
+        // remote all active
+        // -------------------------------------------------
+        for(active_conn_map_t::const_iterator i_l = m_active_conn_map.begin();
+            i_l != m_active_conn_map.end();
+            ++i_l)
+        {
+                for(nconn_set_t::const_iterator i_c = i_l->second.begin();
+                    i_c != i_l->second.end();
+                    ++i_c)
+                {
+                        m_reap_list.push_back(*i_c);
+                }
+        }
         evict_all_idle();
         reap();
 }

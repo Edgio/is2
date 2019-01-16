@@ -115,6 +115,15 @@ session::~session(void)
                 delete m_out_q;
                 m_out_q = NULL;
         }
+        if(m_u)
+        {
+                if(!m_u->ups_done())
+                {
+                        m_u->ups_cancel();
+                }
+                delete m_u;
+                m_u = NULL;
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -734,7 +743,6 @@ state_top:
                         case nconn::NC_STATUS_EOF:
                         {
                                 l_nconn->set_state_done();
-                                NDBG_PRINT("goto state_top\n");
                                 goto state_top;
                         }
                         // ---------------------------------
@@ -742,7 +750,6 @@ state_top:
                         // ---------------------------------
                         case nconn::NC_STATUS_ERROR:
                         {
-                                //if(l_t_srvr) { ++(l_t_srvr->m_stat.m_clnt_errors); }
                                 l_nconn->set_state_done();
                                 goto state_top;
                         }
@@ -770,11 +777,6 @@ state_top:
                         }
                         }
                         }
-                        // ---------------------------------
-                        // stats
-                        // ---------------------------------
-                        //if(l_t_srvr) { l_t_srvr->m_stat.m_clnt_bytes_written += l_written; }
-                        //if(l_cs) { l_cs->m_access_info.m_bytes_out += l_written; }
                         // ---------------------------------
                         // proxy backpressure
                         // ---------------------------------

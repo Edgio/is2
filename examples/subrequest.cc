@@ -30,6 +30,7 @@
 #include <is2/srvr/subr.h>
 #include <is2/srvr/session.h>
 #include <is2/srvr/default_rqst_h.h>
+#include <is2/handler/stat_h.h>
 #include <is2/support/trace.h>
 #include <is2/support/time_util.h>
 #include <string.h>
@@ -119,7 +120,7 @@ int32_t subrequest_handler::s_completion_cb(ns_is2::subr &a_subr,
                                             ns_is2::nconn &a_nconn,
                                             ns_is2::resp &a_resp)
 {
-        printf("COMPLETE: a_nconn: %p\n", &a_nconn);
+        //printf("COMPLETE: a_nconn: %p\n", &a_nconn);
         const char l_resp[] = "{\"msg\": \"hello\"}";
         int32_t l_s;
         l_s = create_response(*a_subr.m_session, l_resp, strlen(l_resp));
@@ -152,6 +153,9 @@ int main(void)
         //ns_is2::trc_log_file_open("/dev/stdout");
         ns_is2::srvr *l_srvr = new ns_is2::srvr();
         ns_is2::lsnr *l_lsnr = new ns_is2::lsnr(12345, ns_is2::SCHEME_TCP);
+        ns_is2::rqst_h *l_stat_h = new ns_is2::stat_h();
+        l_lsnr->add_route("/stat.json", l_stat_h);
+        l_srvr->set_stat_update_ms(1000);
         ns_is2::rqst_h *l_subr_h = new subrequest_handler();
         l_lsnr->set_default_route(l_subr_h);
         l_srvr->register_lsnr(l_lsnr);
@@ -163,6 +167,7 @@ int main(void)
         //ProfilerStop();
         if(l_srvr) {delete l_srvr; l_srvr = NULL;}
         if(l_subr_h) {delete l_subr_h; l_subr_h = NULL;}
+        if(l_stat_h) {delete l_stat_h; l_stat_h = NULL;}
         //ns_is2::trc_log_file_close();
         return 0;
 }
