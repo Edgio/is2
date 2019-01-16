@@ -100,7 +100,7 @@ public:
                 NC_STATE_DONE
         } nc_conn_state_t;
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         nconn(void);
         virtual ~nconn();
@@ -243,12 +243,12 @@ public:
         socklen_t m_remote_sa_len;
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         nconn& operator=(const nconn &);
         nconn(const nconn &);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         nc_conn_state_t m_nc_state;
         uint64_t m_id;

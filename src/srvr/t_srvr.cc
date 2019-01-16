@@ -60,6 +60,8 @@ t_srvr::t_srvr(const t_conf *a_t_conf):
         m_orphan_in_q(NULL),
         m_orphan_out_q(NULL),
         m_stat(),
+        m_stat_cache(),
+        m_stat_cache_mutex(),
         m_t_conf(a_t_conf),
         // *************************************************
         // -------------------------------------------------
@@ -80,6 +82,7 @@ t_srvr::t_srvr(const t_conf *a_t_conf):
         m_is_initd(false),
         m_srvr(NULL)
 {
+        pthread_mutex_init(&m_stat_cache_mutex, NULL);
         m_orphan_in_q = get_nbq(NULL);
         m_orphan_out_q = get_nbq(NULL);
 }
@@ -124,6 +127,7 @@ t_srvr::~t_srvr()
                 delete m_orphan_out_q;
                 m_orphan_out_q = NULL;
         }
+        pthread_mutex_destroy(&m_stat_cache_mutex);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -341,6 +345,19 @@ void *t_srvr::t_run(void *a_nothing)
         }
         m_stopped = false;
         // -------------------------------------------------
+        // start stats
+        // -------------------------------------------------
+        m_stat.clear();
+        if(m_t_conf->m_stat_update_ms)
+        {
+                // Add timers...
+                void *l_timer = NULL;
+                add_timer(m_t_conf->m_stat_update_ms,
+                          s_stat_update,
+                          this,
+                          &l_timer);
+        }
+        // -------------------------------------------------
         // run
         // -------------------------------------------------
         while(!m_stopped)
@@ -411,5 +428,53 @@ int32_t t_srvr::cancel_event(void *a_event)
         }
         evr_event_t *l_t = static_cast<evr_event_t *>(a_event);
         return m_evr_loop->cancel_event(l_t);
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t t_srvr::get_stat(t_stat_cntr_t &ao_stat)
+{
+        pthread_mutex_lock(&m_stat_cache_mutex);
+        ao_stat = m_stat_cache;
+        pthread_mutex_unlock(&m_stat_cache_mutex);
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+int32_t t_srvr::s_stat_update(void *a_data)
+{
+        t_srvr *l_t_srvr = static_cast<t_srvr *>(a_data);
+        if(!l_t_srvr)
+        {
+                return STATUS_ERROR;
+        }
+        l_t_srvr->stat_update();
+        if(!l_t_srvr->m_t_conf->m_stat_update_ms)
+        {
+                return STATUS_OK;
+        }
+        // Add timer for next...
+        void *l_timer = NULL;
+        l_t_srvr->add_timer(l_t_srvr->m_t_conf->m_stat_update_ms,
+                            s_stat_update,
+                            a_data,
+                            &l_timer);
+        return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+void t_srvr::stat_update(void)
+{
+        pthread_mutex_lock(&m_stat_cache_mutex);
+        m_stat_cache = m_stat;
+        pthread_mutex_unlock(&m_stat_cache_mutex);
 }
 } //namespace ns_is2 {

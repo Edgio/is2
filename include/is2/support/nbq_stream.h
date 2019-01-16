@@ -35,11 +35,11 @@ class nbq_stream
 {
 public:
         // -------------------------------------------------
-        // Public types
+        // public types
         // -------------------------------------------------
         typedef char Ch;
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         nbq_stream(nbq &a_nbq):
                 m_nbq(a_nbq),
@@ -86,13 +86,13 @@ public:
         size_t PutEnd(Ch*) { assert(false); return 0; }
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         nbq_stream& operator=(const nbq_stream &);
         nbq_stream(const nbq_stream &);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         nbq &m_nbq;
         size_t m_idx;

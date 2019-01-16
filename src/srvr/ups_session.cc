@@ -139,7 +139,6 @@ ups_session::ups_session(subr &a_subr):
         m_evr_readable(NULL),
         m_evr_writeable(NULL)
 {
-        //NDBG_PRINT("%sCONSTRUCT%s\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -148,7 +147,6 @@ ups_session::ups_session(subr &a_subr):
 //: ----------------------------------------------------------------------------
 ups_session::~ups_session(void)
 {
-        //NDBG_PRINT("%sDESTROY%s: nconn: %p ups: %p \n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, m_nconn, this);
         int32_t l_s;
         l_s = cancel_evr_timer();
         // TODO check status
@@ -177,6 +175,12 @@ ups_session::~ups_session(void)
                 delete m_out_q;
                 m_out_q = NULL;
         }
+        if(m_nconn &&
+           m_subr.m_session)
+        {
+                m_subr.m_session->m_t_srvr.m_nconn_proxy_pool.release(m_nconn);
+        }
+        m_nconn = NULL;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -193,72 +197,49 @@ int32_t ups_session::teardown(ups_session *a_ups,
         //           &a_nconn, a_status, a_ups);
         if(!a_ups)
         {
-                //++m_stat.m_upsv_conn_completed;
                 if(a_t_srvr.m_nconn_proxy_pool.release(&a_nconn) != STATUS_OK)
                 {
                         TRC_ERROR("performing m_nconn_proxy_pool.release: a_nconn: %p\n", &a_nconn);
                 }
-                //m_stat.m_pool_proxy_conn_active = m_nconn_proxy_pool.get_active_size();
-                //m_stat.m_pool_proxy_conn_idle = m_nconn_proxy_pool.get_idle_size();
                 return STATUS_OK;
         }
         ups_session &l_ups = *a_ups;
-        l_ups.m_subr.m_state = subr::SUBR_STATE_NONE;;
-        // TODO FIX!!!
-#if 0
-        l_ups.set_shutdown();
-        l_ups.set_ups_done();
-#endif
+        l_ups.m_subr.m_state = subr::SUBR_STATE_NONE;
+        if(l_ups.m_subr.m_u &&
+          (l_ups.m_subr.m_u->ups_get_type() == proxy_u::S_UPS_TYPE_PROXY))
+        {
+                l_ups.m_subr.m_u->set_shutdown();
+                l_ups.m_subr.m_u->set_ups_done();
+        }
         if(a_status != HTTP_STATUS_OK)
         {
                 if(l_ups.m_resp)
                 {
                         l_ups.m_resp->set_status(a_status);
                 }
-                // -------------------------------------------------
-                // TODO FIX!!!
-                // -------------------------------------------------
-#if 0
-                subr_log_status(a_status);
-                m_subr->set_end_time_ms(get_time_ms());
-#endif
                 bool l_detach_resp = l_ups.m_subr.m_detach_resp;
-#if 0
-                subr::error_cb_t l_error_cb = m_subr->get_error_cb();
+                subr::error_cb_t l_error_cb = l_ups.m_subr.m_error_cb;
                 if(l_error_cb)
                 {
                         const char *l_err_str = NULL;
-                        if(m_nconn)
+                        if(l_ups.m_nconn)
                         {
-                                l_err_str = m_nconn->get_last_error().c_str();
+                                l_err_str = l_ups.m_nconn->get_last_error().c_str();
                         }
-                        l_error_cb(*(m_subr), m_nconn, a_status, l_err_str);
+                        l_error_cb(l_ups.m_subr, l_ups.m_nconn, a_status, l_err_str);
                         // TODO Check status...
                 }
-#endif
                 if(l_detach_resp)
                 {
                         l_ups.m_out_q = NULL;
                 }
-                // -------------------------------------------------
-                // TODO FIX!!!
-                // -------------------------------------------------
-#if 0
-                m_subr->set_end_time_ms(get_time_ms());
-                if(m_nconn && m_nconn->get_collect_stats_flag())
-                {
-                        m_nconn->set_stat_tt_completion_us(get_delta_time_us(m_nconn->get_connect_start_time_us()));
-                        m_nconn->reset_stats();
-                }
-#endif
         }
-        //++m_stat.m_upsv_conn_completed;
+        l_ups.cancel_evr_timer();
         if(a_t_srvr.m_nconn_proxy_pool.release(&a_nconn) != STATUS_OK)
         {
                 TRC_ERROR("performing m_nconn_proxy_pool.release: a_nconn: %p\n", &a_nconn);
         }
-        //m_stat.m_pool_proxy_conn_active = m_nconn_proxy_pool.get_active_size();
-        //m_stat.m_pool_proxy_conn_idle = m_nconn_proxy_pool.get_idle_size();
+        l_ups.m_nconn = NULL;
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -283,6 +264,38 @@ int32_t ups_session::queue_input(void)
                 return STATUS_ERROR;
         }
         return STATUS_OK;
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+void ups_session::log_status(uint16_t a_status)
+{
+        if(!m_subr.m_session)
+        {
+                return;
+        }
+        t_srvr& l_t_srvr = m_subr.m_session->m_t_srvr;
+        t_stat_cntr_t& l_stat =l_t_srvr.m_stat;
+        uint16_t l_status;
+        if(m_resp)
+        {
+                l_status = m_resp->get_status();
+        }
+        else if(a_status)
+        {
+                l_status = a_status;
+        }
+        else
+        {
+                l_status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+        }
+        if((l_status >= 100) && (l_status < 200)) {/* TODO log 1xx's? */}
+        else if((l_status >= 200) && (l_status < 300)){++l_stat.m_upsv_resp_status_2xx;}
+        else if((l_status >= 300) && (l_status < 400)){++l_stat.m_upsv_resp_status_3xx;}
+        else if((l_status >= 400) && (l_status < 500)){++l_stat.m_upsv_resp_status_4xx;}
+        else if((l_status >= 500) && (l_status < 600)){++l_stat.m_upsv_resp_status_5xx;}
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -454,13 +467,6 @@ state_top:
                         return STATUS_ERROR;
                 }
                 l_nconn.set_state(nconn::NC_STATE_CONNECTING);
-                // stats
-#if 0
-                if(m_collect_stats_flag)
-                {
-                        m_connect_start_time_us = get_time_us();
-                }
-#endif
                 goto state_top;
         }
         // -------------------------------------------------
@@ -506,13 +512,6 @@ state_top:
                                 //NDBG_PRINT("LABEL[%s]: Error performing m_read_cb\n", m_label.c_str());
                                 return STATUS_ERROR;
                         }
-                }
-#endif
-                // stats
-#if 0
-                if(m_collect_stats_flag)
-                {
-                        m_stat.m_tt_connect_us = get_delta_time_us(m_connect_start_time_us);
                 }
 #endif
                 goto state_top;
@@ -561,7 +560,8 @@ state_top:
                         char *l_buf = NULL;
                         uint64_t l_off = l_in_q->get_cur_write_offset();
                         l_s = l_nconn.nc_read(l_in_q, &l_buf, l_read);
-                        //NDBG_PRINT("nc_read: status[%d]\n", l_s);
+                        l_t_srvr.m_stat.m_upsv_bytes_read += l_read;
+                        //NDBG_PRINT("nc_read: status[%d] l_read[%d]\n", l_s, (int)l_read);
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
@@ -576,11 +576,22 @@ state_top:
                         {
                                 if(l_ups)
                                 {
-                                // TODO FIX!!!
-#if 0
-                                        l_ups->subr_complete();
-#endif
+                                        l_ups->log_status(0);
+                                        bool l_detach_resp = l_ups->m_subr.m_detach_resp;
+                                        subr::completion_cb_t l_completion_cb = l_ups->m_subr.m_completion_cb;
+                                        if(l_completion_cb &&
+                                           l_ups->m_resp)
+                                        {
+                                                l_completion_cb(l_ups->m_subr, l_nconn, *l_ups->m_resp);
+                                        }
+                                        if(l_detach_resp)
+                                        {
+                                                l_ups->m_resp = NULL;
+                                                l_ups->m_in_q = NULL;
+                                        }
                                 }
+                                // disassociate connection
+                                l_nconn.set_data(NULL);
                                 int32_t l_s;
                                 l_s = ups_session::teardown(l_ups, l_t_srvr, l_nconn, HTTP_STATUS_OK);
                                 // TODO -check status...
@@ -660,19 +671,6 @@ state_top:
                         }
                         }
                         // ---------------------------------
-                        // stats
-                        // ---------------------------------
-#if 0
-                        if(m_collect_stats_flag && (ao_read > 0))
-                        {
-                                m_stat.m_total_bytes += ao_read;
-                                if(m_stat.m_tt_first_read_us == 0)
-                                {
-                                        m_stat.m_tt_first_read_us = get_delta_time_us(m_request_start_time_us);
-                                }
-                        }
-#endif
-                        // ---------------------------------
                         // parse
                         // ---------------------------------
                         if((l_read > 0) &&
@@ -693,7 +691,6 @@ state_top:
                                                                      l_hmsg->m_http_parser_settings,
                                                                      reinterpret_cast<const char *>(l_buf),
                                                                      l_read);
-                                //NDBG_PRINT("STATUS: %lu\n", l_parse_status);
                                 if(l_parse_status < (size_t)l_read)
                                 {
                                         TRC_ERROR("Parse error.  Reason: %s: %s\n",
@@ -707,7 +704,6 @@ state_top:
                                         UNUSED(l_s);
                                         return STATUS_DONE;
                                 }
-                                //NDBG_PRINT("complete: %d\n", l_ups->m_resp->m_complete);
                         }
                         // ---------------------------------
                         // upstream read
@@ -743,23 +739,9 @@ state_top:
                                 // -------------------------
                                 // Cancel timer
                                 // -------------------------
-                                l_ups->cancel_timer(l_ups->m_evr_timeout);
+                                l_ups->cancel_evr_timer();
                                 // TODO Check status
                                 l_ups->m_evr_timeout = NULL;
-                                // -------------------------
-                                // stats
-                                // -------------------------
-#if 0
-                                // Get request time
-                                if(l_nconn.get_collect_stats_flag())
-                                {
-                                        l_nconn.set_stat_tt_completion_us(get_delta_time_us(l_nconn.get_connect_start_time_us()));
-                                }
-                                if(l_ups->m_resp && l_t_srvr)
-                                {
-                                        l_t_srvr.add_stat_to_agg(l_nconn.get_stats(), l_ups->m_resp->get_status());
-                                }
-#endif
                                 // -------------------------
                                 // check can reuse
                                 // -------------------------
@@ -774,9 +756,13 @@ state_top:
                                 // -------------------------
                                 // complete request
                                 // -------------------------
-                                //subr_log_status(0);
-                                //m_subr->set_end_time_ms(get_time_ms());
-                                // Get vars -completion -can delete subr object
+                                // log status
+                                uint16_t l_status = HTTP_STATUS_OK;
+                                if(l_ups->m_resp)
+                                {
+                                        l_status = l_ups->m_resp->get_status();
+                                }
+                                l_ups->log_status(l_status);
                                 if(l_ups->m_subr.m_completion_cb)
                                 {
                                         l_ups->m_subr.m_completion_cb(l_ups->m_subr, l_nconn, *(l_ups->m_resp));
@@ -821,6 +807,7 @@ state_top:
                                 // -------------------------
                                 // set idle
                                 // -------------------------
+                                l_ups->m_nconn = NULL;
                                 l_ups = NULL;
                                 l_idle = true;
                                 goto state_top;
@@ -848,6 +835,8 @@ state_top:
                         uint32_t l_written = 0;
                         int32_t l_s = nconn::NC_STATUS_OK;
                         l_s = l_nconn.nc_write(l_out_q, l_written);
+                        //NDBG_PRINT("nc_write: status[%d] l_written[%d]\n", l_s, (int)l_written);
+                        l_t_srvr.m_stat.m_upsv_bytes_written += l_written;
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
@@ -1038,9 +1027,9 @@ void ups_session::subr_enqueue(subr &a_subr)
         // attach to upstream object if missing
         if(!a_subr.m_session->m_u)
         {
-                subr_u *l_subr_u = new subr_u(*(a_subr.m_session));
-                l_subr_u->queue(a_subr);
+                subr_u *l_subr_u = new subr_u(*(a_subr.m_session), &a_subr);
                 a_subr.m_session->m_u = l_subr_u;
+                a_subr.m_u = l_subr_u;
         }
         a_subr.m_state = subr::SUBR_STATE_QUEUED;
         t_srvr &l_t_srvr = a_subr.m_session->m_t_srvr;
@@ -1120,7 +1109,6 @@ int32_t ups_session::subr_start(subr &a_subr)
         nconn_pool &l_proxy_pool = l_t_srvr.m_nconn_proxy_pool;
         nconn *l_nconn = NULL;
         l_nconn = l_proxy_pool.get_idle(a_subr.get_label());
-        //NDBG_PRINT("l_nconn: %p\n", l_nconn);
         if(!l_nconn)
         {
                 //NDBG_PRINT("l_nconn: %p\n", l_nconn);
@@ -1259,9 +1247,9 @@ int32_t ups_session::subr_start(subr &a_subr)
         l_ups->m_resp->m_http_parser->data = l_ups->m_resp;
         l_ups->m_resp = l_ups->m_resp;
         l_ups->m_resp->m_expect_resp_body_flag = a_subr.get_expect_resp_body_flag();
-        // ---------------------------------------
+        // -------------------------------------------------
         // in q
-        // ---------------------------------------
+        // -------------------------------------------------
         if(a_subr.m_u &&
            (a_subr.m_u->ups_get_type() == proxy_u::S_UPS_TYPE_PROXY) &&
            (a_subr.m_session->m_out_q))
@@ -1274,9 +1262,9 @@ int32_t ups_session::subr_start(subr &a_subr)
                 l_ups->m_in_q = a_subr.m_session->m_t_srvr.get_nbq(NULL);
         }
         l_ups->m_resp->set_q(l_ups->m_in_q);
-        // ---------------------------------------
+        // -------------------------------------------------
         // out q
-        // ---------------------------------------
+        // -------------------------------------------------
         if(!l_ups->m_out_q)
         {
                 l_ups->m_out_q = l_t_srvr.get_nbq(NULL);
@@ -1285,18 +1273,18 @@ int32_t ups_session::subr_start(subr &a_subr)
         {
                 l_ups->m_out_q->reset_read();
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // create request
-        // ---------------------------------------
+        // -------------------------------------------------
         l_s = a_subr.create_request(*(l_ups->m_out_q));
         if(STATUS_OK != l_s)
         {
                 return ups_session::evr_fd_error_cb(l_nconn);
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // stats
-        // ---------------------------------------
-        //++m_stat.m_upsv_reqs;
+        // -------------------------------------------------
+        // TODO???
         //a_subr.set_start_time_ms(get_time_ms());
         //if(l_nconn->get_collect_stats_flag())
         //{
@@ -1304,9 +1292,10 @@ int32_t ups_session::subr_start(subr &a_subr)
         //}
         //l_ups->set_last_active_ms(get_time_ms());
         //l_ups->set_timeout_ms(a_subr.get_timeout_ms());
-        // ---------------------------------------
+        ++l_t_srvr.m_stat.m_upsv_reqs;
+        // -------------------------------------------------
         // idle timer
-        // ---------------------------------------
+        // -------------------------------------------------
         l_s = l_t_srvr.add_timer(l_ups->m_timeout_ms,
                                  ups_session::evr_event_timeout_cb,
                                  l_nconn,
@@ -1315,44 +1304,11 @@ int32_t ups_session::subr_start(subr &a_subr)
         {
                 return ups_session::evr_fd_error_cb(l_nconn);
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // start writing request
-        // ---------------------------------------
+        // -------------------------------------------------
         return ups_session::evr_fd_writeable_cb(l_nconn);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-#if 0
-void ups_session::subr_log_status(uint16_t a_status)
-{
-        if(!m_t_srvr)
-        {
-                return;
-        }
-        ++(m_t_srvr->m_stat.m_upsv_resp);
-        uint16_t l_status;
-        if(m_resp)
-        {
-                l_status = m_resp->get_status();
-        }
-        else if(a_status)
-        {
-                l_status = a_status;
-        }
-        else
-        {
-                l_status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-        }
-        if((l_status >= 100) && (l_status < 200)) {/* TODO log 1xx's? */}
-        else if((l_status >= 200) && (l_status < 300)){++m_t_srvr->m_stat.m_upsv_resp_status_2xx;}
-        else if((l_status >= 300) && (l_status < 400)){++m_t_srvr->m_stat.m_upsv_resp_status_3xx;}
-        else if((l_status >= 400) && (l_status < 500)){++m_t_srvr->m_stat.m_upsv_resp_status_4xx;}
-        else if((l_status >= 500) && (l_status < 600)){++m_t_srvr->m_stat.m_upsv_resp_status_5xx;}
-}
-#endif
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -1361,6 +1317,10 @@ void ups_session::subr_log_status(uint16_t a_status)
 int32_t ups_session::cancel_evr_timer(void)
 {
         if(!m_evr_timeout)
+        {
+                return STATUS_OK;
+        }
+        if(!m_subr.m_session)
         {
                 return STATUS_OK;
         }
@@ -1384,6 +1344,10 @@ int32_t ups_session::cancel_evr_readable(void)
         {
                 return STATUS_OK;
         }
+        if(!m_subr.m_session)
+        {
+                return STATUS_OK;
+        }
         int32_t l_status;
         l_status = m_subr.m_session->m_t_srvr.cancel_event(m_evr_readable);
         if(l_status != STATUS_OK)
@@ -1404,6 +1368,10 @@ int32_t ups_session::cancel_evr_writeable(void)
         {
                 return STATUS_OK;
         }
+        if(!m_subr.m_session)
+        {
+                return STATUS_OK;
+        }
         int32_t l_status;
         l_status = m_subr.m_session->m_t_srvr.cancel_event(m_evr_writeable);
         if(l_status != STATUS_OK)
@@ -1411,21 +1379,6 @@ int32_t ups_session::cancel_evr_writeable(void)
                 return STATUS_ERROR;
         }
         m_evr_writeable = NULL;
-        return STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-int32_t ups_session::cancel_timer(void *a_timer)
-{
-        int32_t l_s;
-        l_s = m_subr.m_session->m_t_srvr.cancel_event(a_timer);
-        if(l_s != STATUS_OK)
-        {
-                return STATUS_ERROR;
-        }
         return STATUS_OK;
 }
 } //namespace ns_is2 {

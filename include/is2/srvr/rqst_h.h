@@ -46,12 +46,12 @@ class rqst_h
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         rqst_h(void) {};
         virtual ~rqst_h(){};
         // -------------------------------------------------
-        // Public Virutal
+        // publicVirutal
         // -------------------------------------------------
         virtual h_resp_t do_get(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap) = 0;
         virtual h_resp_t do_post(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap) = 0;
@@ -74,7 +74,7 @@ public:
                                            http_status_t a_status);
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         rqst_h& operator=(const rqst_h &);

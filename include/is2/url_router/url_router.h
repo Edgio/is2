@@ -29,12 +29,12 @@ class url_router
 {
 public:
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         url_router();
         ~url_router();
         // -------------------------------------------------
-        // Public members
+        // public members
         // -------------------------------------------------
         int32_t add_route(const std::string &a_route, const void *a_data);
         const void *find_route(const char *a_route,
@@ -43,13 +43,13 @@ public:
         void display_trie(void);
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy and assign
         url_router& operator=(const url_router &);
         url_router(const url_router &);
         // -------------------------------------------------
-        // Private members
+        // private members
         // -------------------------------------------------
         node *m_root_node;
 };

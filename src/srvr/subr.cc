@@ -32,6 +32,7 @@
 #include "is2/support/trace.h"
 #include "is2/srvr/base_u.h"
 #include "is2/srvr/subr.h"
+#include "is2/srvr/resp.h"
 #include "is2/srvr/api_resp.h"
 #include "is2/srvr/session.h"
 #include "string.h"
@@ -781,10 +782,10 @@ void subr::show(bool a_color)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-subr_u::subr_u(session &a_session):
-        base_u(a_session)
+subr_u::subr_u(session &a_session, subr *a_subr):
+        base_u(a_session),
+        m_subr(a_subr)
 {
-        //NDBG_PRINT("%sCONSTRUCT%s\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -793,26 +794,10 @@ subr_u::subr_u(session &a_session):
 //: ----------------------------------------------------------------------------
 subr_u::~subr_u(void)
 {
-        for(subr_list_t::iterator i_s = m_subr_list.begin();
-            i_s != m_subr_list.end();
-            ++i_s)
+        if(m_subr)
         {
-                if(*i_s)
-                {
-                        delete *i_s;
-                        *i_s = NULL;
-                }
+                delete m_subr;
         }
-        m_subr_list.clear();
-}
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-void subr_u::queue(subr &a_subr)
-{
-        m_subr_list.push_back(&a_subr);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -821,6 +806,13 @@ void subr_u::queue(subr &a_subr)
 //: ----------------------------------------------------------------------------
 ssize_t subr_u::ups_read(size_t a_len)
 {
+        if(m_subr &&
+           m_subr->m_ups_session &&
+           m_subr->m_ups_session->m_resp &&
+           m_subr->m_ups_session->m_resp->m_complete)
+        {
+                m_state = UPS_STATE_DONE;
+        }
         return a_len;
 }
 //: ----------------------------------------------------------------------------
@@ -844,14 +836,9 @@ int32_t subr_u::ups_cancel(void)
                 return STATUS_OK;
         }
         m_state = UPS_STATE_DONE;
-        for(subr_list_t::iterator i_s = m_subr_list.begin();
-            i_s != m_subr_list.end();
-            ++i_s)
+        if(m_subr)
         {
-                if(*i_s)
-                {
-                        (*i_s)->cancel();
-                }
+                m_subr->cancel();
         }
         //NDBG_PRINT("%sUPS_CANCEL%s\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF);
         return STATUS_OK;

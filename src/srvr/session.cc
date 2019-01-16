@@ -115,6 +115,15 @@ session::~session(void)
                 delete m_out_q;
                 m_out_q = NULL;
         }
+        if(m_u)
+        {
+                if(!m_u->ups_done())
+                {
+                        m_u->ups_cancel();
+                }
+                delete m_u;
+                m_u = NULL;
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -272,7 +281,9 @@ int32_t session::teardown(void)
         //NDBG_PRINT("%sTEARDOWN%s: this: %p m_nconn: %p m_rqst: %p\n",
         //           ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
         //           this, m_nconn, m_rqst);
+        // -------------------------------------------------
         // cancel timer
+        // -------------------------------------------------
         int32_t l_s;
         l_s = cancel_evr_timer();
         // TODO Check status
@@ -525,6 +536,7 @@ state_top:
                         char *l_buf = NULL;
                         uint64_t l_off = l_in_q->get_cur_write_offset();
                         l_s = l_nconn->nc_read(l_in_q, &l_buf, l_read);
+                        if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_read += l_read; }
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
@@ -637,14 +649,15 @@ state_top:
                         // ---------------------------------
                         // send expect response -if signal
                         // ---------------------------------
-                        if(l_cs->m_rqst && l_cs->m_rqst->m_expect)
+                        if(l_cs->m_rqst &&
+                           l_cs->m_rqst->m_expect)
                         {
                                 nbq l_nbq(64);
                                 const char l_exp_reply[] = "HTTP/1.1 100 Continue\r\n\r\n";
-                                l_nbq.write(l_exp_reply, sizeof(l_exp_reply));
+                                l_nbq.write(l_exp_reply, strlen(l_exp_reply));
                                 uint32_t l_w;
                                 l_nconn->nc_write(&l_nbq, l_w);
-                                //if(l_t_srvr) { l_t_srvr->m_stat.m_uv_bytes_written += l_w;}
+                                if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_written += strlen(l_exp_reply);}
                                 l_cs->m_access_info.m_bytes_out += l_w;
                                 l_cs->m_rqst->m_expect = false;
                         }
@@ -654,7 +667,7 @@ state_top:
                         if((l_cs->m_rqst &&
                             l_cs->m_rqst->m_complete))
                         {
-                                //if(l_t_srvr) { ++l_t_srvr->m_stat.m_clnt_reqs; }
+                                if(l_t_srvr) { ++l_t_srvr->m_stat.m_reqs; }
                                 int32_t l_rs = STATUS_OK;
                                 l_rs = l_cs->handle_req();
                                 if(l_rs != STATUS_OK)
@@ -716,6 +729,7 @@ state_top:
                         uint32_t l_written = 0;
                         int32_t l_s = nconn::NC_STATUS_OK;
                         l_s = l_nconn->nc_write(l_out_q, l_written);
+                        if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_written += l_written; }
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
@@ -729,7 +743,6 @@ state_top:
                         case nconn::NC_STATUS_EOF:
                         {
                                 l_nconn->set_state_done();
-                                NDBG_PRINT("goto state_top\n");
                                 goto state_top;
                         }
                         // ---------------------------------
@@ -737,7 +750,6 @@ state_top:
                         // ---------------------------------
                         case nconn::NC_STATUS_ERROR:
                         {
-                                //if(l_t_srvr) { ++(l_t_srvr->m_stat.m_clnt_errors); }
                                 l_nconn->set_state_done();
                                 goto state_top;
                         }
@@ -765,11 +777,6 @@ state_top:
                         }
                         }
                         }
-                        // ---------------------------------
-                        // stats
-                        // ---------------------------------
-                        //if(l_t_srvr) { l_t_srvr->m_stat.m_clnt_bytes_written += l_written; }
-                        //if(l_cs) { l_cs->m_access_info.m_bytes_out += l_written; }
                         // ---------------------------------
                         // proxy backpressure
                         // ---------------------------------
@@ -848,10 +855,9 @@ state_top:
                                                 {
                                                         // TODO Do nothing???
                                                 }
-                                                // TODO only resp done cb for clnt's with ups?
-                                                //l_cs->log_status(0);
                                                 l_cs->m_access_info.clear();
                                         }
+                                        l_cs->log_status();
                                         l_cs->m_out_q->reset_write();
                                         if(!l_shutdown &&
                                            (l_cs->m_rqst != NULL) &&
@@ -1135,6 +1141,22 @@ int32_t session::handle_req(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
+void session::log_status(void)
+{
+        t_stat_cntr_t& l_stat = m_t_srvr.m_stat;
+        //++l_stat.m_resp;
+        uint16_t l_status = m_access_info.m_resp_status;
+        if((l_status >= 100) && (l_status < 200)) {/* TODO log 1xx's? */}
+        else if((l_status >= 200) && (l_status < 300)){++l_stat.m_resp_status_2xx;}
+        else if((l_status >= 300) && (l_status < 400)){++l_stat.m_resp_status_3xx;}
+        else if((l_status >= 400) && (l_status < 500)){++l_stat.m_resp_status_4xx;}
+        else if((l_status >= 500) && (l_status < 600)){++l_stat.m_resp_status_5xx;}
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
 int32_t session::queue_output(void)
 {
         if(m_evr_writeable)
@@ -1189,6 +1211,15 @@ int32_t session::add_timer(uint32_t a_time_ms, evr_event_cb_t a_cb, void *a_data
 evr_loop *session::get_evr_loop(void)
 {
         return m_t_srvr.get_evr_loop();
+}
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \return:  TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+srvr& session::get_srvr(void)
+{
+        return *(m_t_srvr.get_srvr_instance());
 }
 //: ----------------------------------------------------------------------------
 //: API Responses

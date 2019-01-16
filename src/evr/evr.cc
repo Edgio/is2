@@ -106,9 +106,9 @@ evr_loop::~evr_loop(void)
 //: ----------------------------------------------------------------------------
 uint32_t evr_loop::dequeue_events(void)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // field timers/timeouts
-        // ---------------------------------------
+        // -------------------------------------------------
         evr_event_t *l_event = NULL;
         uint32_t l_time_diff_ms = EVR_DEFAULT_TIME_WAIT_MS;
         // Pop events off pq until time > now
@@ -141,7 +141,7 @@ uint32_t evr_loop::dequeue_events(void)
                 m_event_pq.pop();
                 if(l_event->m_cb)
                 {
-                        //NDBG_PRINT("%sRUNNING_%s TIMER: %p at %lu ms\n",ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF,l_timer,l_now_ms);
+                        //NDBG_PRINT("%sRUNNING_%s TIMER: %p at %lu ms\n",ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF,l_event,l_now_ms);
                         int32_t l_s;
                         l_s = l_event->m_cb(l_event->m_data);
                         (void)l_s;
@@ -159,14 +159,14 @@ uint32_t evr_loop::dequeue_events(void)
 //: ----------------------------------------------------------------------------
 int32_t evr_loop::run(void)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // field timers/timeouts
-        // ---------------------------------------
+        // -------------------------------------------------
         uint32_t l_time_diff_ms;
         l_time_diff_ms = dequeue_events();
-        // ---------------------------------------
+        // -------------------------------------------------
         // Wait for events
-        // ---------------------------------------
+        // -------------------------------------------------
         int l_num_events = 0;
         //NDBG_PRINT("%sWAIT4_CONNECTIONS%s: l_time_diff_ms = %d\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, l_time_diff_ms);
         l_num_events = m_evr->wait(m_events, m_max_events, l_time_diff_ms);
@@ -182,9 +182,9 @@ int32_t evr_loop::run(void)
                 l_time_diff_ms = dequeue_events();
                 return STATUS_OK;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // service events
-        // ---------------------------------------
+        // -------------------------------------------------
         for(int i_event = 0; (i_event < l_num_events) && (!m_stopped); ++i_event)
         {
                 evr_fd_t* l_evr_fd = static_cast<evr_fd_t*>(m_events[i_event].data.ptr);
@@ -193,18 +193,18 @@ int32_t evr_loop::run(void)
                 //           ANSI_COLOR_FG_CYAN, ANSI_COLOR_OFF,
                 //           i_event, l_num_events, l_events);
                 // Service callbacks per type
-                // -------------------------------
+                // -----------------------------------------
                 // Validity checks
-                // -------------------------------
+                // -----------------------------------------
                 if(!l_evr_fd ||
                    (l_evr_fd->m_magic != EVR_EVENT_FD_MAGIC))
                 {
                         TRC_ERROR("bad event -ignoring.\n");
                         continue;
                 }
-                // -------------------------------
+                // -----------------------------------------
                 // in
-                // -------------------------------
+                // -----------------------------------------
                 if(l_events & EVR_EV_VAL_READABLE)
                 {
                         if(l_evr_fd->m_read_cb &&
@@ -233,9 +233,9 @@ int32_t evr_loop::run(void)
                                 continue;
                         }
                 }
-                // -------------------------------
+                // -----------------------------------------
                 // out
-                // -------------------------------
+                // -----------------------------------------
                 if(l_events & EVR_EV_VAL_WRITEABLE)
                 {
                         if(l_evr_fd->m_write_cb &&
@@ -257,13 +257,13 @@ int32_t evr_loop::run(void)
                                 }
                         }
                 }
-                // -------------------------------
+                // -----------------------------------------
                 // errors
-                // -------------------------------
+                // -----------------------------------------
                 // TODO other errors???
                 // Currently "most" errors handled
                 // by read callbacks
-                // -------------------------------
+                // -----------------------------------------
                 //uint32_t l_other_events = l_events & (~(EPOLLIN | EPOLLOUT));
                 //if(l_events & EPOLLRDHUP)
                 //if(l_events & EPOLLERR)

@@ -138,13 +138,11 @@ SET(SRCS
     srvr/ups_session.cc
     srvr/stat.cc
     # -----------------------------------
-    # handler file
+    # handlers
     # -----------------------------------
     handler/file/file_h.cc
-    # -----------------------------------
-    # handler proxy
-    # -----------------------------------
     handler/proxy/proxy_h.cc
+    handler/stat/stat_h.cc
 )
 # ------------------------------------------------------------------------------
 # Headers

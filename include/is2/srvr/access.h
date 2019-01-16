@@ -36,7 +36,7 @@ namespace ns_is2 {
 class access_info {
 public:
         // -------------------------------------------------
-        // Public members
+        // public members
         // -------------------------------------------------
         // -----------------------------------
         // Connection info
@@ -71,14 +71,14 @@ public:
         uint64_t m_start_time_ms;
         uint64_t m_total_time_ms;
         // -------------------------------------------------
-        // Public methods
+        // public methods
         // -------------------------------------------------
         access_info(void);
         ~access_info(void);
         void clear(void);
 private:
         // -------------------------------------------------
-        // Private methods
+        // private methods
         // -------------------------------------------------
         // Disallow copy/assign
         access_info& operator=(const access_info &);

@@ -61,9 +61,9 @@ public:
                 SUBR_STATE_DNS_LOOKUP,
                 SUBR_STATE_ACTIVE
         } subr_state_t;
-        // ---------------------------------------
+        // -------------------------------------------------
         // Callbacks
-        // ---------------------------------------
+        // -------------------------------------------------
         typedef int32_t (*error_cb_t)(subr &, nconn *, http_status_t, const char *);
         typedef int32_t (*completion_cb_t)(subr &, nconn &, resp &);
         // -------------------------------------------------
@@ -142,9 +142,8 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        subr_u(session &a_session);
+        subr_u(session &a_session, subr *a_subr);
         ~subr_u();
-        void queue(subr &a_subr);
         // -------------------------------------------------
         // upstream methods
         // -------------------------------------------------
@@ -162,7 +161,7 @@ private:
         // -------------------------------------------------
         // private  methods
         // -------------------------------------------------
-        subr_list_t m_subr_list;
+        subr *m_subr;
 };
 } //namespace ns_is2 {
 #endif
