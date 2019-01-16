@@ -517,7 +517,7 @@ int32_t subr::cancel(void)
                                               *m_ups_session->m_nconn,
                                               HTTP_STATUS_GATEWAY_TIMEOUT);
                 }
-                if(m_error_cb)
+                else if(m_error_cb)
                 {
                         m_error_cb(*(this), NULL, HTTP_STATUS_GATEWAY_TIMEOUT, get_resp_status_str(HTTP_STATUS_GATEWAY_TIMEOUT));
                         // TODO Check status...
