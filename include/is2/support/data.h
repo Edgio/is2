@@ -28,8 +28,8 @@
 #include <string>
 #include <list>
 #include <map>
-// for strcasecmp
 #include <strings.h>
+#include <stdint.h>
 namespace ns_is2 {
 //: ----------------------------------------------------------------------------
 //: types
