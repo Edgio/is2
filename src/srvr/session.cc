@@ -537,6 +537,7 @@ state_top:
                         uint64_t l_off = l_in_q->get_cur_write_offset();
                         l_s = l_nconn->nc_read(l_in_q, &l_buf, l_read);
                         if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_read += l_read; }
+                        if(l_cs) {l_cs->m_access_info.m_bytes_in += l_read; }
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
@@ -607,8 +608,6 @@ state_top:
                                 }
                         }
 #endif
-                        //if(l_t_srvr) { l_t_srvr->m_stat.m_clnt_bytes_read += l_read; }
-                        //if(l_cs) { l_cs->m_access_info.m_bytes_in += l_read; }
                         // ---------------------------------
                         // read data...
                         // ---------------------------------
@@ -672,10 +671,8 @@ state_top:
                                 l_rs = l_cs->handle_req();
                                 if(l_rs != STATUS_OK)
                                 {
-                                        // Modified connection status
                                         l_s = nconn::NC_STATUS_ERROR;
                                         TRC_ERROR("performing handle_req");
-                                        //if(l_t_srvr) { ++(l_t_srvr->m_stat.m_clnt_errors); }
                                         l_nconn->set_state_done();
                                         goto state_top;
                                 }
@@ -697,19 +694,15 @@ state_top:
                         // ---------------------------------
                         // out q
                         // ---------------------------------
-                        // TODO get from session
                         nbq *l_out_q = NULL;
                         if(l_cs)
                         {
-                                // if unset -create out q
                                 if(!l_cs->m_out_q &&
                                    l_t_srvr)
                                 {
-                                        // take over orphan
                                         l_cs->m_out_q = l_t_srvr->m_orphan_out_q;
                                         l_t_srvr->m_orphan_out_q = l_t_srvr->get_nbq(NULL);
                                         l_out_q->reset_write();
-                                        // TODO check for error...
                                 }
                                 l_out_q = l_cs->m_out_q;
                         }
@@ -730,6 +723,7 @@ state_top:
                         int32_t l_s = nconn::NC_STATUS_OK;
                         l_s = l_nconn->nc_write(l_out_q, l_written);
                         if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_written += l_written; }
+                        if(l_cs) {l_cs->m_access_info.m_bytes_out += l_written; }
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
