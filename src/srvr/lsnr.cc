@@ -145,9 +145,15 @@ static int32_t create_tcp_server_socket(uint16_t a_port,
         // -------------------------------------------
         // Create socket for incoming connections
         // -------------------------------------------
-        l_sock_fd = socket(PF_INET,
-                           SOCK_STREAM | SOCK_CLOEXEC,
-                           IPPROTO_TCP);
+        #if defined(__APPLE__) || defined(__darwin__)
+                l_sock_fd = socket(PF_INET,
+                                   SOCK_STREAM | SOCK_CLOEXEC,
+                                   IPPROTO_TCP);
+        #else
+                l_sock_fd = socket(PF_INET,
+                                   SOCK_STREAM | SOCK_CLOEXEC,
+                                   IPPROTO_TCP);
+        #endif
         if (l_sock_fd < 0)
         {
                 TRC_ERROR("Error socket() failed. Reason[%d]: %s\n", errno, strerror(errno));
