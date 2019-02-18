@@ -60,6 +60,13 @@ message("    Build with udns support:                   " "BUILD_UDNS           
 message("    Build with Address Sanitizer:              " "BUILD_ASAN              " ${BUILD_ASAN})
 message("    Build with Undefined Behavior Sanitizer:   " "BUILD_UBSAN             " ${BUILD_UBSAN})
 message("")
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+   # Mac OS X specific code
+   SET(OperatingSystem "Mac OS X")
+   # Add MacPorts
+   INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
+   LINK_DIRECTORIES(/usr/local/opt/openssl/lib)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # ------------------------------------------------------------------------------
 # Fortify Options
 # ------------------------------------------------------------------------------
