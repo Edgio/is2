@@ -147,7 +147,7 @@ static int32_t create_tcp_server_socket(uint16_t a_port,
         // -------------------------------------------
         #if defined(__APPLE__) || defined(__darwin__)
                 l_sock_fd = socket(PF_INET,
-                                   SOCK_STREAM | SOCK_CLOEXEC,
+                                   SOCK_STREAM,
                                    IPPROTO_TCP);
         #else
                 l_sock_fd = socket(PF_INET,
