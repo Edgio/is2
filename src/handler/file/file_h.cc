@@ -161,6 +161,7 @@ h_resp_t file_h::get_file(session &a_session,
         if(l_s != STATUS_OK)
         {
                 delete l_fs;
+                l_fs = NULL;
                 // TODO -use status code to determine is actual 404
                 return send_not_found(a_session, a_rqst.m_supports_keep_alives);
         }
@@ -197,7 +198,25 @@ h_resp_t file_h::get_file(session &a_session,
                 nbq_write_header(l_q, "Connection", "close");
         }
         l_q.write("\r\n", strlen("\r\n"));
+        // -------------------------------------------------
+        // check for zero bytes
+        // -------------------------------------------------
+        if(l_fs->fssize() <= 0)
+        {
+                // all done; close the file.
+                l_fs->set_ups_done();
+                int32_t l_s;
+                l_s = a_session.queue_output();
+                if(l_s != STATUS_OK)
+                {
+                        TRC_ERROR("performing queue_output\n");
+                        return H_RESP_SERVER_ERROR;
+                }
+                return H_RESP_DONE;
+        }
+        // -------------------------------------------------
         // Read up to 64k
+        // -------------------------------------------------
         uint32_t l_read = 64*1024;
         if(l_read - l_q.read_avail() > 0)
         {
