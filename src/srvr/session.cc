@@ -851,7 +851,6 @@ state_top:
                                                 }
                                                 l_cs->m_access_info.clear();
                                         }
-                                        l_cs->log_status();
                                         l_cs->m_out_q->reset_write();
                                         if(!l_shutdown &&
                                            (l_cs->m_rqst != NULL) &&
@@ -1241,6 +1240,7 @@ int32_t queue_api_resp(session &a_session, api_resp &a_api_resp)
         }
         // access info
         a_session.m_access_info.m_resp_status = a_api_resp.get_status();
+        a_session.log_status();
         int32_t l_s;
         l_s = a_api_resp.serialize(*(a_session.m_out_q));
         if(l_s != STATUS_OK)
