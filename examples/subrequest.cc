@@ -98,7 +98,6 @@ ns_is2::h_resp_t subrequest_handler::do_default(ns_is2::session &a_session,
         l_subr->m_verb = a_rqst.get_method_str();
         l_subr->m_completion_cb = s_completion_cb;
         l_subr->m_error_cb = s_error_cb;
-        l_subr->m_save = true;
         l_subr->set_header("User-Agent", "is2");
         l_subr->set_header("Accept", "*/*");
         l_subr->set_keepalive(true);

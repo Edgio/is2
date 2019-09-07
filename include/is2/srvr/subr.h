@@ -92,7 +92,6 @@ public:
         std::string m_host;
         uint16_t m_port;
         std::string m_server_label;
-        bool m_save;
         int32_t m_timeout_ms;
         std::string m_path;
         std::string m_query;

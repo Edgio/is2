@@ -57,7 +57,7 @@ rqst::rqst(void):
         m_query_list(NULL),
         m_query_map(NULL)
 {
-        init(true);
+        init();
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -89,11 +89,10 @@ rqst::~rqst(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-void rqst::init(bool a_save)
+void rqst::init(void)
 {
-        hmsg::init(a_save);
+        hmsg::init();
         m_type = hmsg::TYPE_RQST;
-        m_save = a_save;
         m_p_url.clear();
         m_method = HTTP_GET;
         m_expect = false;

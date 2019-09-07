@@ -41,7 +41,6 @@ hmsg::hmsg(void):
         m_expect_resp_body_flag(true),
         m_cur_off(0),
         m_cur_buf(NULL),
-        m_save(false),
         m_p_h_list_key(),
         m_p_h_list_val(),
         m_p_body(),
@@ -58,7 +57,7 @@ hmsg::hmsg(void):
 {
         m_http_parser_settings = (http_parser_settings *)calloc(1, sizeof(http_parser_settings));
         m_http_parser = (http_parser *)calloc(1, sizeof(http_parser));
-        init(false);
+        init();
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -88,7 +87,7 @@ hmsg::~hmsg(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-void hmsg::init(bool a_save)
+void hmsg::init(void)
 {
         m_p_h_list_key.clear();
         m_p_h_list_val.clear();
@@ -109,7 +108,6 @@ void hmsg::init(bool a_save)
                 if(m_header_list) { delete m_header_list; m_header_list = NULL; }
         }
         if(m_header_map) { delete m_header_map; m_header_map = NULL; }
-        m_save = a_save;
         if(m_body_q) { delete m_body_q; m_body_q = NULL; }
 }
 //: ----------------------------------------------------------------------------

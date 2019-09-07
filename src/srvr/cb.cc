@@ -68,7 +68,7 @@ int hp_on_url(http_parser* a_parser, const char *a_at, size_t a_length)
 {
         hmsg *l_hmsg = static_cast <hmsg *>(a_parser->data);
         CHECK_FOR_NULL_OK(l_hmsg);
-        if(l_hmsg->m_save && (l_hmsg->get_type() == hmsg::TYPE_RQST))
+        if((l_hmsg->get_type() == hmsg::TYPE_RQST))
         {
                 rqst *l_rqst = static_cast<rqst *>(l_hmsg);
                 l_rqst->m_p_url.m_off = CALC_OFFSET(l_hmsg, a_at);
@@ -90,11 +90,8 @@ int hp_on_status(http_parser* a_parser, const char *a_at, size_t a_length)
         {
                 resp *l_resp = static_cast<resp *>(l_hmsg);
                 l_resp->set_status((http_status_t)a_parser->status_code);
-                if(l_hmsg->m_save)
-                {
-                        l_resp->m_p_status.m_off = CALC_OFFSET(l_hmsg, a_at);
-                        l_resp->m_p_status.m_len = a_length;
-                }
+                l_resp->m_p_status.m_off = CALC_OFFSET(l_hmsg, a_at);
+                l_resp->m_p_status.m_len = a_length;
         }
         return 0;
 }
@@ -107,23 +104,20 @@ int hp_on_header_field(http_parser* a_parser, const char *a_at, size_t a_length)
 {
         hmsg *l_hmsg = static_cast <hmsg *>(a_parser->data);
         CHECK_FOR_NULL_OK(l_hmsg);
-        if(l_hmsg->m_save)
+        cr_struct l_cr;
+        l_cr.m_off = CALC_OFFSET(l_hmsg, a_at);
+        l_cr.m_len = a_length;
+        l_hmsg->m_p_h_list_key.push_back(l_cr);
+        // signalling for expect headers
+        if(l_hmsg->get_type() == hmsg::TYPE_RQST)
         {
-                cr_struct l_cr;
-                l_cr.m_off = CALC_OFFSET(l_hmsg, a_at);
-                l_cr.m_len = a_length;
-                l_hmsg->m_p_h_list_key.push_back(l_cr);
-                // signalling for expect headers
-                if(l_hmsg->get_type() == hmsg::TYPE_RQST)
+                const char l_exp[] = "Expect";
+                if((a_length == (sizeof(l_exp)-1)) && (a_at[0] == 'E'))
                 {
-                        const char l_exp[] = "Expect";
-                        if((a_length == (sizeof(l_exp)-1)) && (a_at[0] == 'E'))
+                        if(strncasecmp(l_exp, a_at, a_length) == 0)
                         {
-                                if(strncasecmp(l_exp, a_at, a_length) == 0)
-                                {
-                                        rqst *l_rqst = static_cast<rqst *>(l_hmsg);
-                                        l_rqst->m_expect = true;
-                                }
+                                rqst *l_rqst = static_cast<rqst *>(l_hmsg);
+                                l_rqst->m_expect = true;
                         }
                 }
         }
@@ -138,13 +132,10 @@ int hp_on_header_value(http_parser* a_parser, const char *a_at, size_t a_length)
 {
         hmsg *l_hmsg = static_cast <hmsg *>(a_parser->data);
         CHECK_FOR_NULL_OK(l_hmsg);
-        if(l_hmsg->m_save)
-        {
-                cr_struct l_cr;
-                l_cr.m_off = CALC_OFFSET(l_hmsg, a_at);
-                l_cr.m_len = a_length;
-                l_hmsg->m_p_h_list_val.push_back(l_cr);
-        }
+        cr_struct l_cr;
+        l_cr.m_off = CALC_OFFSET(l_hmsg, a_at);
+        l_cr.m_len = a_length;
+        l_hmsg->m_p_h_list_val.push_back(l_cr);
         return 0;
 }
 //: ----------------------------------------------------------------------------
@@ -156,15 +147,12 @@ int hp_on_headers_complete(http_parser* a_parser)
 {
         hmsg *l_hmsg = static_cast <hmsg *>(a_parser->data);
         CHECK_FOR_NULL_OK(l_hmsg);
-        if(l_hmsg->m_save)
+        l_hmsg->m_http_major = a_parser->http_major;
+        l_hmsg->m_http_minor = a_parser->http_minor;
+        if(l_hmsg->get_type() == hmsg::TYPE_RQST)
         {
-                l_hmsg->m_http_major = a_parser->http_major;
-                l_hmsg->m_http_minor = a_parser->http_minor;
-                if(l_hmsg->get_type() == hmsg::TYPE_RQST)
-                {
-                        rqst *l_rqst = static_cast<rqst *>(l_hmsg);
-                        l_rqst->m_method = a_parser->method;
-                }
+                rqst *l_rqst = static_cast<rqst *>(l_hmsg);
+                l_rqst->m_method = a_parser->method;
         }
         if(l_hmsg->get_type() == hmsg::TYPE_RESP)
         {
@@ -184,17 +172,14 @@ int hp_on_body(http_parser* a_parser, const char *a_at, size_t a_length)
 {
         hmsg *l_hmsg = static_cast <hmsg *>(a_parser->data);
         CHECK_FOR_NULL_OK(l_hmsg);
-        if(l_hmsg->m_save)
+        if(!l_hmsg->m_p_body.m_off)
         {
-                if(!l_hmsg->m_p_body.m_off)
-                {
-                        l_hmsg->m_p_body.m_off = CALC_OFFSET(l_hmsg, a_at);
-                        l_hmsg->m_p_body.m_len = a_length;
-                }
-                else
-                {
-                        l_hmsg->m_p_body.m_len += a_length;
-                }
+                l_hmsg->m_p_body.m_off = CALC_OFFSET(l_hmsg, a_at);
+                l_hmsg->m_p_body.m_len = a_length;
+        }
+        else
+        {
+                l_hmsg->m_p_body.m_len += a_length;
         }
         return 0;
 }

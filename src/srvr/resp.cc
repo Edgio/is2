@@ -43,7 +43,7 @@ resp::resp(void):
         m_tls_info_cipher_str(NULL),
         m_status()
 {
-        init(m_save);
+        init();
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -60,16 +60,16 @@ resp::~resp(void)
 //: ----------------------------------------------------------------------------
 void resp::clear(void)
 {
-        init(m_save);
+        init();
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-void resp::init(bool a_save)
+void resp::init(void)
 {
-        hmsg::init(a_save);
+        hmsg::init();
         m_type = hmsg::TYPE_RESP;
         m_p_status.clear();
         m_tls_info_protocol_str = NULL;
@@ -79,24 +79,12 @@ void resp::init(bool a_save)
         {
                 m_http_parser_settings->on_status = hp_on_status;
                 m_http_parser_settings->on_message_complete = hp_on_message_complete;
-                if(m_save)
-                {
-                        m_http_parser_settings->on_message_begin = hp_on_message_begin;
-                        m_http_parser_settings->on_url = hp_on_url;
-                        m_http_parser_settings->on_header_field = hp_on_header_field;
-                        m_http_parser_settings->on_header_value = hp_on_header_value;
-                        m_http_parser_settings->on_headers_complete = hp_on_headers_complete;
-                        m_http_parser_settings->on_body = hp_on_body;
-                }
-                else
-                {
-                        m_http_parser_settings->on_message_begin = NULL;
-                        m_http_parser_settings->on_url = NULL;
-                        m_http_parser_settings->on_header_field = NULL;
-                        m_http_parser_settings->on_header_value = NULL;
-                        m_http_parser_settings->on_headers_complete = NULL;
-                        m_http_parser_settings->on_body = NULL;
-                }
+                m_http_parser_settings->on_message_begin = hp_on_message_begin;
+                m_http_parser_settings->on_url = hp_on_url;
+                m_http_parser_settings->on_header_field = hp_on_header_field;
+                m_http_parser_settings->on_header_value = hp_on_header_value;
+                m_http_parser_settings->on_headers_complete = hp_on_headers_complete;
+                m_http_parser_settings->on_body = hp_on_body;
         }
         if(m_http_parser_settings)
         {

@@ -225,11 +225,16 @@ int32_t evr_loop::run(void)
                                         continue;
                                 }
                         }
-                        if((l_events & EVR_EV_HUP) ||
-                           (l_events & EVR_EV_ERR))
+                        if(l_events & EVR_EV_HUP)
                         {
                                 // Skip handling more events for this fd
-                                TRC_ERROR("EVR_EV_HUP/EVR_EV_ERR\n");
+                                //TRC_ERROR("EVR_EV_HUP\n");
+                                //continue;
+                        }
+                        if(l_events & EVR_EV_ERR)
+                        {
+                                // Skip handling more events for this fd
+                                TRC_ERROR("EVR_EV_ERR\n");
                                 continue;
                         }
                 }
