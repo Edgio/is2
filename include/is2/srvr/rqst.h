@@ -42,7 +42,7 @@ public:
         rqst();
         ~rqst();
         void clear(void);
-        void init(bool a_save);
+        void init(void);
         const data_t &get_url();
         const data_t &get_url_uri();
         const data_t &get_url_path();

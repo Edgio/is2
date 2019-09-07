@@ -70,7 +70,7 @@ public:
         // Setters
         void set_q(nbq *a_q);
         void reset_body_q(void);
-        virtual void init(bool a_save);
+        virtual void init(void);
         // Debug
         virtual void show() = 0;
         // -------------------------------------------------
@@ -82,7 +82,6 @@ public:
         bool m_expect_resp_body_flag;
         uint64_t m_cur_off;
         char * m_cur_buf;
-        bool m_save;
         // -------------------------------------------------
         // raw http request offsets
         // -------------------------------------------------

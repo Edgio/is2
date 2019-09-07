@@ -677,7 +677,7 @@ state_top:
                                         goto state_top;
                                 }
                                 bool l_ka = l_cs->m_rqst->m_supports_keep_alives;
-                                l_cs->m_rqst->init(true);
+                                l_cs->m_rqst->init();
                                 l_cs->m_rqst->m_supports_keep_alives = l_ka;
                                 if(l_cs->m_in_q)
                                 {
@@ -857,7 +857,7 @@ state_top:
                                            (l_cs->m_rqst->m_supports_keep_alives))
                                         {
                                                 l_cs->m_nconn->nc_set_connected();
-                                                l_cs->m_rqst->init(true);
+                                                l_cs->m_rqst->init();
                                                 // TODO -check status
                                                 return STATUS_OK;
                                         }
