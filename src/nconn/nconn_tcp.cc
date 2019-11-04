@@ -200,8 +200,12 @@ int32_t nconn_tcp::ncset_listening_nb(int32_t a_val)
 //: ----------------------------------------------------------------------------
 int32_t nconn_tcp::ncset_accepting(int a_fd)
 {
-        m_fd = a_fd;
+        if(a_fd < 0)
+        {
+                return NC_STATUS_OK;
+        }
         m_tcp_state = TCP_STATE_ACCEPTING;
+        m_fd = a_fd;
         // Using accept4 -TODO portable???
 #if 0
         // -------------------------------------------
@@ -235,7 +239,7 @@ int32_t nconn_tcp::ncset_accepting(int a_fd)
                                            EVR_FILE_ATTR_MASK_ET,
                                            &m_evr_fd))
                 {
-                        TRC_ERROR("Couldn't add socket fd\n");
+                        TRC_ERROR("Couldn't add socket fd[%d]\n", m_fd);
                         return NC_STATUS_ERROR;
                 }
         }
@@ -492,8 +496,19 @@ int32_t nconn_tcp::ncaccept()
 #endif
                 if(l_fd < 0)
                 {
-                        TRC_ERROR("accept failed. Reason[%d]: %s\n", errno, ::strerror(errno));
-                        return NC_STATUS_ERROR;
+                        switch (errno)
+                        {
+                        case EAGAIN:
+                        {
+                                // Return here -still in accepting state
+                                return NC_STATUS_OK;
+                        }
+                        default:
+                        {
+                                TRC_ERROR("accept failed. Reason[%d]: %s\n", errno, ::strerror(errno));
+                                return NC_STATUS_ERROR;
+                        }
+                        }
                 }
 #ifndef __linux__
                 int l_s;

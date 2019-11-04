@@ -280,7 +280,11 @@ int32_t lsnr::evr_fd_readable_cb(void *a_data)
                 TRC_ERROR("performing ncaccept\n");
                 return STATUS_ERROR;
         }
-        if(l_nconn->is_accepting())
+        else if(l_fd == nconn::NC_STATUS_OK)
+        {
+                return STATUS_OK;
+        }
+        else if(l_nconn->is_accepting())
         {
                 TRC_ERROR("still accepting...\n");
                 // TODO allow for EAGAIN -non-blocking accept???
