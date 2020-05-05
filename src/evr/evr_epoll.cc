@@ -46,14 +46,14 @@ evr_epoll::evr_epoll(void):
         //NDBG_PRINT("%sCREATE_EPOLL%s: a_max_events = %d\n",
         //           ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF, a_max_connections);
         m_fd = epoll_create1(0);
-        if (m_fd == -1)
+        if(m_fd == -1)
         {
                 TRC_ERROR("epoll_create() failed: %s\n", strerror(errno));
                 exit(-1);
         }
         // Create ctrl fd
         m_ctrl_fd = eventfd(0, EFD_NONBLOCK);
-        if (m_ctrl_fd == -1)
+        if(m_ctrl_fd == -1)
         {
                 TRC_ERROR("eventfd() failed: %s\n", strerror(errno));
                 exit(-1);
@@ -78,12 +78,23 @@ int evr_epoll::wait(evr_events_t* a_ev, int a_max_events, int a_timeout_msec)
         //NDBG_PRINT("%swait%s = %d a_max_events = %d\n",
         //           ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF,
         //           a_timeout_msec, a_max_events);
-        int l_epoll_status = 0;
-        l_epoll_status = epoll_wait(m_fd, (epoll_event *)a_ev, a_max_events, a_timeout_msec);
+        int l_s = 0;
+        // -------------------------------------------------
+        // loop over EINTR
+        // -------------------------------------------------
+        do {
+                errno = 0;
+                l_s = epoll_wait(m_fd, (epoll_event *)a_ev, a_max_events, a_timeout_msec);
+        } while((l_s < 0) &&
+                (errno == EINTR));
         //NDBG_PRINT("%swait%s = %d\n",
         //           ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF,
-        //           l_epoll_status);
-        return l_epoll_status;
+        //           l_s);
+        if(l_s < 0)
+        {
+                NDBG_PRINT("error: reason[%d] EINTR: %d: %s\n", errno, EINTR, strerror(errno));
+        }
+        return l_s;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -115,7 +126,7 @@ int evr_epoll::add(int a_fd, uint32_t a_attr_mask, evr_fd_t *a_evr_fd_event)
         struct epoll_event ev;
         ev.events = get_epoll_attr(a_attr_mask);
         ev.data.ptr = a_evr_fd_event;
-        if (0 != epoll_ctl(m_fd, EPOLL_CTL_ADD, a_fd, &ev))
+        if(0 != epoll_ctl(m_fd, EPOLL_CTL_ADD, a_fd, &ev))
         {
                 //NDBG_PRINT("Error: epoll_fd[%d] EPOLL_CTL_ADD fd[%d] failed (%s)\n",
                 //           m_fd, a_fd, strerror(errno));
@@ -137,7 +148,7 @@ int evr_epoll::mod(int a_fd, uint32_t a_attr_mask, evr_fd_t *a_evr_fd_event)
         struct epoll_event ev;
         ev.events = get_epoll_attr(a_attr_mask);
         ev.data.ptr = a_evr_fd_event;
-        if (0 != epoll_ctl(m_fd, EPOLL_CTL_MOD, a_fd, &ev))
+        if(0 != epoll_ctl(m_fd, EPOLL_CTL_MOD, a_fd, &ev))
         {
                 TRC_ERROR("epoll_fd[%d] EPOLL_CTL_MOD fd[%d] failed (%s)\n",
                            m_fd, a_fd, strerror(errno));
@@ -157,7 +168,7 @@ int evr_epoll::del(int a_fd)
         struct epoll_event ev;
         if((m_fd > 0) && (a_fd > 0))
         {
-                if (0 != epoll_ctl(m_fd, EPOLL_CTL_DEL, a_fd, &ev))
+                if(0 != epoll_ctl(m_fd, EPOLL_CTL_DEL, a_fd, &ev))
                 {
                         TRC_ERROR("epoll_fd[%d] EPOLL_CTL_DEL fd[%d] failed (%s)\n",
                                    m_fd, a_fd, strerror(errno));

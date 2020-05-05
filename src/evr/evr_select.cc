@@ -56,29 +56,36 @@ int evr_select::wait(evr_events_t* a_ev, int a_max_events, int a_timeout_msec)
         fd_set l_rfdset = m_rfdset;
         fd_set l_wfdset = m_wfdset;
         struct timeval l_timeout;
-        if (a_timeout_msec >= 0)
+        if(a_timeout_msec >= 0)
         {
                 l_timeout.tv_sec = a_timeout_msec / 1000L;
                 l_timeout.tv_usec = (a_timeout_msec % 1000L) * 1000L;
         }
-        int l_sstat = 0;
+        int l_s = 0;
         uint32_t l_fdsize = 1;
         if(m_conn_map.size())
         {
                 l_fdsize = m_conn_map.rbegin()->first + 1;
         }
-        l_sstat = select(l_fdsize,
-                         &l_rfdset,
-                         &l_wfdset,
-                         NULL,
-                         a_timeout_msec >= 0 ? &l_timeout : NULL);
+        // -------------------------------------------------
+        // loop over EINTR
+        // -------------------------------------------------
+        do {
+                errno = 0;
+                l_s = select(l_fdsize,
+                                 &l_rfdset,
+                                 &l_wfdset,
+                                 NULL,
+                                 a_timeout_msec >= 0 ? &l_timeout : NULL);
+        } while((l_s < 0) &&
+                (errno == EINTR));
         //NDBG_PRINT("l_sstat: %d\n", l_sstat);
-        if (l_sstat < 0)
+        if(l_s < 0)
         {
                 //NDBG_PRINT("Error select() failed. Reason: %s\n", strerror(errno));
                 return STATUS_ERROR;
         }
-        if (l_sstat > a_max_events)
+        if(l_s > a_max_events)
         {
                 //NDBG_PRINT("Error select() returned too many events (got %d, expected <= %d)\n",
                 //                l_sstat, a_max_events);
@@ -89,24 +96,24 @@ int evr_select::wait(evr_events_t* a_ev, int a_max_events, int a_timeout_msec)
         {
                 int l_fd = i_conn->first;
                 bool l_inset = false;
-                if (FD_ISSET(l_fd, &l_wfdset))
+                if(FD_ISSET(l_fd, &l_wfdset))
                 {
                         //NDBG_PRINT("INSET: EPOLLOUT fd: %d\n", l_fd);
                         a_ev[l_p].events |= EVR_EV_OUT;
                         l_inset = true;
                 }
-                if (FD_ISSET(l_fd, &l_rfdset))
+                if(FD_ISSET(l_fd, &l_rfdset))
                 {
                         //NDBG_PRINT("INSET: EPOLLIN fd: %d\n", l_fd);
                         a_ev[l_p].events |= EVR_EV_IN;
                         l_inset = true;
                 }
-                if (l_inset)
+                if(l_inset)
                 {
                         //NDBG_PRINT("INSET: fd: %d\n", l_fd);
                         a_ev[l_p].data.ptr = i_conn->second;
                         ++l_p;
-                        if(l_p > l_sstat)
+                        if(l_p > l_s)
                         {
                                 //NDBG_PRINT("Error num events exceeds select result.\n");
                                 return STATUS_ERROR;
