@@ -146,7 +146,7 @@ int32_t t_srvr::init(void)
                                            512);
         if(!m_evr_loop)
         {
-                TRC_ERROR("m_evr_loop == NULL");
+                TRC_ERROR("m_evr_loop == NULL\n");
                 return STATUS_ERROR;
         }
         // *************************************************

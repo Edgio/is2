@@ -582,7 +582,7 @@ state_top:
                         case nconn::NC_STATUS_READ_UNAVAILABLE:
                         {
                                 // TODO TRACE
-                                TRC_ERROR("performing nc_read");
+                                TRC_ERROR("performing nc_read\n");
                                 return STATUS_ERROR;
                         }
                         // ---------------------------------
@@ -672,7 +672,7 @@ state_top:
                                 if(l_rs != STATUS_OK)
                                 {
                                         l_s = nconn::NC_STATUS_ERROR;
-                                        TRC_ERROR("performing handle_req");
+                                        TRC_ERROR("performing handle_req\n");
                                         l_nconn->set_state_done();
                                         goto state_top;
                                 }

@@ -716,7 +716,7 @@ int32_t nresolver::get_active(adns_ctx* a_adns_ctx)
 int32_t nresolver::evr_fd_writeable_cb(void *a_data)
 {
         //NDBG_PRINT("%sWRITEABLE%s\n", ANSI_COLOR_FG_BLUE, ANSI_COLOR_OFF);
-        TRC_ERROR("writeable cb for adns resolver");
+        TRC_ERROR("writeable cb for adns resolver\n");
         return STATUS_OK;
 }
 #endif
