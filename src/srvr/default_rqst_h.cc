@@ -49,7 +49,7 @@ default_rqst_h::~default_rqst_h()
 //: ----------------------------------------------------------------------------
 h_resp_t default_rqst_h::do_get(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap)
 {
-        return send_not_implemented(a_session, a_rqst.m_supports_keep_alives);
+        return send_not_found(a_session, a_rqst.m_supports_keep_alives);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -58,7 +58,7 @@ h_resp_t default_rqst_h::do_get(session &a_session, rqst &a_rqst, const url_pmap
 //: ----------------------------------------------------------------------------
 h_resp_t default_rqst_h::do_post(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap)
 {
-        return send_not_implemented(a_session, a_rqst.m_supports_keep_alives);
+        return send_not_found(a_session, a_rqst.m_supports_keep_alives);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -67,7 +67,7 @@ h_resp_t default_rqst_h::do_post(session &a_session, rqst &a_rqst, const url_pma
 //: ----------------------------------------------------------------------------
 h_resp_t default_rqst_h::do_put(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap)
 {
-        return send_not_implemented(a_session, a_rqst.m_supports_keep_alives);
+        return send_not_found(a_session, a_rqst.m_supports_keep_alives);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -76,7 +76,7 @@ h_resp_t default_rqst_h::do_put(session &a_session, rqst &a_rqst, const url_pmap
 //: ----------------------------------------------------------------------------
 h_resp_t default_rqst_h::do_delete(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap)
 {
-        return send_not_implemented(a_session, a_rqst.m_supports_keep_alives);
+        return send_not_found(a_session, a_rqst.m_supports_keep_alives);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -85,7 +85,7 @@ h_resp_t default_rqst_h::do_delete(session &a_session, rqst &a_rqst, const url_p
 //: ----------------------------------------------------------------------------
 h_resp_t default_rqst_h::do_default(session &a_session, rqst &a_rqst, const url_pmap_t &a_url_pmap)
 {
-        return send_not_implemented(a_session, a_rqst.m_supports_keep_alives);
+        return send_not_found(a_session, a_rqst.m_supports_keep_alives);
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
