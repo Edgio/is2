@@ -98,7 +98,7 @@ void hmsg::init(void)
         m_supports_keep_alives = false;
         m_cur_buf = NULL;
         m_cur_off = 0;
-        m_expect_resp_body_flag = false;
+        m_expect_resp_body_flag = true;
         if(m_header_list)
         {
                 for(mutable_arg_list_t::iterator i_q = m_header_list->begin();
