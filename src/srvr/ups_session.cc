@@ -481,9 +481,11 @@ state_top:
                 l_s = l_nconn.ncconnect();
                 if(l_s == nconn::NC_STATUS_ERROR)
                 {
-                        TRC_ERROR("performing ncconnect for host: %s.\n", l_nconn.m_label.c_str());
-                        l_nconn.set_state(nconn::NC_STATE_DONE);
-                        return STATUS_ERROR;
+                        int32_t l_s;
+                        l_s = ups_session::teardown(l_ups, l_t_srvr, l_nconn, HTTP_STATUS_BAD_GATEWAY);
+                        // TODO -check status...
+                        UNUSED(l_s);
+                        return STATUS_DONE;
                 }
                 if(l_nconn.is_connecting())
                 {
