@@ -482,6 +482,7 @@ state_top:
                 if(l_s == nconn::NC_STATUS_ERROR)
                 {
                         TRC_ERROR("performing ncconnect for host: %s.\n", l_nconn.m_label.c_str());
+                        l_nconn.set_state(nconn::NC_STATE_DONE);
                         return STATUS_ERROR;
                 }
                 if(l_nconn.is_connecting())
@@ -1066,6 +1067,9 @@ int32_t ups_session::subr_dequeue(void *a_data)
                         --l_t_srvr.m_subr_list_size;
                         continue;
                 }
+                // -----------------------------------------
+                // get front
+                // -----------------------------------------
                 subr &l_subr = *(l_t_srvr.m_subr_list.front());
                 l_subr.m_state = subr::SUBR_STATE_NONE;
                 l_subr.m_i_q = l_t_srvr.m_subr_list.end();

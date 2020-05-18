@@ -555,12 +555,11 @@ int32_t subr::create_request(nbq &ao_q)
                         "%s %s HTTP/1.1",
                         m_verb.c_str(), l_path_ref.c_str());
         nbq_write_request_line(ao_q, l_buf, l_len);
-        // -------------------------------------------
+        // -------------------------------------------------
         // Add repo headers
-        // -------------------------------------------
+        // -------------------------------------------------
         bool l_specd_host = false;
         bool l_specd_ua = false;
-        // Loop over header map
         for(kv_map_list_t::const_iterator i_hl = m_headers.begin();
             i_hl != m_headers.end();
             ++i_hl)
@@ -584,26 +583,26 @@ int32_t subr::create_request(nbq &ao_q)
                         }
                 }
         }
-        // -------------------------------------------
+        // -------------------------------------------------
         // Default Host if unspecified
-        // -------------------------------------------
+        // -------------------------------------------------
         if (!l_specd_host)
         {
                 nbq_write_header(ao_q, "Host", strlen("Host"),
                                  m_host.c_str(), m_host.length());
         }
-        // -------------------------------------------
+        // -------------------------------------------------
         // Default server if unspecified
-        // -------------------------------------------
+        // -------------------------------------------------
         if (!l_specd_ua)
         {
                 const std::string &l_ua = m_session->m_t_srvr.get_server_name();
                 nbq_write_header(ao_q, "User-Agent", strlen("User-Agent"),
                                 l_ua.c_str(), l_ua.length());
         }
-        // -------------------------------------------
+        // -------------------------------------------------
         // body
-        // -------------------------------------------
+        // -------------------------------------------------
         if(m_body_q)
         {
                 nbq_write_body(ao_q, NULL, 0);
