@@ -141,6 +141,7 @@ public:
         // -------------------------------------------------
         // Types
         // -------------------------------------------------
+        typedef std::list <lsnr *> lsnr_list_t;
         typedef std::list <nconn *> listening_nconn_list_t;
         // -------------------------------------------------
         // Public methods
@@ -213,7 +214,7 @@ private:
         sig_atomic_t m_stopped;
         int32_t m_start_time_s;
         evr_loop *m_evr_loop;
-        scheme_t m_scheme;
+        lsnr_list_t m_lsnr_list;
         listening_nconn_list_t m_listening_nconn_list;
         bool m_is_initd;
         srvr *m_srvr;

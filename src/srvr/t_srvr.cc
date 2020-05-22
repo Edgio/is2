@@ -77,7 +77,7 @@ t_srvr::t_srvr(const t_conf *a_t_conf):
         m_stopped(true),
         m_start_time_s(0),
         m_evr_loop(NULL),
-        m_scheme(SCHEME_TCP),
+        m_lsnr_list(),
         m_listening_nconn_list(),
         m_is_initd(false),
         m_srvr(NULL)
@@ -93,6 +93,9 @@ t_srvr::t_srvr(const t_conf *a_t_conf):
 //: ----------------------------------------------------------------------------
 t_srvr::~t_srvr()
 {
+        // -------------------------------------------------
+        // connection cleanup
+        // -------------------------------------------------
         m_nconn_proxy_pool.evict_all_idle();
         for(listening_nconn_list_t::iterator i_conn = m_listening_nconn_list.begin();
             i_conn != m_listening_nconn_list.end();
@@ -104,6 +107,9 @@ t_srvr::~t_srvr()
                         *i_conn = NULL;
                 }
         }
+        // -------------------------------------------------
+        // async dns cleanup
+        // -------------------------------------------------
 #ifdef ASYNC_DNS_SUPPORT
         if(m_t_conf &&
            m_t_conf->m_nresolver)
@@ -112,11 +118,17 @@ t_srvr::~t_srvr()
                 m_adns_ctx = NULL;
         }
 #endif
+        // -------------------------------------------------
+        // evr loop
+        // -------------------------------------------------
         if(m_evr_loop)
         {
                 delete m_evr_loop;
                 m_evr_loop = NULL;
         }
+        // -------------------------------------------------
+        // orphan q
+        // -------------------------------------------------
         if(m_orphan_in_q)
         {
                 delete m_orphan_in_q;
@@ -127,6 +139,19 @@ t_srvr::~t_srvr()
                 delete m_orphan_out_q;
                 m_orphan_out_q = NULL;
         }
+        // -------------------------------------------------
+        // listener list
+        // -------------------------------------------------
+        for(lsnr_list_t::iterator i_t = m_lsnr_list.begin();
+                        i_t != m_lsnr_list.end();
+                        ++i_t)
+        {
+                if(*i_t)
+                {
+                        delete *i_t;
+                }
+        }
+        m_lsnr_list.clear();
         pthread_mutex_destroy(&m_stat_cache_mutex);
 }
 //: ----------------------------------------------------------------------------
@@ -140,10 +165,11 @@ int32_t t_srvr::init(void)
         {
                 return STATUS_OK;
         }
-        // Create loop
+        // -------------------------------------------------
+        // setup evr loop
         // TODO Need to make epoll vector resizeable...
-        m_evr_loop = new evr_loop(m_t_conf->m_evr_loop_type,
-                                           512);
+        // -------------------------------------------------
+        m_evr_loop = new evr_loop(m_t_conf->m_evr_loop_type, 512);
         if(!m_evr_loop)
         {
                 TRC_ERROR("m_evr_loop == NULL\n");
@@ -181,19 +207,39 @@ int32_t t_srvr::init(void)
 //: ----------------------------------------------------------------------------
 int32_t t_srvr::add_lsnr(lsnr &a_lsnr)
 {
-        int32_t l_status;
-        l_status = init();
-        if(l_status != STATUS_OK)
+        // -------------------------------------------------
+        // init
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = init();
+        if(l_s != STATUS_OK)
         {
                 TRC_ERROR("performing init.\n");
                 return STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // create copy
+        // -------------------------------------------------
+        lsnr* l_lsnr = new lsnr(a_lsnr.get_port(),
+                                a_lsnr.get_scheme(),
+                                a_lsnr.get_default_route(),
+                                a_lsnr.get_url_router());
+        l_s = l_lsnr->init();
+        if(l_s != STATUS_OK)
+        {
+                TRC_ERROR("performing lsnr::init.\n");
+                return STATUS_ERROR;
+        }
+        m_lsnr_list.push_back(l_lsnr);
+        // -------------------------------------------------
+        // connect setup
+        // -------------------------------------------------
         nconn *l_nconn = NULL;
-        if(a_lsnr.get_scheme() == SCHEME_TCP)
+        if(l_lsnr->get_scheme() == SCHEME_TCP)
         {
                 l_nconn = new nconn_tcp();
         }
-        else if(a_lsnr.get_scheme() == SCHEME_TLS)
+        else if(l_lsnr->get_scheme() == SCHEME_TLS)
         {
                 l_nconn = new nconn_tls();
         }
@@ -204,10 +250,11 @@ int32_t t_srvr::add_lsnr(lsnr &a_lsnr)
         }
         l_nconn->set_ctx(this);
         l_nconn->set_num_reqs_per_conn(m_t_conf->m_num_reqs_per_conn);
+        l_nconn->setup_evr_fd(lsnr::evr_fd_readable_cb, NULL, NULL);
         //l_nconn->set_collect_stats(m_t_conf->m_collect_stats);
-        l_nconn->setup_evr_fd(lsnr::evr_fd_readable_cb,
-                              NULL,
-                              NULL);
+        // -------------------------------------------------
+        // tls config
+        // -------------------------------------------------
         if(l_nconn->get_scheme() == SCHEME_TLS)
         {
                 _SET_NCONN_OPT((*l_nconn),nconn_tls::OPT_TLS_CIPHER_STR,m_t_conf->m_tls_server_ctx_cipher_list.c_str(),m_t_conf->m_tls_server_ctx_cipher_list.length());
@@ -222,11 +269,17 @@ int32_t t_srvr::add_lsnr(lsnr &a_lsnr)
                 }
                 _SET_NCONN_OPT((*l_nconn),nconn_tls::OPT_TLS_OPTIONS,&(m_t_conf->m_tls_server_ctx_options),sizeof(m_t_conf->m_tls_server_ctx_options));
         }
-        a_lsnr.set_t_srvr(this);
-        l_nconn->set_data(&a_lsnr);
+        // -------------------------------------------------
+        // set up meta ptrs
+        // -------------------------------------------------
+        l_lsnr->set_t_srvr(this);
+        l_nconn->set_data(l_lsnr);
         l_nconn->set_evr_loop(m_evr_loop);
-        l_status = l_nconn->nc_set_listening(a_lsnr.get_fd());
-        if(l_status != STATUS_OK)
+        // -------------------------------------------------
+        // set listening
+        // -------------------------------------------------
+        l_s = l_nconn->nc_set_listening(l_lsnr->get_fd());
+        if(l_s != STATUS_OK)
         {
                 if(l_nconn)
                 {
@@ -236,6 +289,9 @@ int32_t t_srvr::add_lsnr(lsnr &a_lsnr)
                 TRC_ERROR("Error performing nc_set_listening.\n");
                 return STATUS_ERROR;
         }
+        // -------------------------------------------------
+        // add to listening conns
+        // -------------------------------------------------
         m_listening_nconn_list.push_back(l_nconn);
         return STATUS_OK;
 }
@@ -254,10 +310,7 @@ int32_t t_srvr::queue_event(evr_event **ao_event,
         }
         // TODO -make 0 a define like EVR_EVENT_QUEUE_NOW
         int32_t l_s;
-        l_s = m_evr_loop->add_event(0,
-                                    a_cb,
-                                    a_data,
-                                    ao_event);
+        l_s = m_evr_loop->add_event(0, a_cb, a_data, ao_event);
         // TODO CHECK STATUS!!!
         (void)l_s;
         return STATUS_OK;

@@ -47,7 +47,7 @@
         do { \
                 int _status = 0; \
                 _status = _conn.set_opt((_opt), (_buf), (_len)); \
-                if (_status != nconn::NC_STATUS_OK) { \
+                if(_status != nconn::NC_STATUS_OK) { \
                         TRC_ERROR("set_opt %d.  Status: %d.\n", \
                                    _opt, _status); \
                         return STATUS_ERROR;\
@@ -64,7 +64,7 @@
                                 _sock_opt_name, \
                                 &_l__sock_opt_val, \
                                 sizeof(_l__sock_opt_val)); \
-                                if (_l_status == -1) { \
+                                if(_l_status == -1) { \
                                         TRC_ERROR("STATUS_ERROR: Failed to set %s.  Reason: %s.\n", \
                                                    #_sock_opt_name, strerror(errno)); \
                                         return STATUS_ERROR;\
@@ -76,19 +76,31 @@ namespace ns_is2 {
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-lsnr::lsnr(uint16_t a_port, scheme_t a_scheme):
+lsnr::lsnr(uint16_t a_port,
+           scheme_t a_scheme,
+           rqst_h* a_default_handler,
+           url_router* a_url_router):
         m_scheme(a_scheme),
         m_local_addr_v4(INADDR_ANY),
         m_port(a_port),
         m_sa(),
         m_sa_len(0),
-        m_default_handler(NULL),
+        m_default_handler(a_default_handler),
         m_url_router(NULL),
+        m_url_router_ref(false),
         m_t_srvr(NULL),
         m_fd(-1),
         m_is_initd(false)
 {
-        m_url_router = new url_router();
+        if(a_url_router)
+        {
+                m_url_router = a_url_router;
+                m_url_router_ref = true;
+        }
+        else
+        {
+                m_url_router = new url_router();
+        }
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -102,7 +114,8 @@ lsnr::~lsnr()
                 // shutdown
                 shutdown(m_fd, SHUT_RD);
         }
-        if(m_url_router)
+        if(!m_url_router_ref &&
+           m_url_router)
         {
                 delete m_url_router;
                 m_url_router = NULL;
@@ -136,84 +149,64 @@ int32_t lsnr::add_route(const std::string &a_endpoint, const rqst_h *a_rqst_h)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-static int32_t create_tcp_server_socket(uint16_t a_port,
-                                        uint32_t a_ipv4_addr,
-                                        sockaddr_in &ao_sa)
-{
-        int l_sock_fd;
-        int32_t l_status;
-        // -------------------------------------------
-        // Create socket for incoming connections
-        // -------------------------------------------
-        #if defined(__APPLE__) || defined(__darwin__)
-                l_sock_fd = socket(PF_INET,
-                                   SOCK_STREAM,
-                                   IPPROTO_TCP);
-        #else
-                l_sock_fd = socket(PF_INET,
-                                   SOCK_STREAM | SOCK_CLOEXEC,
-                                   IPPROTO_TCP);
-        #endif
-        if (l_sock_fd < 0)
-        {
-                TRC_ERROR("Error socket() failed. Reason[%d]: %s\n", errno, strerror(errno));
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------
-        // Set socket options
-        // -Enable Socket reuse.
-        // -------------------------------------------
-        SET_SOCK_OPT(l_sock_fd, SOL_SOCKET, SO_REUSEADDR, 1);
-#ifdef SO_REUSEPORT
-        SET_SOCK_OPT(l_sock_fd, SOL_SOCKET, SO_REUSEPORT, 1);
-#endif
-        // -------------------------------------------
-        // Construct local address structure
-        // -------------------------------------------
-        memset(&ao_sa, 0, sizeof(ao_sa)); // Zero out structure
-        // IPv4 for now
-        ao_sa.sin_family      = AF_INET;             // Internet address family
-        ao_sa.sin_addr.s_addr = htonl(a_ipv4_addr);  // Any incoming interface
-        ao_sa.sin_port        = htons(a_port);       // Local port
-        // -------------------------------------------
-        // Bind to the local address
-        // -------------------------------------------
-        l_status = bind(l_sock_fd, (struct sockaddr *) &ao_sa, sizeof(ao_sa));
-        if (l_status < 0)
-        {
-                TRC_ERROR("Error bind() failed (port: %d). Reason[%d]: %s\n", a_port, errno, strerror(errno));
-                return STATUS_ERROR;
-        }
-        // -------------------------------------------
-        // Mark the socket so it will listen for
-        // incoming connections
-        // -------------------------------------------
-        l_status = listen(l_sock_fd, MAX_PENDING_CONNECT_REQUESTS);
-        if (l_status < 0)
-        {
-                TRC_ERROR("Error listen() failed. Reason[%d]: %s\n", errno, strerror(errno));
-                return STATUS_ERROR;
-        }
-        return l_sock_fd;
-}
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
 int32_t lsnr::init(void)
 {
         if(m_is_initd)
         {
                 return STATUS_OK;
         }
+        // -------------------------------------------------
         // Create listen socket
+        // -------------------------------------------------
         sockaddr_in *l_sa = (struct sockaddr_in *)(&m_sa);
         m_sa_len = sizeof(struct sockaddr_in);
-        m_fd = create_tcp_server_socket(m_port, m_local_addr_v4, *l_sa);
-        if(m_fd == STATUS_ERROR)
+        int32_t l_s;
+        // -------------------------------------------------
+        // Create socket for incoming connections
+        // -------------------------------------------------
+#if defined(__APPLE__) || defined(__darwin__)
+        m_fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+#else
+        m_fd = socket(PF_INET, SOCK_STREAM | SOCK_CLOEXEC, IPPROTO_TCP);
+#endif
+        if(m_fd < 0)
         {
-                TRC_ERROR("Error performing create_tcp_server_socket with port number = %d\n", m_port);
+                TRC_ERROR("Error socket() failed. Reason[%d]: %s\n", errno, strerror(errno));
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // Set socket options
+        // -Enable Socket reuse.
+        // -------------------------------------------------
+        SET_SOCK_OPT(m_fd, SOL_SOCKET, SO_REUSEADDR, 1);
+#ifdef SO_REUSEPORT
+        SET_SOCK_OPT(m_fd, SOL_SOCKET, SO_REUSEPORT, 1);
+#endif
+        // -------------------------------------------------
+        // Construct local address structure
+        // -------------------------------------------------
+        memset(l_sa, 0, sizeof((*l_sa))); // Zero out structure
+        // IPv4 for now
+        l_sa->sin_family      = AF_INET;                 // Internet address family
+        l_sa->sin_addr.s_addr = htonl(m_local_addr_v4);  // Any incoming interface
+        l_sa->sin_port        = htons(m_port);           // Local port
+        // -------------------------------------------------
+        // Bind to the local address
+        // -------------------------------------------------
+        l_s = bind(m_fd, (struct sockaddr *) l_sa, sizeof((*l_sa)));
+        if(l_s < 0)
+        {
+                TRC_ERROR("Error bind() failed (port: %d). Reason[%d]: %s\n", m_port, errno, strerror(errno));
+                return STATUS_ERROR;
+        }
+        // -------------------------------------------------
+        // Mark the socket so it will listen for
+        // incoming connections
+        // -------------------------------------------------
+        l_s = listen(m_fd, MAX_PENDING_CONNECT_REQUESTS);
+        if(l_s < 0)
+        {
+                TRC_ERROR("Error listen() failed. Reason[%d]: %s\n", errno, strerror(errno));
                 return STATUS_ERROR;
         }
         m_is_initd = true;

@@ -52,7 +52,10 @@ public:
         // -------------------------------------------------
         // public methods
         // -------------------------------------------------
-        lsnr(uint16_t a_port=12345, scheme_t a_scheme = SCHEME_TCP);
+        lsnr(uint16_t a_port=12345,
+             scheme_t a_scheme = SCHEME_TCP,
+             rqst_h* a_default_handler = NULL,
+             url_router* a_url_router = NULL);
         ~lsnr();
         // Getters
         int32_t get_fd(void) const { return m_fd;}
@@ -74,15 +77,15 @@ public:
         // -------------------------------------------------
         // Class methods
         // -------------------------------------------------
-        static int32_t evr_fd_readable_cb(void *a_data);
+        static int32_t evr_fd_readable_cb(void* a_data);
 private:
         // -------------------------------------------------
         // private methods
         // -------------------------------------------------
         // Disallow copy/assign
-        lsnr& operator=(const lsnr &);
-        lsnr(const lsnr &);
-        int32_t init_client_conn(nconn *a_nconn);
+        lsnr& operator=(const lsnr&);
+        lsnr(const lsnr&);
+        int32_t init_client_conn(nconn* a_nconn);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
@@ -91,9 +94,10 @@ private:
         uint16_t m_port;
         sockaddr_storage m_sa;
         socklen_t m_sa_len;
-        rqst_h *m_default_handler;
-        url_router *m_url_router;
-        t_srvr *m_t_srvr;
+        rqst_h* m_default_handler;
+        url_router* m_url_router;
+        bool m_url_router_ref;
+        t_srvr* m_t_srvr;
         int32_t m_fd;
         bool m_is_initd;
 };

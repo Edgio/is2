@@ -486,7 +486,9 @@ state_top:
         // -------------------------------------------------
         case nconn::NC_STATE_ACCEPTING:
         {
-                l_nconn->ncaccept();
+                // -----------------------------------------
+                // accept
+                // -----------------------------------------
                 int32_t l_s;
                 l_s = l_nconn->ncaccept();
                 if(l_s == nconn::NC_STATUS_ERROR)
@@ -494,6 +496,9 @@ state_top:
                         TRC_ERROR("performing ncaccept\n");
                         return STATUS_ERROR;
                 }
+                // -----------------------------------------
+                // check state
+                // -----------------------------------------
                 if(l_nconn->is_accepting())
                 {
                         //NDBG_PRINT("Still connecting...\n");
