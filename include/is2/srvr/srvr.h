@@ -97,6 +97,7 @@ public:
         // Helper for apps
         t_srvr_list_t &get_t_srvr_list(void);
         // Running...
+        int init(void);
         int32_t run(void);
         int32_t stop(void);
         int32_t wait_till_stopped(void);
@@ -134,7 +135,6 @@ private:
         // Disallow copy/assign
         srvr& operator=(const srvr &);
         srvr(const srvr &);
-        int init(void);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------
