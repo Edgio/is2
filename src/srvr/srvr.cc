@@ -490,34 +490,7 @@ int32_t srvr::register_lsnr(lsnr *a_lsnr)
         {
                 return STATUS_ERROR;
         }
-        int32_t l_status;
-        l_status = a_lsnr->init();
-        if(l_status != STATUS_OK)
-        {
-                TRC_ERROR("Error performing lsnr init.\n");
-                return STATUS_ERROR;
-        }
-        if(is_running())
-        {
-                for(t_srvr_list_t::iterator i_t = m_t_srvr_list.begin();
-                    i_t != m_t_srvr_list.end();
-                    ++i_t)
-                {
-                        if(*i_t)
-                        {
-                                l_status = (*i_t)->add_lsnr(*a_lsnr);
-                                if(l_status != STATUS_OK)
-                                {
-                                        TRC_ERROR("Error performing add_lsnr.\n");
-                                        return STATUS_ERROR;
-                                }
-                        }
-                }
-        }
-        else
-        {
-                m_lsnr_list.push_back(a_lsnr);
-        }
+        m_lsnr_list.push_back(a_lsnr);
         return STATUS_OK;
 }
 //: ----------------------------------------------------------------------------
@@ -534,40 +507,24 @@ srvr::t_srvr_list_t &srvr::get_t_srvr_list(void)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int32_t srvr::init_run(void)
+int32_t srvr::run(void)
 {
-        int l_status = 0;
+        int32_t l_s = 0;
         if(!m_is_initd)
         {
-                l_status = init();
-                if(STATUS_OK != l_status)
+                l_s = init();
+                if(STATUS_OK != l_s)
                 {
                         return STATUS_ERROR;
                 }
         }
         if(m_t_srvr_list.empty())
         {
-                l_status = init_t_srvr_list();
-                if(STATUS_OK != l_status)
+                l_s = init_t_srvr_list();
+                if(STATUS_OK != l_s)
                 {
                         return STATUS_ERROR;
                 }
-        }
-        return STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-int32_t srvr::run(void)
-{
-        //NDBG_PRINT("Running...\n");
-        int32_t l_status;
-        l_status = init_run();
-        if(STATUS_OK != l_status)
-        {
-                return STATUS_ERROR;
         }
         if(m_num_threads == 0)
         {
@@ -695,46 +652,17 @@ int srvr::init(void)
 int srvr::init_t_srvr_list(void)
 {
         // -------------------------------------------------
-        // Create t_srvr list...
-        // -------------------------------------------------
-        // -------------------------------------------------
         // 0 threads -make a single srvr
         // -------------------------------------------------
-        if(m_num_threads == 0)
+        uint32_t l_num_t_srvr = m_num_threads;
+        if(!l_num_t_srvr)
         {
-                int32_t l_status;
-
-                t_srvr *l_t_srvr = new t_srvr(m_t_conf);
-                l_t_srvr->set_srvr_instance(this);
-                for(lsnr_list_t::iterator i_t = m_lsnr_list.begin();
-                                i_t != m_lsnr_list.end();
-                                ++i_t)
-                {
-                        if(*i_t)
-                        {
-                                l_status = l_t_srvr->add_lsnr(*(*i_t));
-                                if(l_status != STATUS_OK)
-                                {
-                                        delete l_t_srvr;
-                                        l_t_srvr = NULL;
-                                        TRC_ERROR("Error performing add_lsnr.\n");
-                                        return STATUS_ERROR;
-                                }
-                        }
-                }
-                l_status = l_t_srvr->init();
-                if(l_status != STATUS_OK)
-                {
-                        TRC_ERROR("Error performing init.\n");
-                        return STATUS_ERROR;
-                }
-                m_t_srvr_list.push_back(l_t_srvr);
-                return STATUS_OK;
+                l_num_t_srvr = 1;
         }
         // -------------------------------------------------
         // foreach thread -create t_srvr instance
         // -------------------------------------------------
-        for(uint32_t i_server_idx = 0; i_server_idx < m_num_threads; ++i_server_idx)
+        for(uint32_t i_server_idx = 0; i_server_idx < l_num_t_srvr; ++i_server_idx)
         {
                 // -----------------------------------------
                 // create t_srvr

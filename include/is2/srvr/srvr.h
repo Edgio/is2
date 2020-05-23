@@ -97,8 +97,6 @@ public:
         // Helper for apps
         t_srvr_list_t &get_t_srvr_list(void);
         // Running...
-        // init for running but don't start
-        int32_t init_run(void);
         int32_t run(void);
         int32_t stop(void);
         int32_t wait_till_stopped(void);

@@ -85,7 +85,6 @@ private:
         // Disallow copy/assign
         lsnr& operator=(const lsnr&);
         lsnr(const lsnr&);
-        int32_t init_client_conn(nconn* a_nconn);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

@@ -290,28 +290,45 @@ int32_t lsnr::evr_fd_readable_cb(void *a_data)
         // -------------------------------------------------
         // get new connected client conn
         // -------------------------------------------------
-        nconn *l_client_conn = NULL;
+        nconn *l_clnt_conn = NULL;
         //NDBG_PRINT("CREATING NEW CONNECTION: a_scheme: %d\n", a_scheme);
         if(l_nconn->get_scheme() == SCHEME_TCP)
         {
-                l_client_conn = new nconn_tcp();
+                l_clnt_conn = new nconn_tcp();
         }
         else if(l_nconn->get_scheme() == SCHEME_TLS)
         {
-                l_client_conn = new nconn_tls();
+                l_clnt_conn = new nconn_tls();
         }
         else
         {
                 TRC_ERROR("performing m_nconn_pool.get\n");
                 return STATUS_ERROR;
         }
-        int32_t l_s;
-        l_s = l_lsnr->init_client_conn(l_client_conn);
-        if(l_s != STATUS_OK)
+        // -------------------------------------------------
+        // init conn
+        // -------------------------------------------------
+        const t_conf& l_conf = *(l_lsnr->m_t_srvr->m_t_conf);
+        l_clnt_conn->set_ctx(l_lsnr->m_t_srvr);
+        l_clnt_conn->set_num_reqs_per_conn(l_conf.m_num_reqs_per_conn);
+        //l_nconn->set_collect_stats(m_t_srvr->m_t_conf->m_collect_stats);
+        l_clnt_conn->set_evr_loop(l_lsnr->m_t_srvr->get_evr_loop());
+        l_clnt_conn->setup_evr_fd(session::evr_fd_readable_cb,
+                                  session::evr_fd_writeable_cb,
+                                  session::evr_fd_error_cb);
+        if(l_clnt_conn->get_scheme() == SCHEME_TLS)
         {
-                TRC_ERROR("performing nc_set_accepting\n");
-                delete l_client_conn;
-                return STATUS_ERROR;
+                T_CLNT_SET_NCONN_OPT((*l_clnt_conn),nconn_tls::OPT_TLS_CIPHER_STR,l_conf.m_tls_server_ctx_cipher_list.c_str(),l_conf.m_tls_server_ctx_cipher_list.length());
+                T_CLNT_SET_NCONN_OPT((*l_clnt_conn),nconn_tls::OPT_TLS_CTX,l_conf.m_tls_server_ctx,sizeof(l_conf.m_tls_server_ctx));
+                if(!l_conf.m_tls_server_ctx_crt.empty())
+                {
+                        T_CLNT_SET_NCONN_OPT((*l_clnt_conn),nconn_tls::OPT_TLS_TLS_CRT,l_conf.m_tls_server_ctx_crt.c_str(),l_conf.m_tls_server_ctx_crt.length());
+                }
+                if(!l_conf.m_tls_server_ctx_key.empty())
+                {
+                        T_CLNT_SET_NCONN_OPT((*l_clnt_conn),nconn_tls::OPT_TLS_TLS_KEY,l_conf.m_tls_server_ctx_key.c_str(),l_conf.m_tls_server_ctx_key.length());
+                }
+                T_CLNT_SET_NCONN_OPT((*l_clnt_conn),nconn_tls::OPT_TLS_OPTIONS,&(l_conf.m_tls_server_ctx_options),sizeof(l_conf.m_tls_server_ctx_options));
         }
         // -------------------------------------------------
         // clnt session setup
@@ -322,8 +339,8 @@ int32_t lsnr::evr_fd_readable_cb(void *a_data)
         l_cs->m_resp_done_cb = l_lsnr->m_t_srvr->m_t_conf->m_resp_done_cb;
         l_cs->m_in_q = l_lsnr->m_t_srvr->get_nbq(NULL);
         l_cs->m_out_q = NULL;
-        l_cs->m_nconn = l_client_conn;
-        l_client_conn->set_data(l_cs);
+        l_cs->m_nconn = l_clnt_conn;
+        l_clnt_conn->set_data(l_cs);
         //TRC_DEBUG("l_cs: %p\n", l_cs);
         // stats
         //++m_stat.m_clnt_conn_started;
@@ -342,7 +359,8 @@ int32_t lsnr::evr_fd_readable_cb(void *a_data)
         // -------------------------------------------------
         // set accepting
         // -------------------------------------------------
-        l_s = l_client_conn->nc_set_accepting(l_fd);
+        int32_t l_s;
+        l_s = l_clnt_conn->nc_set_accepting(l_fd);
         if(l_s != STATUS_OK)
         {
                 TRC_ERROR("performing nc_set_accepting\n");
@@ -363,42 +381,9 @@ int32_t lsnr::evr_fd_readable_cb(void *a_data)
         l_cs->set_last_active_ms(get_time_ms());
         l_t_srvr->add_timer(l_cs->get_timeout_ms(),
                             session::evr_event_timeout_cb,
-                            l_client_conn,
+                            l_clnt_conn,
                             (void **)(&(l_cs->m_evr_timeout)));
         // TODO Check status
-        return STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-int32_t lsnr::init_client_conn(nconn *a_nconn)
-{
-        // -------------------------------------------------
-        // connection setup
-        // -------------------------------------------------
-        a_nconn->set_ctx(m_t_srvr);
-        a_nconn->set_num_reqs_per_conn(m_t_srvr->m_t_conf->m_num_reqs_per_conn);
-        //l_nconn->set_collect_stats(m_t_srvr->m_t_conf->m_collect_stats);
-        a_nconn->set_evr_loop(m_t_srvr->get_evr_loop());
-        a_nconn->setup_evr_fd(session::evr_fd_readable_cb,
-                              session::evr_fd_writeable_cb,
-                              session::evr_fd_error_cb);
-        if(a_nconn->get_scheme() == SCHEME_TLS)
-        {
-                T_CLNT_SET_NCONN_OPT((*a_nconn),nconn_tls::OPT_TLS_CIPHER_STR,m_t_srvr->m_t_conf->m_tls_server_ctx_cipher_list.c_str(),m_t_srvr->m_t_conf->m_tls_server_ctx_cipher_list.length());
-                T_CLNT_SET_NCONN_OPT((*a_nconn),nconn_tls::OPT_TLS_CTX,m_t_srvr->m_t_conf->m_tls_server_ctx,sizeof(m_t_srvr->m_t_conf->m_tls_server_ctx));
-                if(!m_t_srvr->m_t_conf->m_tls_server_ctx_crt.empty())
-                {
-                        T_CLNT_SET_NCONN_OPT((*a_nconn),nconn_tls::OPT_TLS_TLS_CRT,m_t_srvr->m_t_conf->m_tls_server_ctx_crt.c_str(),m_t_srvr->m_t_conf->m_tls_server_ctx_crt.length());
-                }
-                if(!m_t_srvr->m_t_conf->m_tls_server_ctx_key.empty())
-                {
-                        T_CLNT_SET_NCONN_OPT((*a_nconn),nconn_tls::OPT_TLS_TLS_KEY,m_t_srvr->m_t_conf->m_tls_server_ctx_key.c_str(),m_t_srvr->m_t_conf->m_tls_server_ctx_key.length());
-                }
-                T_CLNT_SET_NCONN_OPT((*a_nconn),nconn_tls::OPT_TLS_OPTIONS,&(m_t_srvr->m_t_conf->m_tls_server_ctx_options),sizeof(m_t_srvr->m_t_conf->m_tls_server_ctx_options));
-        }
         return STATUS_OK;
 }
 }
