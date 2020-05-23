@@ -135,7 +135,6 @@ private:
         srvr& operator=(const srvr &);
         srvr(const srvr &);
         int init(void);
-        int init_t_srvr_list(void);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

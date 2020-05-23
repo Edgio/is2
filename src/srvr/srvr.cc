@@ -518,14 +518,6 @@ int32_t srvr::run(void)
                         return STATUS_ERROR;
                 }
         }
-        if(m_t_srvr_list.empty())
-        {
-                l_s = init_t_srvr_list();
-                if(STATUS_OK != l_s)
-                {
-                        return STATUS_ERROR;
-                }
-        }
         if(m_num_threads == 0)
         {
                 (*(m_t_srvr_list.begin()))->t_run(NULL);
@@ -580,14 +572,14 @@ int32_t srvr::wait_till_stopped(void)
 //: ----------------------------------------------------------------------------
 int srvr::init(void)
 {
-        if(true == m_is_initd)
+        if(m_is_initd)
         {
                 return STATUS_OK;
         }
-        m_t_conf->m_nresolver = new nresolver();
         // -------------------------------------------------
         // init resolver with cache
         // -------------------------------------------------
+        m_t_conf->m_nresolver = new nresolver();
         int32_t l_ldb_init_status;
         l_ldb_init_status = m_t_conf->m_nresolver->init(m_dns_use_ai_cache, m_dns_ai_cache_file);
         if(STATUS_OK != l_ldb_init_status)
@@ -641,16 +633,9 @@ int srvr::init(void)
                            m_t_conf->m_tls_client_ctx_cipher_list.c_str());
                 return STATUS_ERROR;
         }
-        m_is_initd = true;
-        return STATUS_OK;
-}
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
-int srvr::init_t_srvr_list(void)
-{
+        // -------------------------------------------------
+        // init t svr list
+        // -------------------------------------------------
         // -------------------------------------------------
         // 0 threads -make a single srvr
         // -------------------------------------------------
@@ -701,6 +686,10 @@ int srvr::init_t_srvr_list(void)
                 }
                 m_t_srvr_list.push_back(l_t_srvr);
         }
+        // -------------------------------------------------
+        // done...
+        // -------------------------------------------------
+        m_is_initd = true;
         return STATUS_OK;
 }
 } //namespace ns_is2 {
