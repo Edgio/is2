@@ -464,6 +464,10 @@ state_top:
         // -------------------------------------------------
         case nconn::NC_STATE_DONE:
         {
+                if(!l_cs)
+                {
+                        return STATUS_DONE;
+                }
                 int32_t l_s;
                 l_s = l_cs->teardown();
                 // TODO check status
@@ -653,7 +657,8 @@ state_top:
                         // ---------------------------------
                         // send expect response -if signal
                         // ---------------------------------
-                        if(l_cs->m_rqst &&
+                        if(l_cs &&
+                           l_cs->m_rqst &&
                            l_cs->m_rqst->m_expect)
                         {
                                 nbq l_nbq(64);
@@ -668,15 +673,15 @@ state_top:
                         // ---------------------------------
                         // rqst complete
                         // ---------------------------------
-                        if((l_cs->m_rqst &&
-                            l_cs->m_rqst->m_complete))
+                        if(l_cs &&
+                           l_cs->m_rqst &&
+                           l_cs->m_rqst->m_complete)
                         {
                                 if(l_t_srvr) { ++l_t_srvr->m_stat.m_reqs; }
                                 int32_t l_rs = STATUS_OK;
                                 l_rs = l_cs->handle_req();
                                 if(l_rs != STATUS_OK)
                                 {
-                                        l_s = nconn::NC_STATUS_ERROR;
                                         TRC_ERROR("performing handle_req\n");
                                         l_nconn->set_state_done();
                                         goto state_top;
@@ -707,7 +712,7 @@ state_top:
                                 {
                                         l_cs->m_out_q = l_t_srvr->m_orphan_out_q;
                                         l_t_srvr->m_orphan_out_q = l_t_srvr->get_nbq(NULL);
-                                        l_out_q->reset_write();
+                                        l_cs->m_out_q->reset_write();
                                 }
                                 l_out_q = l_cs->m_out_q;
                         }
@@ -803,7 +808,8 @@ state_top:
                         // ---------------------------------
                         // check is done
                         // ---------------------------------
-                        if(l_cs->m_out_q &&
+                        if(l_cs &&
+                           l_cs->m_out_q &&
                            !l_cs->m_out_q->read_avail())
                         {
                                 bool l_done = false;

@@ -180,6 +180,7 @@ int32_t evr_loop::run(void)
         {
                 // dequeue any pending timeouts
                 l_time_diff_ms = dequeue_events();
+                UNUSED(l_time_diff_ms);
                 return STATUS_OK;
         }
         // -------------------------------------------------

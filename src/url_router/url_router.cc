@@ -1048,7 +1048,7 @@ int32_t url_router::add_route(const std::string &a_route, const void *a_data)
         {
                 m_root_node = new node();
         }
-        node * l_node;
+        node * l_node = NULL;
         l_node = m_root_node->insert_route(l_pattern, a_data);
         if(!l_node)
         {

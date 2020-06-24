@@ -247,26 +247,26 @@ const char *rqst::get_method_str()
 //: ----------------------------------------------------------------------------
 const mutable_arg_list_t& rqst::get_query_list()
 {
-
+        if(m_query_list)
+        {
+                return *m_query_list;
+        }
         // -------------------------------------------------
         // create query list
         // -------------------------------------------------
-        if(!m_query_list)
+        m_query_list = new mutable_arg_list_t();
+        // parse args
+        uint32_t l_invalid_cnt = 0;
+        int32_t l_s;
+        l_s = parse_args(*m_query_list,
+                         l_invalid_cnt,
+                         get_url_query().m_data,
+                         get_url_query().m_len,
+                         '&');
+        if(l_s != STATUS_OK)
         {
-                m_query_list = new mutable_arg_list_t();
-                // parse args
-                uint32_t l_invalid_cnt = 0;
-                int32_t l_s;
-                l_s = parse_args(*m_query_list,
-                                 l_invalid_cnt,
-                                 get_url_query().m_data,
-                                 get_url_query().m_len,
-                                 '&');
-                if(l_s != STATUS_OK)
-                {
-                        // TODO log reason???
-                        return *m_query_list;
-                }
+                // TODO log reason???
+                return *m_query_list;
         }
         return *m_query_list;
 }
@@ -277,34 +277,35 @@ const mutable_arg_list_t& rqst::get_query_list()
 //: ----------------------------------------------------------------------------
 const mutable_data_map_list_t& rqst::get_query_map()
 {
-        // -------------------------------------------------
-        // create header map
-        // -------------------------------------------------
-        if(!m_query_map)
+        if(m_query_map)
         {
-                const mutable_arg_list_t &l_list = get_query_list();
-                m_header_map = new mutable_data_map_list_t();
-                for(mutable_arg_list_t::const_iterator i_q = l_list.begin();
-                    i_q != l_list.end();
-                    ++i_q)
+                return *m_query_map;
+        }
+        // -------------------------------------------------
+        // create query map
+        // -------------------------------------------------
+        const mutable_arg_list_t& l_list = get_query_list();
+        m_query_map = new mutable_data_map_list_t();
+        for(mutable_arg_list_t::const_iterator i_q = l_list.begin();
+            i_q != l_list.end();
+            ++i_q)
+        {
+                mutable_data_t l_k;
+                l_k.m_data = i_q->m_key;
+                l_k.m_len = i_q->m_key_len;
+                mutable_data_t l_v;
+                l_v.m_data = i_q->m_val;
+                l_v.m_len = i_q->m_val_len;
+                mutable_data_map_list_t::iterator i_obj = m_query_map->find(l_k);
+                if(i_obj != m_query_map->end())
                 {
-                        mutable_data_t l_k;
-                        l_k.m_data = i_q->m_key;
-                        l_k.m_len = i_q->m_key_len;
-                        mutable_data_t l_v;
-                        l_v.m_data = i_q->m_val;
-                        l_v.m_len = i_q->m_val_len;
-                        mutable_data_map_list_t::iterator i_obj = m_query_map->find(l_k);
-                        if(i_obj != m_query_map->end())
-                        {
-                                i_obj->second.push_back(l_v);
-                        }
-                        else
-                        {
-                                mutable_data_list_t l_list;
-                                l_list.push_back(l_v);
-                                (*m_query_map)[l_k] = l_list;
-                        }
+                        i_obj->second.push_back(l_v);
+                }
+                else
+                {
+                        mutable_data_list_t l_list;
+                        l_list.push_back(l_v);
+                        (*m_query_map)[l_k] = l_list;
                 }
         }
         return *m_query_map;
