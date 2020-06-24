@@ -491,7 +491,9 @@ void nresolver::dns_a4_cb(struct dns_ctx *a_ctx,
         //           a_result->dnsa4_qname,
         //           a_result->dnsa4_nrr,
         //           s_bytes_2_ip_str((unsigned char *) &(a_result->dnsa4_addr->s_addr)));
+        // -------------------------------------------------
         // Create host_info_t
+        // -------------------------------------------------
         host_info *l_host_info = NULL;
         l_host_info = new host_info();
         l_host_info->m_sa_len = sizeof(l_host_info->m_sa);
@@ -506,8 +508,13 @@ void nresolver::dns_a4_cb(struct dns_ctx *a_ctx,
         {
                 l_ttl_s = 10;
         }
+        // -------------------------------------------------
+        // TODO -fix impl -ownership of l_host_info is
+        // confusing and possibly leaks.
+        // -------------------------------------------------
         l_host_info->m_expires_s = get_time_s() + l_ttl_s;
-        if(l_job->m_nresolver->m_use_cache && l_job->m_nresolver->get_ai_cache())
+        if(l_job->m_nresolver->m_use_cache &&
+           l_job->m_nresolver->get_ai_cache())
         {
                 std::string l_cache_key = get_cache_key(l_job->m_host, l_job->m_port);
                 pthread_mutex_lock(&(l_job->m_nresolver->m_cache_mutex));

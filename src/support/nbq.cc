@@ -496,13 +496,14 @@ int32_t nbq::split(nbq **ao_nbq_tail, uint64_t a_offset)
         // ---------------------------------------
         // create new nbq and append remainder
         // ---------------------------------------
-        nbq *l_nbq = new nbq(m_bsize);
+        nbq* l_nbq = new nbq(m_bsize);
         if(i_offset > 0)
         {
-                nb_t &l_b = *(*i_b);
+                nb_t& l_b = *(*i_b);
                 if(i_offset >= l_b.written())
                 {
                         TRC_ERROR("i_offset: %" PRIu64 " >= l_b.written(): %u\n", i_offset, l_b.written());
+                        if(l_nbq) {delete l_nbq; l_nbq = NULL;}
                         return STATUS_ERROR;
                 }
                 // write the remainder
@@ -515,7 +516,7 @@ int32_t nbq::split(nbq **ao_nbq_tail, uint64_t a_offset)
         // add the tail
         // ---------------------------------------
         ++i_b;
-        while (i_b != m_q.end())
+        while(i_b != m_q.end())
         {
                 if(!(*i_b))
                 {

@@ -235,22 +235,24 @@ void api_resp::set_status(http_status_t a_status)
 //: ----------------------------------------------------------------------------
 int api_resp::set_header(const std::string &a_header)
 {
-        int32_t l_status;
+        int32_t l_s;
         std::string l_header_key;
         std::string l_header_val;
-        l_status = break_header_string(a_header, l_header_key, l_header_val);
-        if(l_status != 0)
+        l_s = break_header_string(a_header, l_header_key, l_header_val);
+        if(l_s != 0)
         {
                 // If verbose???
                 //printf("Error header string[%s] is malformed\n", a_header.c_str());
                 return -1;
         }
-        l_status = set_header(l_header_key, l_header_val);
+        l_s = set_header(l_header_key, l_header_val);
+        if(l_s != 0)
         {
                 // If verbose???
                 //printf("Error header string[%s] is malformed\n", a_header.c_str());
                 return -1;
         }
+        return 0;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -286,24 +288,40 @@ void api_resp::set_headers(const kv_map_list_t &a_headers_list)
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-int api_resp::set_headerf(const std::string &a_key, const char* fmt, ...)
+int api_resp::set_headerf(const std::string &a_key, const char* a_fmt, ...)
 {
+        // -------------------------------------------------
         // maximum size is going to be 8K for header for now
-        const int max_header_size = 8192;
-
-        char *val = static_cast <char*>(malloc(max_header_size));
-
-        va_list ap;
-        va_start(ap, fmt);
-        int res = vsnprintf(val, max_header_size, fmt, ap);
-        va_end(ap);
-
-        if (res < 0){
+        // -------------------------------------------------
+        const int l_max_header_size = 8192;
+        // -------------------------------------------------
+        // allocate space for header
+        // -------------------------------------------------
+        char *l_val = (char*)malloc(l_max_header_size);
+        // -------------------------------------------------
+        // ...
+        // -------------------------------------------------
+        va_list l_ap;
+        va_start(l_ap, a_fmt);
+        int l_res = vsnprintf(l_val, l_max_header_size, a_fmt, l_ap);
+        va_end(l_ap);
+        if(l_res < 0)
+        {
                 // failed
+                if(l_val) { free(l_val); l_val = NULL; }
                 return -1;
         }
-        // success
-        return set_header(a_key, std::string(val, res));
+        // -------------------------------------------------
+        // create str...
+        // -------------------------------------------------
+        std::string l_str = std::string(l_val, l_res);
+        if(l_val) { free(l_val); l_val = NULL; }
+        // -------------------------------------------------
+        // set header
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = set_header(a_key, l_str);
+        return l_s;
 }
 //: ----------------------------------------------------------------------------
 //: \details: TODO
