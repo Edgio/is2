@@ -55,7 +55,8 @@ public:
         lsnr(uint16_t a_port=12345,
              scheme_t a_scheme = SCHEME_TCP,
              rqst_h* a_default_handler = NULL,
-             url_router* a_url_router = NULL);
+             url_router* a_url_router = NULL,
+             uint32_t a_local_addr_v4 = 0);
         ~lsnr();
         // Getters
         int32_t get_fd(void) const { return m_fd;}
@@ -68,6 +69,7 @@ public:
                 ao_sa_len = m_sa_len;
         }
         uint16_t get_port(void) { return m_port;}
+        uint32_t get_local_addr_v4(void) { return m_local_addr_v4;}
         // Setters
         int32_t set_local_addr_v4(const char *a_addr_str);
         int32_t set_default_route(rqst_h *a_handler);

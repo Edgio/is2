@@ -88,8 +88,8 @@ srvr::~srvr()
         // listener list
         // -------------------------------------------------
         for(lsnr_list_t::iterator i_t = m_lsnr_list.begin();
-                        i_t != m_lsnr_list.end();
-                        ++i_t)
+            i_t != m_lsnr_list.end();
+            ++i_t)
         {
                 if(*i_t)
                 {
