@@ -79,9 +79,10 @@ namespace ns_is2 {
 lsnr::lsnr(uint16_t a_port,
            scheme_t a_scheme,
            rqst_h* a_default_handler,
-           url_router* a_url_router):
+           url_router* a_url_router,
+           uint32_t a_local_addr_v4):
         m_scheme(a_scheme),
-        m_local_addr_v4(INADDR_ANY),
+        m_local_addr_v4(a_local_addr_v4),
         m_port(a_port),
         m_sa(),
         m_sa_len(0),
@@ -92,6 +93,10 @@ lsnr::lsnr(uint16_t a_port,
         m_fd(-1),
         m_is_initd(false)
 {
+        if(!m_local_addr_v4)
+        {
+                m_local_addr_v4 = INADDR_ANY;
+        }
         if(a_url_router)
         {
                 m_url_router = a_url_router;

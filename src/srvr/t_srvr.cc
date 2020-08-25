@@ -223,7 +223,8 @@ int32_t t_srvr::add_lsnr(lsnr &a_lsnr)
         lsnr* l_lsnr = new lsnr(a_lsnr.get_port(),
                                 a_lsnr.get_scheme(),
                                 a_lsnr.get_default_route(),
-                                a_lsnr.get_url_router());
+                                a_lsnr.get_url_router(),
+                                a_lsnr.get_local_addr_v4());
         l_s = l_lsnr->init();
         if(l_s != STATUS_OK)
         {
