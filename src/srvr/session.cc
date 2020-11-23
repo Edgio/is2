@@ -869,6 +869,7 @@ state_top:
                                         {
                                                 l_cs->m_nconn->nc_set_connected();
                                                 l_cs->m_rqst->init();
+                                                l_cs->m_rqst->m_supports_keep_alives = true;
                                                 // TODO -check status
                                                 return STATUS_OK;
                                         }

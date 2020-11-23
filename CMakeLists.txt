@@ -36,6 +36,8 @@ option(BUILD_TESTS       "Build the unit tests." ON)
 option(BUILD_EXAMPLES    "Build the examples." ON)
 option(BUILD_SYMBOLS     "Build with Symbols" ON)
 option(BUILD_UDNS        "Build with udns (async dns support)" ON)
+option(BUILD_TCMALLOC    "Build with tcmalloc" OFF)
+option(BUILD_PROFILER    "Enable google cpu and heap profiler support" OFF)
 option(BUILD_ASAN        "Build with Address Sanitizer" OFF)
 option(BUILD_UBSAN       "Build with Undefined Behavior Sanitizer" OFF)
 # ------------------------------------------------------------------------------
@@ -57,6 +59,8 @@ message("    Build examples:                            " "BUILD_EXAMPLES       
 message("    Install path:                              " "INSTALL_PREFIX          " ${CMAKE_INSTALL_PREFIX})
 message("    Build Symbols                              " "BUILD_SYMBOLS           " ${BUILD_SYMBOLS})
 message("    Build with udns support:                   " "BUILD_UDNS              " ${BUILD_UDNS})
+message("    Build with tcmalloc:                       " "BUILD_TCMALLOC          " ${BUILD_TCMALLOC})
+message("    Enable google cpu/heap profiler support:   " "BUILD_PROFILER          " ${BUILD_PROFILER})
 message("    Build with Address Sanitizer:              " "BUILD_ASAN              " ${BUILD_ASAN})
 message("    Build with Undefined Behavior Sanitizer:   " "BUILD_UBSAN             " ${BUILD_UBSAN})
 message("")
@@ -73,6 +77,17 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 if (FORTIFY)
   add_definitions(-D_FORTIFY_SOURCE=2 -O1 -fstack-protector-all -Wl,-z,relro,-z,now)
 endif()
+# ------------------------------------------------------------------------------
+# fail if not found
+# ------------------------------------------------------------------------------
+macro(fail_if_not_found_library a_lib)
+  find_library(${a_lib}_LIBRARY
+               NAME ${a_lib}
+               PATH_SUFFIXES ${CMAKE_LIBRARY_ARCHITECTURE})
+  if(NOT ${a_lib}_LIBRARY)
+    message(FATAL_ERROR "${a_lib} library not found")
+  endif()
+endmacro(fail_if_not_found_library)
 # ------------------------------------------------------------------------------
 # ASAN
 # ------------------------------------------------------------------------------
@@ -120,6 +135,42 @@ if(BUILD_UDNS)
     INSTALL_COMMAND ""
   )
   add_definitions(-DASYNC_DNS_WITH_UDNS=1)
+endif()
+# ------------------------------------------------------------------------------
+# Build PROFILER
+# ------------------------------------------------------------------------------
+if (BUILD_PROFILER)
+  if (BUILD_LINUX)
+    fail_if_not_found_library(libprofiler.a)
+    set(LIBRARIES ${LIBRARIES} ${libprofiler.a_LIBRARY})
+  else()
+    fail_if_not_found_library(profiler)
+    set(LIBRARIES ${LIBRARIES} profiler)
+  endif()
+  add_definitions(-DENABLE_PROFILER=1)
+  # profiler requires tcmalloc
+  set(BUILD_TCMALLOC ON)
+endif()
+# ------------------------------------------------------------------------------
+# Build TCMALLOC
+# ------------------------------------------------------------------------------
+if (BUILD_TCMALLOC)
+  if (BUILD_LINUX)
+    fail_if_not_found_library(libtcmalloc.a)
+    fail_if_not_found_library(libunwind.a)
+    fail_if_not_found_library(liblzma.a)
+    set(LIBRARIES ${LIBRARIES} ${libtcmalloc.a_LIBRARY})
+    set(LIBRARIES ${LIBRARIES} ${libunwind.a_LIBRARY})
+    set(LIBRARIES ${LIBRARIES} ${liblzma.a_LIBRARY})
+    set(LIBRARIES ${LIBRARIES} ${liblzma.a_LIBRARY})
+  else()
+    fail_if_not_found_library(tcmalloc)
+    fail_if_not_found_library(unwind)
+    set(LIBRARIES ${LIBRARIES} tcmalloc)
+    set(LIBRARIES ${LIBRARIES} unwind)
+    set(LIBRARIES ${LIBRARIES} lzma)
+  endif()
+  set(LIBRARIES ${LIBRARIES} pthread)
 endif()
 # ------------------------------------------------------------------------------
 #
