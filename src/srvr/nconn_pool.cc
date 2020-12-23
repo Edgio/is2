@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    nconn_pool.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    05/27/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "srvr/nconn_pool.h"
 #include "is2/support/ndebug.h"
 #include "nconn/nconn_tcp.h"
@@ -30,11 +17,11 @@
 #include "is2/status.h"
 #include "is2/support/trace.h"
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 nconn_pool::nconn_pool(uint64_t a_max_active_size,
                        uint64_t a_max_idle_size):
                        m_initd(false),
@@ -46,11 +33,11 @@ nconn_pool::nconn_pool(uint64_t a_max_active_size,
         //NDBG_PRINT("a_max_active_size: %d\n", a_max_active_size);
         //NDBG_PRINT("a_max_idle_size:   %d\n", a_max_idle_size);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 nconn_pool::~nconn_pool(void)
 {
         // -------------------------------------------------
@@ -70,11 +57,11 @@ nconn_pool::~nconn_pool(void)
         evict_all_idle();
         reap();
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void nconn_pool::evict_all_idle(void)
 {
         while(m_idle_conn_lru.size())
@@ -82,11 +69,11 @@ void nconn_pool::evict_all_idle(void)
                 m_idle_conn_lru.evict();
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 nconn *nconn_pool::get_new_active(const std::string &a_label, scheme_t a_scheme)
 {
         if(!m_initd)
@@ -108,29 +95,29 @@ nconn *nconn_pool::get_new_active(const std::string &a_label, scheme_t a_scheme)
         }
         return l_nconn;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint64_t nconn_pool::get_active_size(void)
 {
         return m_active_conn_map_size;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint64_t nconn_pool::get_active_available(void)
 {
         return m_active_conn_map_max_size - m_active_conn_map_size;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint64_t nconn_pool::get_active_label(const std::string &a_label)
 {
         active_conn_map_t::const_iterator i_l;
@@ -140,11 +127,11 @@ uint64_t nconn_pool::get_active_label(const std::string &a_label)
         }
         return 0;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 nconn *nconn_pool::get_idle(const std::string &a_label)
 {
         if(!m_initd)
@@ -161,20 +148,20 @@ nconn *nconn_pool::get_idle(const std::string &a_label)
         }
         return NULL;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 uint64_t nconn_pool::get_idle_size(void)
 {
         return m_idle_conn_lru.size();
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t nconn_pool::add_idle(nconn *a_nconn)
 {
         if(!m_initd)
@@ -204,11 +191,11 @@ int32_t nconn_pool::add_idle(nconn *a_nconn)
         //              l_id);
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t nconn_pool::release(nconn *a_nconn)
 {
         if(!a_nconn)
@@ -242,11 +229,11 @@ int32_t nconn_pool::release(nconn *a_nconn)
         }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 nconn *nconn_pool::s_create_new_conn(scheme_t a_scheme)
 {
         nconn *l_nconn = NULL;
@@ -261,11 +248,11 @@ nconn *nconn_pool::s_create_new_conn(scheme_t a_scheme)
         }
         return l_nconn;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int nconn_pool::s_delete_cb(void* o_1, void *a_2)
 {
         nconn_pool *l_nconn_pool = reinterpret_cast<nconn_pool *>(o_1);
@@ -279,20 +266,20 @@ int nconn_pool::s_delete_cb(void* o_1, void *a_2)
         }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void nconn_pool::init(void)
 {
         m_idle_conn_lru.set_delete_cb(s_delete_cb, this);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t nconn_pool::add_active(nconn *a_nconn)
 {
         active_conn_map_t::iterator i_cl = m_active_conn_map.find(a_nconn->get_label());
@@ -309,11 +296,11 @@ int32_t nconn_pool::add_active(nconn *a_nconn)
         ++m_active_conn_map_size;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t nconn_pool::remove_active(nconn *a_nconn)
 {
         //if(m_active_conn_map.find(a_nconn->get_label()) != m_active_conn_map.end())
@@ -338,11 +325,11 @@ int32_t nconn_pool::remove_active(nconn *a_nconn)
         --m_active_conn_map_size;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t nconn_pool::remove_idle(nconn *a_nconn)
 {
         if(m_idle_conn_lru.size() &&
@@ -356,11 +343,11 @@ int32_t nconn_pool::remove_idle(nconn *a_nconn)
         }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t nconn_pool::cleanup(nconn *a_nconn)
 {
         if(!a_nconn)
@@ -382,11 +369,11 @@ int32_t nconn_pool::cleanup(nconn *a_nconn)
         m_reap_list.push_back(a_nconn);
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void nconn_pool::reap(void)
 {
         if(m_reap_list.empty())

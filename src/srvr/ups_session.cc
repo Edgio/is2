@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    proxy_h.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    01/19/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "srvr/t_srvr.h"
 #include "srvr/ups_session.h"
 #include "is2/support/ndebug.h"
@@ -37,17 +24,17 @@
 #include "is2/srvr/base_u.h"
 #include "is2/srvr/resp.h"
 #include "is2/handler/proxy_h.h"
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #ifdef ASYNC_DNS_SUPPORT
 #ifndef STATUS_QUEUED_ASYNC_DNS
 #define STATUS_QUEUED_ASYNC_DNS -3
 #endif
 #endif
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define CHECK_FOR_NULL_ERROR_DEBUG(_data) \
         do {\
                 if(!_data) {\
@@ -75,11 +62,11 @@
         } while(0)
 
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 #ifdef ASYNC_DNS_SUPPORT
 int32_t adns_resolved_cb(const host_info *a_host_info, void *a_data)
 {
@@ -115,11 +102,11 @@ int32_t adns_resolved_cb(const host_info *a_host_info, void *a_data)
         return STATUS_OK;
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ups_session::ups_session(subr &a_subr):
         m_subr(a_subr),
         m_resp(NULL),
@@ -140,11 +127,11 @@ ups_session::ups_session(subr &a_subr):
         m_evr_writeable(NULL)
 {
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ups_session::~ups_session(void)
 {
         int32_t l_s;
@@ -182,11 +169,11 @@ ups_session::~ups_session(void)
         }
         m_nconn = NULL;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::teardown(ups_session *a_ups,
                               t_srvr &a_t_srvr,
                               nconn &a_nconn,
@@ -242,11 +229,11 @@ int32_t ups_session::teardown(ups_session *a_ups,
         l_ups.m_nconn = NULL;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::queue_input(void)
 {
         if(m_evr_readable)
@@ -265,11 +252,11 @@ int32_t ups_session::queue_input(void)
         }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void ups_session::log_status(uint16_t a_status)
 {
         if(!m_subr.m_session)
@@ -297,11 +284,11 @@ void ups_session::log_status(uint16_t a_status)
         else if((l_status >= 400) && (l_status < 500)){++l_stat.m_upsv_resp_status_4xx;}
         else if((l_status >= 500) && (l_status < 600)){++l_stat.m_upsv_resp_status_5xx;}
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static int32_t run_state_machine(void *a_data, evr_mode_t a_conn_mode)
 {
         //NDBG_PRINT("RUN a_conn_mode: %d a_data: %p\n", a_conn_mode, a_data);
@@ -931,38 +918,38 @@ state_top:
         }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::evr_fd_readable_cb(void *a_data)
 {
         return run_state_machine(a_data, EVR_MODE_READ);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::evr_fd_writeable_cb(void *a_data)
 {
         return run_state_machine(a_data, EVR_MODE_WRITE);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::evr_fd_error_cb(void *a_data)
 {
         return run_state_machine(a_data, EVR_MODE_ERROR);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::evr_event_timeout_cb(void *a_data)
 {
         // -------------------------------------------------
@@ -978,11 +965,11 @@ int32_t ups_session::evr_event_timeout_cb(void *a_data)
         }
         return run_state_machine(a_data, EVR_MODE_TIMEOUT);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::evr_event_readable_cb(void *a_data)
 {
         // -------------------------------------------------
@@ -998,11 +985,11 @@ int32_t ups_session::evr_event_readable_cb(void *a_data)
         }
         return run_state_machine(a_data, EVR_MODE_READ);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 #if 0
 int32_t ups_session::evr_event_writeable_cb(void *a_data)
 {
@@ -1020,11 +1007,11 @@ int32_t ups_session::evr_event_writeable_cb(void *a_data)
         return run_state_machine(a_data, EVR_MODE_WRITE);
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 void ups_session::subr_enqueue(subr &a_subr)
 {
         // attach to upstream object if missing
@@ -1042,11 +1029,11 @@ void ups_session::subr_enqueue(subr &a_subr)
         evr_event *l_event;
         l_t_srvr.queue_event(&l_event, subr_dequeue, &(l_t_srvr));
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::subr_dequeue(void *a_data)
 {
         // TODO FIX!!!
@@ -1098,11 +1085,11 @@ int32_t ups_session::subr_dequeue(void *a_data)
         }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::subr_start(subr &a_subr)
 {
         int32_t l_s;
@@ -1315,11 +1302,11 @@ int32_t ups_session::subr_start(subr &a_subr)
         // -------------------------------------------------
         return ups_session::evr_fd_writeable_cb(l_nconn);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::cancel_evr_timer(void)
 {
         if(!m_evr_timeout)
@@ -1339,11 +1326,11 @@ int32_t ups_session::cancel_evr_timer(void)
         m_evr_timeout = NULL;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::cancel_evr_readable(void)
 {
         if(!m_evr_readable)
@@ -1363,11 +1350,11 @@ int32_t ups_session::cancel_evr_readable(void)
         m_evr_readable = NULL;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ups_session::cancel_evr_writeable(void)
 {
         if(!m_evr_writeable)

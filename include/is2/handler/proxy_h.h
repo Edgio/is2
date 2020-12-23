@@ -1,42 +1,29 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    proxy_h.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/12/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _PROXY_H_H
 #define _PROXY_H_H
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "is2/srvr/default_rqst_h.h"
 #include "is2/srvr/base_u.h"
 #include <string>
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd decl's
+//! ----------------------------------------------------------------------------
 class t_srvr;
 class subr;
-//: ----------------------------------------------------------------------------
-//: handler
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! handler
+//! ----------------------------------------------------------------------------
 class proxy_h: public default_rqst_h
 {
 public:
@@ -69,9 +56,9 @@ private:
         uint32_t m_timeout_ms;
         int64_t m_max_in_q_size;
 };
-//: ----------------------------------------------------------------------------
-//: upstream object
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! upstream object
+//! ----------------------------------------------------------------------------
 class proxy_u: public base_u
 {
 public:

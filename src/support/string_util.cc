@@ -1,50 +1,37 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    string_util.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    02/07/2014
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include "is2/support/string_util.h"
 #include "is2/support/ndebug.h"
 #include <stdlib.h>
 #include <string.h>
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define VALID_HEX(X) \
         (((X >= '0') && (X <= '9')) || \
          ((X >= 'a') && (X <= 'f')) || \
          ((X >= 'A') && (X <= 'F')))
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: statics
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: \details: Converts a byte given as its hexadecimal representation into a
-//:           proper byte. Handles uppercase and lowercase letters but does not
-//:           check for overflows.
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! statics
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Converts a byte given as its hexadecimal representation into a
+//!           proper byte. Handles uppercase and lowercase letters but does not
+//!           check for overflows.
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static unsigned char x2c(const unsigned char *a_nbl)
 {
         unsigned char l_c;
@@ -57,9 +44,9 @@ static unsigned char x2c(const unsigned char *a_nbl)
                                    (a_nbl[1] - '0'));
         return l_c;
 }
-//: ----------------------------------------------------------------------------
-//: insert
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! insert
+//! ----------------------------------------------------------------------------
 #if 0
 inline void kv_map_list_insert(kv_map_list_t &ao_kv_map_list,
                                const std::string &a_key,
@@ -78,11 +65,11 @@ inline void kv_map_list_insert(kv_map_list_t &ao_kv_map_list,
         }
 }
 #endif
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t break_header_string(const std::string &a_header_str,
 		std::string &ao_header_key,
 		std::string &ao_header_val)
@@ -101,11 +88,11 @@ int32_t break_header_string(const std::string &a_header_str,
 	ao_header_val = a_header_str.substr(l_colon_pos, a_header_str.length());
 	return 0;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_file_wo_path(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -120,11 +107,11 @@ std::string get_file_wo_path(const std::string &a_filename)
         }
         return fName.substr(pos + 1, fName.length());
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_file_path(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -139,11 +126,11 @@ std::string get_file_path(const std::string &a_filename)
         }
         return fName.substr(0, pos);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_base_filename(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -158,11 +145,11 @@ std::string get_base_filename(const std::string &a_filename)
         }
         return fName.substr(0, pos);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_file_ext(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -177,11 +164,11 @@ std::string get_file_ext(const std::string &a_filename)
         }
         return fName.substr(pos + 1, fName.length());
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 std::string get_file_wo_ext(const std::string &a_filename)
 {
         std::string fName(a_filename);
@@ -196,11 +183,11 @@ std::string get_file_wo_ext(const std::string &a_filename)
         }
         return fName.substr(0, pos);
 }
-//: ----------------------------------------------------------------------------
-//: \details TODO
-//: \return: TODO
-//: \param:  TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details TODO
+//! \return: TODO
+//! \param:  TODO
+//! ----------------------------------------------------------------------------
 int32_t convert_hex_to_uint(uint64_t &ao_val, const char *a_str)
 {
         ao_val = strtoull(a_str, NULL, 16);
@@ -212,12 +199,12 @@ int32_t convert_hex_to_uint(uint64_t &ao_val, const char *a_str)
         }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: url decode -non strict ???
-//: \return:  TODO
-//: \param:   TODO
-//: \notes:   IMP1 Assumes NUL-terminated
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: url decode -non strict ???
+//! \return:  TODO
+//! \param:   TODO
+//! \notes:   IMP1 Assumes NUL-terminated
+//! ----------------------------------------------------------------------------
 int32_t urldecode_ns(char **ao_buf,
                      uint32_t &ao_len,
                      uint32_t &ao_invalid_count,
@@ -315,11 +302,11 @@ int32_t urldecode_ns(char **ao_buf,
         *ao_buf = l_buf;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t parse_args(mutable_arg_list_t &ao_arg_list,
                    uint32_t &ao_invalid_cnt,
                    const char *a_buf,
@@ -489,12 +476,12 @@ int32_t parse_args(mutable_arg_list_t &ao_arg_list,
         if(l_buf) { free(l_buf); l_buf = NULL;}
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details parse cookie string:
-//:          format: 'key1=val1; key2; key3=val3; key4\0'
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details parse cookie string:
+//!          format: 'key1=val1; key2; key3=val3; key4\0'
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 static bool is_char_in_set(const char *a_arr, uint32_t a_arr_len, char a_char)
 {
         for(uint32_t i_c = 0; i_c < a_arr_len; ++i_c)
@@ -503,12 +490,12 @@ static bool is_char_in_set(const char *a_arr, uint32_t a_arr_len, char a_char)
         }
         return false;
 }
-//: ----------------------------------------------------------------------------
-//: \details parse cookie string:
-//:          format: 'key1=val1; key2; key3=val3; key4\0'
-//: \return  TODO
-//: \param   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details parse cookie string:
+//!          format: 'key1=val1; key2; key3=val3; key4\0'
+//! \return  TODO
+//! \param   TODO
+//! ----------------------------------------------------------------------------
 int32_t parse_cookies(arg_list_t &ao_cookie_list,
                       const char *a_buf,
                       uint32_t a_buf_len)

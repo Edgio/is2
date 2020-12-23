@@ -1,30 +1,17 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    t_srvr.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    10/05/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _T_SRVR_H
 #define _T_SRVR_H
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include <stdint.h>
 #include <queue>
 #include <signal.h>
@@ -35,13 +22,13 @@
 #include "is2/srvr/stat.h"
 #include "dns/nresolver.h"
 #include "srvr/nconn_pool.h"
-//: ----------------------------------------------------------------------------
-//: external fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! external fwd decl's
+//! ----------------------------------------------------------------------------
 typedef struct ssl_ctx_st SSL_CTX;
-//: ----------------------------------------------------------------------------
-//: fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd decl's
+//! ----------------------------------------------------------------------------
 namespace ns_is2 {
 class url_router;
 struct host_info;
@@ -57,15 +44,15 @@ typedef std::list <subr *> subr_list_t;
 // TODO move to handler specific resp cb...
 typedef int32_t (*resp_done_cb_t)(session &);
 #endif
-//: ----------------------------------------------------------------------------
-//: fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! fwd decl's
+//! ----------------------------------------------------------------------------
 class srvr;
-//: ----------------------------------------------------------------------------
-//: Virtual Server conf
-//: TODO Allow many t_srvr conf's
-//: one per listener
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Virtual Server conf
+//! TODO Allow many t_srvr conf's
+//! one per listener
+//! ----------------------------------------------------------------------------
 typedef struct t_conf
 {
         evr_loop_type_t m_evr_loop_type;
@@ -132,9 +119,9 @@ private:
         t_conf& operator=(const t_conf &);
         t_conf(const t_conf &);
 } conf_t;
-//: ----------------------------------------------------------------------------
-//: t_srvr
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! t_srvr
+//! ----------------------------------------------------------------------------
 class t_srvr
 {
 public:

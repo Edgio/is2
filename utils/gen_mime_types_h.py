@@ -10,7 +10,6 @@
 # Running:
 # ./util/gen_mime_types_h.py -f ./data/mime_types.json -o ./src/core/hlx/_gen_mime_types.h
 # ------------------------------------------------------------------------------
-
 # ------------------------------------------------------------------------------
 # Imports
 # ------------------------------------------------------------------------------
@@ -18,7 +17,6 @@ import argparse
 import json
 import sys
 import os
-
 # ------------------------------------------------------------------------------
 # main
 # ------------------------------------------------------------------------------
@@ -67,17 +65,14 @@ def gen_mime_types(a_file, a_out):
         for i_ext in l_ext_2_type_dict:
             l_file.write('{ \"%s\", \"%s\" },\n'%(i_ext, l_ext_2_type_dict[i_ext]))
     return
-
 # ------------------------------------------------------------------------------
 # main
 # ------------------------------------------------------------------------------
 def main(argv):
-
     l_arg_parser = argparse.ArgumentParser(
                 description='gen_mime_types_h.py.',
                 usage= '%(prog)s',
                 epilog= '')
-
     # input
     l_arg_parser.add_argument('-f',
                             '--file',
@@ -93,16 +88,11 @@ def main(argv):
                             help='Output File.',
                             default='',
                             required=False)
-
     l_args = l_arg_parser.parse_args()
-
     # Start server
     gen_mime_types(a_file=l_args.file, a_out=l_args.out)
-
 # ------------------------------------------------------------------------------
 # main
 # ------------------------------------------------------------------------------
 if __name__ == '__main__':
-    
     main(sys.argv[1:])
-
