@@ -1,30 +1,17 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    nresolver.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    11/20/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _NRESOLVER_H
 #define _NRESOLVER_H
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 #include <pthread.h>
 #include <stdint.h>
 #include <list>
@@ -37,28 +24,28 @@
 #ifdef ASYNC_DNS_SUPPORT
 #include "is2/evr/evr.h"
 #endif
-//: ----------------------------------------------------------------------------
-//: Constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Constants
+//! ----------------------------------------------------------------------------
 #define NRESOLVER_DEFAULT_AI_CACHE_FILE "/tmp/addr_info_cache.json"
-//: ----------------------------------------------------------------------------
-//: Fwd Decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Fwd Decl's
+//! ----------------------------------------------------------------------------
 #ifdef ASYNC_DNS_WITH_UDNS
 struct dns_ctx;
 struct dns_rr_a4;
 struct dns_query;
 #endif
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: Fwd Decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Fwd Decl's
+//! ----------------------------------------------------------------------------
 class nconn;
 struct host_info;
 class ai_cache;
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! ----------------------------------------------------------------------------
 class nresolver
 {
 public:
@@ -225,9 +212,9 @@ private:
         pthread_mutex_t m_cache_mutex;
         ai_cache *m_ai_cache;
 };
-//: ----------------------------------------------------------------------------
-//: cache key helper
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! cache key helper
+//! ----------------------------------------------------------------------------
 std::string get_cache_key(const std::string &a_host, uint16_t a_port);
 } //namespace ns_is2 {
 #endif

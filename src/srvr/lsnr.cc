@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    lsnr.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    05/28/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "srvr/t_srvr.h"
 #include "is2/support/ndebug.h"
 #include "nconn/nconn_tls.h"
@@ -36,13 +23,13 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-//: ----------------------------------------------------------------------------
-//: constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
 #define MAX_PENDING_CONNECT_REQUESTS 16384
-//: ----------------------------------------------------------------------------
-//: macros
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! macros
+//! ----------------------------------------------------------------------------
 #define T_CLNT_SET_NCONN_OPT(_conn, _opt, _buf, _len) \
         do { \
                 int _status = 0; \
@@ -71,11 +58,11 @@
                                 } \
         } while(0)
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 lsnr::lsnr(uint16_t a_port,
            scheme_t a_scheme,
            rqst_h* a_default_handler,
@@ -107,11 +94,11 @@ lsnr::lsnr(uint16_t a_port,
                 m_url_router = new url_router();
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 lsnr::~lsnr()
 {
         if(m_fd > 0)
@@ -126,21 +113,21 @@ lsnr::~lsnr()
                 m_url_router = NULL;
         }
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lsnr::set_default_route(rqst_h *a_handler)
 {
         m_default_handler = a_handler;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lsnr::add_route(const std::string &a_endpoint, const rqst_h *a_rqst_h)
 {
         if(!m_url_router)
@@ -149,11 +136,11 @@ int32_t lsnr::add_route(const std::string &a_endpoint, const rqst_h *a_rqst_h)
         }
         return m_url_router->add_route(a_endpoint, a_rqst_h);
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lsnr::init(void)
 {
         if(m_is_initd)
@@ -217,11 +204,11 @@ int32_t lsnr::init(void)
         m_is_initd = true;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lsnr::set_local_addr_v4(const char *a_addr_str)
 {
         int32_t l_s;
@@ -236,11 +223,11 @@ int32_t lsnr::set_local_addr_v4(const char *a_addr_str)
         m_local_addr_v4 = ntohl(l_c_addr.sin_addr.s_addr);
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t lsnr::evr_fd_readable_cb(void *a_data)
 {
         //NDBG_PRINT("%sREADABLE%s %p\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, a_data);

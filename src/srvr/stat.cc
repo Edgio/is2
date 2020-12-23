@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    stat.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    10/26/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "is2/status.h"
 #include "is2/support/ndebug.h"
 #include "is2/srvr/stat.h"
@@ -31,21 +18,21 @@
 #include <inttypes.h>
 #include <math.h>
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   n/a
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   n/a
+//! ----------------------------------------------------------------------------
 double xstat_struct::stdev() const
 {
         return sqrt(var());
 }
-//: ----------------------------------------------------------------------------
-//: \details: Update stat with new value
-//: \return:  n/a
-//: \param:   ao_stat stat to be updated
-//: \param:   a_val value to update stat with
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Update stat with new value
+//! \return:  n/a
+//! \param:   ao_stat stat to be updated
+//! \param:   a_val value to update stat with
+//! ----------------------------------------------------------------------------
 void update_stat(xstat_t &ao_stat, double a_val)
 {
         ao_stat.m_num++;
@@ -54,12 +41,12 @@ void update_stat(xstat_t &ao_stat, double a_val)
         if(a_val > ao_stat.m_max) ao_stat.m_max = a_val;
         if(a_val < ao_stat.m_min) ao_stat.m_min = a_val;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Add stats
-//: \return:  n/a
-//: \param:   ao_stat stat to be updated
-//: \param:   a_from_stat stat to add
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Add stats
+//! \return:  n/a
+//! \param:   ao_stat stat to be updated
+//! \param:   a_from_stat stat to add
+//! ----------------------------------------------------------------------------
 void add_stat(xstat_t &ao_stat, const xstat_t &a_from_stat)
 {
         ao_stat.m_num += a_from_stat.m_num;
@@ -70,11 +57,11 @@ void add_stat(xstat_t &ao_stat, const xstat_t &a_from_stat)
         if(a_from_stat.m_max > ao_stat.m_max)
                 ao_stat.m_max = a_from_stat.m_max;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Clear stat
-//: \return:  n/a
-//: \param:   ao_stat stat to be cleared
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Clear stat
+//! \return:  n/a
+//! \param:   ao_stat stat to be cleared
+//! ----------------------------------------------------------------------------
 void clear_stat(xstat_t &ao_stat)
 {
         ao_stat.m_sum_x = 0.0;
@@ -83,11 +70,11 @@ void clear_stat(xstat_t &ao_stat)
         ao_stat.m_max = 0.0;
         ao_stat.m_num = 0;
 }
-//: ----------------------------------------------------------------------------
-//: \details: Show stat
-//: \return:  n/a
-//: \param:   ao_stat stat display
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Show stat
+//! \return:  n/a
+//! \param:   ao_stat stat display
+//! ----------------------------------------------------------------------------
 void show_stat(const xstat_t &ao_stat)
 {
         ::printf("Stat: Mean: %4.2f, StdDev: %4.2f, Min: %4.2f, Max: %4.2f Num: %" PRIu64 "\n",
@@ -97,9 +84,9 @@ void show_stat(const xstat_t &ao_stat)
                  ao_stat.m_max,
                  ao_stat.m_num);
 }
-//: ----------------------------------------------------------------------------
-//: Example...
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Example...
+//! ----------------------------------------------------------------------------
 #if 0
 int main(void)
 {

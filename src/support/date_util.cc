@@ -1,28 +1,15 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    time_util.cc
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    01/06/2018
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include <unistd.h>
 #include <time.h>
 #include "date_util.h"
@@ -31,14 +18,14 @@
 #include <mach/clock.h>
 #include <mach/mach.h>
 #endif
-//: ----------------------------------------------------------------------------
-//: Constants
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Constants
+//! ----------------------------------------------------------------------------
 #define MAX_TIMER_RESOLUTION_US 1000000
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: global static
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! global static
+//! ----------------------------------------------------------------------------
 uint64_t g_cyles_us               = 0;
 uint64_t g_last_s                 = 0;
 // Date cache...
@@ -46,11 +33,11 @@ uint64_t g_last_date_str_s_rdtsc  = 0;
 uint64_t g_last_date_str_s        = 0;
 char g_last_date_str[128];
 
-//: ----------------------------------------------------------------------------
-//: \details: Get the rdtsc value
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: Get the rdtsc value
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static __inline__ uint64_t get_rdtsc64()
 {
         uint32_t l_lo;
@@ -60,11 +47,11 @@ static __inline__ uint64_t get_rdtsc64()
         // output registers
         return (uint64_t) l_hi << 32 | l_lo;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static inline bool _use_cached_time(uint64_t &a_last_rdtsc)
 {
         if(!g_cyles_us)
@@ -80,11 +67,11 @@ static inline bool _use_cached_time(uint64_t &a_last_rdtsc)
         a_last_rdtsc = get_rdtsc64();
         return false;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 const char *get_date_str(void)
 {
         if(_use_cached_time(g_last_date_str_s_rdtsc) && g_last_s)

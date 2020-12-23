@@ -1,44 +1,31 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    api_resp.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    03/11/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _API_RESP_H
 #define _API_RESP_H
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "is2/srvr/http_status.h"
 #include "is2/support/data.h"
 #include <stdint.h>
 #include <string>
-//: ----------------------------------------------------------------------------
-//: Fwd Decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Fwd Decl's
+//! ----------------------------------------------------------------------------
 namespace ns_is2 {
 class nbq;
 }
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: api_resp
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! api_resp
+//! ----------------------------------------------------------------------------
 class api_resp
 {
 public:
@@ -77,13 +64,13 @@ private:
         const char *m_body_data;
         uint32_t m_body_data_len;
 };
-//: ----------------------------------------------------------------------------
-//: helpers
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! helpers
+//! ----------------------------------------------------------------------------
 const char *get_resp_status_str(http_status_t a_status);
-//: ----------------------------------------------------------------------------
-//: nbq_utils
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! nbq_utils
+//! ----------------------------------------------------------------------------
 int32_t nbq_write_request_line(nbq &ao_q, const char *a_buf, uint32_t a_len);
 int32_t nbq_write_status(nbq &ao_q, http_status_t a_status);
 int32_t nbq_write_header(nbq &ao_q,

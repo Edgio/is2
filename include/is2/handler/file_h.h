@@ -1,47 +1,34 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2018 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    file_h.h
-//: \details: TODO
-//: \author:  Reed P. Morrison
-//: \date:    12/12/2015
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _FILE_H_H
 #define _FILE_H_H
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "is2/srvr/default_rqst_h.h"
 #include "is2/srvr/base_u.h"
 #include <string>
-//: ----------------------------------------------------------------------------
-//: Fwd Decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Fwd Decl's
+//! ----------------------------------------------------------------------------
 namespace ns_is2 {
 class nbq;
 }
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: Fwd decl's
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Fwd decl's
+//! ----------------------------------------------------------------------------
 class nbq;
-//: ----------------------------------------------------------------------------
-//: Handler
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Handler
+//! ----------------------------------------------------------------------------
 class file_h: public default_rqst_h
 {
 public:
@@ -72,11 +59,11 @@ private:
         std::string m_index;
         std::string m_route;
 };
-//: ----------------------------------------------------------------------------
-//: Upstream Object
-//: Example based on Dan Kegel's "Introduction to non-blocking I/O"
-//: ref: http://www.kegel.com/dkftpbench/nonblocking.html
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Upstream Object
+//! Example based on Dan Kegel's "Introduction to non-blocking I/O"
+//! ref: http://www.kegel.com/dkftpbench/nonblocking.html
+//! ----------------------------------------------------------------------------
 class file_u: public base_u
 {
 public:

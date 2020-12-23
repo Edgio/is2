@@ -1,42 +1,29 @@
-//: ----------------------------------------------------------------------------
-//: Copyright (C) 2016 Verizon.  All Rights Reserved.
-//: All Rights Reserved
-//:
-//: \file:    stat.h
-//: \details: TODO
-//: \author:  Reed P Morrison
-//: \date:    4/19/2016
-//:
-//:   Licensed under the Apache License, Version 2.0 (the "License");
-//:   you may not use this file except in compliance with the License.
-//:   You may obtain a copy of the License at
-//:
-//:       http://www.apache.org/licenses/LICENSE-2.0
-//:
-//:   Unless required by applicable law or agreed to in writing, software
-//:   distributed under the License is distributed on an "AS IS" BASIS,
-//:   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//:   See the License for the specific language governing permissions and
-//:   limitations under the License.
-//:
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Copyright Verizon.
+//!
+//! \file:    TODO
+//! \details: TODO
+//!
+//! Licensed under the terms of the Apache 2.0 open source license.
+//! Please refer to the LICENSE file in the project root for the terms.
+//! ----------------------------------------------------------------------------
 #ifndef _STAT_H
 #define _STAT_H
-//: ----------------------------------------------------------------------------
-//: Includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Includes
+//! ----------------------------------------------------------------------------
 // For fixed size types
 #include <stdint.h>
 #include <map>
 #include <list>
 namespace ns_is2 {
-//: ----------------------------------------------------------------------------
-//: Types
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Types
+//! ----------------------------------------------------------------------------
 typedef std::map<uint16_t, uint32_t > status_code_count_map_t;
-//: ----------------------------------------------------------------------------
-//: xstat
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! xstat
+//! ----------------------------------------------------------------------------
 typedef struct xstat_struct
 {
         double m_sum_x;
@@ -65,9 +52,9 @@ typedef struct xstat_struct
                 m_num = 0;
         };
 } xstat_t;
-//: ----------------------------------------------------------------------------
-//: counter stats
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! counter stats
+//! ----------------------------------------------------------------------------
 typedef struct t_stat_cntr_struct
 {
         // Response stats
@@ -121,9 +108,9 @@ typedef struct t_stat_cntr_struct
         }
 } t_stat_cntr_t;
 typedef std::list <t_stat_cntr_t> t_stat_cntr_list_t;
-//: ----------------------------------------------------------------------------
-//: calculated stats
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! calculated stats
+//! ----------------------------------------------------------------------------
 typedef struct t_stat_calc_struct
 {
         // clnt
@@ -185,9 +172,9 @@ typedef struct t_stat_calc_struct
                 m_upsv_resp_status_5xx_pcnt = 0.0;
         }
 } t_stat_calc_t;
-//: ----------------------------------------------------------------------------
-//: Prototypes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Prototypes
+//! ----------------------------------------------------------------------------
 void update_stat(xstat_t &ao_stat, double a_val);
 void add_stat(xstat_t &ao_stat, const xstat_t &a_from_stat);
 void clear_stat(xstat_t &ao_stat);
