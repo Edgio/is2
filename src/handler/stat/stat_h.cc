@@ -18,9 +18,11 @@
 #include "is2/srvr/stat.h"
 #include "is2/handler/stat_h.h"
 #include "is2/support/ndebug.h"
+#include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
+#include <openssl/opensslv.h>
 namespace ns_is2 {
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -70,7 +72,6 @@ ns_is2::h_resp_t stat_h::do_get(ns_is2::session &a_session,
                 }
                 l_url_path = l_path.substr(l_idx, l_path.length() - l_route.length());
         }
-        //NDBG_PRINT("l_url_path: %s\n", l_url_path.c_str());
         // -------------------------------------------------
         // stats
         // -------------------------------------------------
@@ -176,10 +177,31 @@ ns_is2::h_resp_t stat_h::get_version(ns_is2::session &a_session,
         rapidjson::StringBuffer l_strbuf;
         rapidjson::Writer<rapidjson::StringBuffer> l_writer(l_strbuf);
         l_writer.StartObject();
+        // -------------------------------------------------
+        // is2 version
+        // -------------------------------------------------
         l_writer.Key("version");
         // TODO -add in is2 version..
-        l_writer.String("0.0.0");
+        l_writer.String(IS2_VERSION);
+        // -------------------------------------------------
+        // openssl version
+        // -------------------------------------------------
+        l_writer.Key("openssl_version");
+        // TODO -add in is2 version..
+        l_writer.String(OPENSSL_VERSION_TEXT);
+        // -------------------------------------------------
+        // openssl version
+        // -------------------------------------------------
+        l_writer.Key("rapidjson_version");
+        // TODO -add in is2 version..
+        l_writer.String(RAPIDJSON_VERSION_STRING);
+        // -------------------------------------------------
+        // end
+        // -------------------------------------------------
         l_writer.EndObject();
+        // -------------------------------------------------
+        // generate resp
+        // -------------------------------------------------
         ns_is2::api_resp &l_api_resp = ns_is2::create_api_resp(a_session);
         l_api_resp.add_std_headers(ns_is2::HTTP_STATUS_OK,
                                    "application/json",
