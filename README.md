@@ -73,7 +73,7 @@ Reactor loop psuedo code:
 
 ## Install
 
-### Build requirements (tested on Ubuntu 14.04/16.04)
+### Build requirements (tested on Ubuntu 16.04/18.04/20.04)
 
 #### Packages
 - openssl
