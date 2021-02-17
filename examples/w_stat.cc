@@ -43,8 +43,9 @@ int main(void)
 {
         ns_is2::srvr *l_srvr = new ns_is2::srvr();
         ns_is2::lsnr *l_lsnr = new ns_is2::lsnr(12345, ns_is2::SCHEME_TCP);
-        ns_is2::rqst_h *l_stat_h = new ns_is2::stat_h();
-        l_lsnr->add_route("/stat.json", l_stat_h);
+        ns_is2::stat_h *l_stat_h = new ns_is2::stat_h();
+        l_stat_h->set_route("/stat/*");
+        l_lsnr->add_route("/stat/*", l_stat_h);
         ns_is2::rqst_h *l_rqst_h = new base_handler();
         l_lsnr->set_default_route(l_rqst_h);
         l_srvr->register_lsnr(l_lsnr);

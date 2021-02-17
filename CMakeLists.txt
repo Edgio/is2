@@ -9,17 +9,18 @@ endif()
 # ------------------------------------------------------------------------------
 # Build options
 # ------------------------------------------------------------------------------
-option(GCC_OPTIONS       "Command line options passed to gcc or 'native' to compile for this hardware" OFF)
-option(FORTIFY           "Fortify Source GCC options" OFF)
-option(DEBUG_MODE        "Compile in debug mode." OFF)
-option(BUILD_TESTS       "Build the unit tests." ON)
-option(BUILD_EXAMPLES    "Build the examples." ON)
-option(BUILD_SYMBOLS     "Build with Symbols" ON)
-option(BUILD_UDNS        "Build with udns (async dns support)" ON)
-option(BUILD_TCMALLOC    "Build with tcmalloc" OFF)
-option(BUILD_PROFILER    "Enable google cpu and heap profiler support" OFF)
-option(BUILD_ASAN        "Build with Address Sanitizer" OFF)
-option(BUILD_UBSAN       "Build with Undefined Behavior Sanitizer" OFF)
+option(GCC_OPTIONS          "Command line options passed to gcc or 'native' to compile for this hardware" OFF)
+option(FORTIFY              "Fortify Source GCC options" OFF)
+option(DEBUG_MODE           "Compile in debug mode." OFF)
+option(BUILD_TESTS          "Build the unit tests." ON)
+option(BUILD_EXAMPLES       "Build the examples." ON)
+option(BUILD_SYMBOLS        "Build with Symbols" ON)
+option(BUILD_UDNS           "Build with udns (async dns support)" ON)
+option(BUILD_TCMALLOC       "Build with tcmalloc" OFF)
+option(BUILD_PROFILER       "Enable google cpu and heap profiler support" OFF)
+option(BUILD_ASAN           "Build with Address Sanitizer" OFF)
+option(BUILD_UBSAN          "Build with Undefined Behavior Sanitizer" OFF)
+option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
 # ------------------------------------------------------------------------------
 # Compiler options
 # ------------------------------------------------------------------------------
@@ -43,6 +44,7 @@ message("    Build with tcmalloc:                       " "BUILD_TCMALLOC       
 message("    Enable google cpu/heap profiler support:   " "BUILD_PROFILER          " ${BUILD_PROFILER})
 message("    Build with Address Sanitizer:              " "BUILD_ASAN              " ${BUILD_ASAN})
 message("    Build with Undefined Behavior Sanitizer:   " "BUILD_UBSAN             " ${BUILD_UBSAN})
+message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
 message("")
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
@@ -153,6 +155,14 @@ if (BUILD_TCMALLOC)
   set(LIBRARIES ${LIBRARIES} pthread)
 endif()
 # ------------------------------------------------------------------------------
+# special build case for OPENSSL
+# ------------------------------------------------------------------------------
+if(BUILD_CUSTOM_OPENSSL)
+  INCLUDE_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/include")
+  LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}")
+  LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/lib")
+endif()
+# ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------
 # make the cmake list variables into .deb-compatible strings
@@ -162,7 +172,7 @@ string(REPLACE ";" ", " CPACK_DEBIAN_PACKAGE_BUILDS_DEPENDS "${CPACK_DEBIAN_PACK
 # Version
 # ------------------------------------------------------------------------------
 EXECUTE_PROCESS(COMMAND git describe --tags OUTPUT_VARIABLE VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
-add_definitions(-DWAFLZ_VERSION="${VERSION}")
+add_definitions(-DIS2_VERSION="${VERSION}")
 # ------------------------------------------------------------------------------
 # Debian Package Support
 # ------------------------------------------------------------------------------
