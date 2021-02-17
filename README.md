@@ -1,3 +1,5 @@
+![is2-ci](https://github.com/VerizonDigital/is2/workflows/is2-ci/badge.svg)
+
 # is2
 > _Event driven http(s) API server library -in C++_
 
