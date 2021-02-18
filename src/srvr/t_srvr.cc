@@ -13,7 +13,11 @@
 #include "srvr/t_srvr.h"
 #include "srvr/ups_session.h"
 #include "http_parser/http_parser.h"
+#include "nconn/nconn_tcp.h"
+#ifdef BUILD_TLS_WITH_OPENSSL
 #include "nconn/nconn_tls.h"
+#endif
+#include "is2/nconn/nconn.h"
 #include "is2/support/ndebug.h"
 #include "is2/support/nbq.h"
 #include "is2/status.h"
@@ -227,10 +231,12 @@ int32_t t_srvr::add_lsnr(lsnr &a_lsnr)
         {
                 l_nconn = new nconn_tcp();
         }
+#ifdef BUILD_TLS_WITH_OPENSSL
         else if(l_lsnr->get_scheme() == SCHEME_TLS)
         {
                 l_nconn = new nconn_tls();
         }
+#endif
         else
         {
                 TRC_ERROR("unsupported scheme.\n");
@@ -240,6 +246,7 @@ int32_t t_srvr::add_lsnr(lsnr &a_lsnr)
         l_nconn->set_num_reqs_per_conn(m_t_conf->m_num_reqs_per_conn);
         l_nconn->setup_evr_fd(lsnr::evr_fd_readable_cb, NULL, NULL);
         //l_nconn->set_collect_stats(m_t_conf->m_collect_stats);
+#ifdef BUILD_TLS_WITH_OPENSSL
         // -------------------------------------------------
         // tls config
         // -------------------------------------------------
@@ -257,6 +264,7 @@ int32_t t_srvr::add_lsnr(lsnr &a_lsnr)
                 }
                 _SET_NCONN_OPT((*l_nconn),nconn_tls::OPT_TLS_OPTIONS,&(m_t_conf->m_tls_server_ctx_options),sizeof(m_t_conf->m_tls_server_ctx_options));
         }
+#endif
         // -------------------------------------------------
         // set up meta ptrs
         // -------------------------------------------------

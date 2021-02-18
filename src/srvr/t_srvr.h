@@ -64,6 +64,7 @@ typedef struct t_conf
         std::string m_server_name;
         bool m_dns_use_sync;
         uint32_t m_stat_update_ms;
+#ifdef BUILD_TLS_WITH_OPENSSL
         // -------------------------------------------------
         // tls server config
         // -------------------------------------------------
@@ -82,6 +83,7 @@ typedef struct t_conf
         long m_tls_client_ctx_options;
         std::string m_tls_client_ctx_ca_file;
         std::string m_tls_client_ctx_ca_path;
+#endif
         // -------------------------------------------------
         // Defaults...
         // -------------------------------------------------
@@ -100,7 +102,9 @@ typedef struct t_conf
                 m_nresolver(NULL),
                 m_server_name("srvr"),
                 m_dns_use_sync(false),
-                m_stat_update_ms(0),
+                m_stat_update_ms(0)
+#ifdef BUILD_TLS_WITH_OPENSSL
+                ,
                 m_tls_server_ctx(NULL),
                 m_tls_server_ctx_key(),
                 m_tls_server_ctx_crt(),
@@ -113,6 +117,7 @@ typedef struct t_conf
                 m_tls_client_ctx_options(0),
                 m_tls_client_ctx_ca_file(),
                 m_tls_client_ctx_ca_path()
+#endif
         {}
 private:
         // Disallow copy/assign

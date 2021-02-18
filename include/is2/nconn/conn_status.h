@@ -16,7 +16,9 @@
 //! ----------------------------------------------------------------------------
 //! Fwd Decl
 //! ----------------------------------------------------------------------------
+#ifdef BUILD_TLS_WITH_OPENSSL
 typedef struct ssl_st SSL;
+#endif
 namespace ns_is2 {
 // ---------------------------------------
 // Connection status
@@ -29,8 +31,10 @@ typedef enum {
         CONN_STATUS_ERROR_ADDR_LOOKUP_TIMEOUT   = -2,   // failed to resolve, timed out
         CONN_STATUS_ERROR_CONNECT               = -3,   // resolved but failed to TCP connect, explicit
         // CONN_STATUS_ERROR_CONNECT_TIMEOUT       = -4,   // resolved but failed to TCP connect, timed out
+#ifdef BUILD_TLS_WITH_OPENSSL
         CONN_STATUS_ERROR_CONNECT_TLS           = -5,   // TCP connected but TLS error, generic
         CONN_STATUS_ERROR_CONNECT_TLS_HOST      = -6,   // TCP connected but TLS error, specific error for hostname validation failure because SSL makes us do it ourselves
+#endif
         CONN_STATUS_ERROR_SEND                  = -7,   // connected but send error, explicit
         // CONN_STATUS_ERROR_SEND_TIMEOUT          = -8,   // connected but send error, timed out
         CONN_STATUS_ERROR_RECV                  = -9,   // connected, sent, error receiving, explicit
@@ -43,8 +47,10 @@ typedef enum {
 //! ----------------------------------------------------------------------------
 class nconn;
 int nconn_get_fd(nconn &a_nconn);
+#ifdef BUILD_TLS_WITH_OPENSSL
 SSL *nconn_get_SSL(nconn &a_nconn);
 long nconn_get_last_SSL_err(nconn &a_nconn);
+#endif
 conn_status_t nconn_get_status(nconn &a_nconn);
 const std::string &nconn_get_last_error_str(nconn &a_nconn);
 

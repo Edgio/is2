@@ -13,7 +13,10 @@
 #include "srvr/t_srvr.h"
 #include "srvr/ups_session.h"
 #include "is2/support/ndebug.h"
+#include "is2/status.h"
+#ifdef BUILD_TLS_WITH_OPENSSL
 #include "nconn/nconn_tls.h"
+#endif
 #include "is2/support/nbq.h"
 #include "is2/support/trace.h"
 #include "is2/srvr/resp.h"

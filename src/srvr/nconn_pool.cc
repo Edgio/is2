@@ -13,7 +13,9 @@
 #include "srvr/nconn_pool.h"
 #include "is2/support/ndebug.h"
 #include "nconn/nconn_tcp.h"
+#ifdef BUILD_TLS_WITH_OPENSSL
 #include "nconn/nconn_tls.h"
+#endif
 #include "is2/status.h"
 #include "is2/support/trace.h"
 namespace ns_is2 {
@@ -242,10 +244,12 @@ nconn *nconn_pool::s_create_new_conn(scheme_t a_scheme)
         {
                 l_nconn = new nconn_tcp();
         }
+#ifdef BUILD_TLS_WITH_OPENSSL
         else if(a_scheme == SCHEME_TLS)
         {
                 l_nconn = new nconn_tls();
         }
+#endif
         return l_nconn;
 }
 //! ----------------------------------------------------------------------------
