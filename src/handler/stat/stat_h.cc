@@ -22,7 +22,9 @@
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
+#ifdef BUILD_TLS_WITH_OPENSSL
 #include <openssl/opensslv.h>
+#endif
 namespace ns_is2 {
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -183,12 +185,14 @@ ns_is2::h_resp_t stat_h::get_version(ns_is2::session &a_session,
         l_writer.Key("version");
         // TODO -add in is2 version..
         l_writer.String(IS2_VERSION);
+#ifdef BUILD_TLS_WITH_OPENSSL
         // -------------------------------------------------
         // openssl version
         // -------------------------------------------------
         l_writer.Key("openssl_version");
         // TODO -add in is2 version..
         l_writer.String(OPENSSL_VERSION_TEXT);
+#endif
         // -------------------------------------------------
         // openssl version
         // -------------------------------------------------
