@@ -11,17 +11,17 @@
 //! includes
 //! ----------------------------------------------------------------------------
 #include "dns/nresolver.h"
-#include "support/tls_util.h"
-#ifdef BUILD_TLS_WITH_OPENSSL
-#include "nconn/nconn_tls.h"
-#endif
 #include "is2/srvr/srvr.h"
 #include "is2/srvr/lsnr.h"
 #include "is2/support/ndebug.h"
 #include "is2/support/trace.h"
 #include "is2/status.h"
 #include "srvr/t_srvr.h"
+#ifdef BUILD_TLS_WITH_OPENSSL
+#include "support/tls_util.h"
+#include "nconn/nconn_tls.h"
 #include <openssl/ssl.h>
+#endif
 //! ----------------------------------------------------------------------------
 //! macros
 //! ----------------------------------------------------------------------------
