@@ -81,7 +81,7 @@ Reactor loop psuedo code:
 
 #### Building example
 ```sh
-g++ ./test.cc -lis2 -lssl -lcrypto -lpthread -o test
+g++ ./test.cc -lis2 -lpthread -o test
 ```
 
 ## Usage

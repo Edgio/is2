@@ -92,6 +92,7 @@ public:
         // -------------------------------------------------
         // tls config
         // -------------------------------------------------
+#ifdef BUILD_TLS_WITH_OPENSSL
         // -------------------------------------------------
         // server ctx
         // -------------------------------------------------
@@ -108,7 +109,10 @@ public:
         void set_tls_client_ctx_ca_file(const std::string &a_tls_ca_file);
         int set_tls_client_ctx_options(const std::string &a_tls_options_str);
         int set_tls_client_ctx_options(long a_tls_options);
+#endif
+        // -------------------------------------------------
         // DNS Resolver
+        // -------------------------------------------------
         nresolver *get_nresolver(void);
         bool get_dns_use_sync(void);
 private:

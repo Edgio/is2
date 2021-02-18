@@ -12,7 +12,9 @@
 //! ----------------------------------------------------------------------------
 #include "dns/nresolver.h"
 #include "support/tls_util.h"
+#ifdef BUILD_TLS_WITH_OPENSSL
 #include "nconn/nconn_tls.h"
+#endif
 #include "is2/srvr/srvr.h"
 #include "is2/srvr/lsnr.h"
 #include "is2/support/ndebug.h"
@@ -87,6 +89,7 @@ srvr::~srvr()
         // -------------------------------------------------
         // tls cleanup
         // -------------------------------------------------
+#ifdef BUILD_TLS_WITH_OPENSSL
         if(m_t_conf->m_tls_server_ctx)
         {
                 SSL_CTX_free(m_t_conf->m_tls_server_ctx);
@@ -97,6 +100,7 @@ srvr::~srvr()
                 SSL_CTX_free(m_t_conf->m_tls_client_ctx);
                 m_t_conf->m_tls_client_ctx = NULL;
         }
+#endif
         if(m_t_conf->m_nresolver)
         {
                 delete m_t_conf->m_nresolver;
@@ -357,6 +361,7 @@ void srvr::set_dns_ai_cache_file(const std::string &a_file)
 {
         m_dns_ai_cache_file = a_file;
 }
+#ifdef BUILD_TLS_WITH_OPENSSL
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
@@ -375,7 +380,7 @@ int srvr::set_tls_server_ctx_options(const std::string &a_tls_options_str)
 {
         int32_t l_status;
         l_status = get_tls_options_str_val(a_tls_options_str,
-                                                    m_t_conf->m_tls_server_ctx_options);
+                                            m_t_conf->m_tls_server_ctx_options);
         if(l_status != STATUS_OK)
         {
                 return STATUS_ERROR;
@@ -463,6 +468,7 @@ int srvr::set_tls_client_ctx_options(long a_tls_options)
         m_t_conf->m_tls_client_ctx_options = a_tls_options;
         return STATUS_OK;
 }
+#endif
 //! ----------------------------------------------------------------------------
 //! Running
 //! ----------------------------------------------------------------------------
@@ -579,6 +585,7 @@ int srvr::init(void)
         // SSL init...
         // -------------------------------------------------
         signal(SIGPIPE, SIG_IGN);
+#ifdef BUILD_TLS_WITH_OPENSSL
         // -------------------------------------------------
         // SSL init...
         // -------------------------------------------------
@@ -620,6 +627,7 @@ int srvr::init(void)
                            m_t_conf->m_tls_client_ctx_cipher_list.c_str());
                 return STATUS_ERROR;
         }
+#endif
         // -------------------------------------------------
         // init t svr list
         // -------------------------------------------------

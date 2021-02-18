@@ -12,7 +12,11 @@
 //! ----------------------------------------------------------------------------
 #include "srvr/t_srvr.h"
 #include "is2/support/ndebug.h"
+#include "is2/nconn/nconn.h"
+#include "nconn/nconn_tcp.h"
+#ifdef BUILD_TLS_WITH_OPENSSL
 #include "nconn/nconn_tls.h"
+#endif
 #include "is2/status.h"
 #include "is2/support/trace.h"
 #include "is2/srvr/rqst.h"
@@ -288,10 +292,12 @@ int32_t lsnr::evr_fd_readable_cb(void *a_data)
         {
                 l_clnt_conn = new nconn_tcp();
         }
+#ifdef BUILD_TLS_WITH_OPENSSL
         else if(l_nconn->get_scheme() == SCHEME_TLS)
         {
                 l_clnt_conn = new nconn_tls();
         }
+#endif
         else
         {
                 TRC_ERROR("performing m_nconn_pool.get\n");
@@ -308,6 +314,7 @@ int32_t lsnr::evr_fd_readable_cb(void *a_data)
         l_clnt_conn->setup_evr_fd(session::evr_fd_readable_cb,
                                   session::evr_fd_writeable_cb,
                                   session::evr_fd_error_cb);
+#ifdef BUILD_TLS_WITH_OPENSSL
         if(l_clnt_conn->get_scheme() == SCHEME_TLS)
         {
                 T_CLNT_SET_NCONN_OPT((*l_clnt_conn),nconn_tls::OPT_TLS_CIPHER_STR,l_conf.m_tls_server_ctx_cipher_list.c_str(),l_conf.m_tls_server_ctx_cipher_list.length());
@@ -322,6 +329,7 @@ int32_t lsnr::evr_fd_readable_cb(void *a_data)
                 }
                 T_CLNT_SET_NCONN_OPT((*l_clnt_conn),nconn_tls::OPT_TLS_OPTIONS,&(l_conf.m_tls_server_ctx_options),sizeof(l_conf.m_tls_server_ctx_options));
         }
+#endif
         // -------------------------------------------------
         // clnt session setup
         // -------------------------------------------------

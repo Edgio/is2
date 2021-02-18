@@ -11,6 +11,9 @@ endif()
 # ------------------------------------------------------------------------------
 option(GCC_OPTIONS          "Command line options passed to gcc or 'native' to compile for this hardware" OFF)
 option(FORTIFY              "Fortify Source GCC options" OFF)
+option(BUILD_H2             "Build with h2 support (w/ nghttp2)" OFF)
+option(BUILD_TLS            "Build with tls support (w/ openssl)" OFF)
+option(BUILD_CUSTOM_OPENSSL "Build for custom OpenSSL" OFF)
 option(DEBUG_MODE           "Compile in debug mode." OFF)
 option(BUILD_TESTS          "Build the unit tests." ON)
 option(BUILD_EXAMPLES       "Build the examples." ON)
@@ -20,12 +23,10 @@ option(BUILD_TCMALLOC       "Build with tcmalloc" OFF)
 option(BUILD_PROFILER       "Enable google cpu and heap profiler support" OFF)
 option(BUILD_ASAN           "Build with Address Sanitizer" OFF)
 option(BUILD_UBSAN          "Build with Undefined Behavior Sanitizer" OFF)
-option(BUILD_CUSTOM_OPENSSL "Build for openssl" OFF)
 # ------------------------------------------------------------------------------
 # Compiler options
 # ------------------------------------------------------------------------------
 add_definitions(-Wall -Wformat -Wformat-security)
-#add_definitions(-pedantic)
 # ------------------------------------------------------------------------------
 # Display the current settings
 # ------------------------------------------------------------------------------
@@ -33,7 +34,11 @@ message(STATUS "Build Configuration:")
 message("")
 message("    Build Option                               Variable                Value                 ")
 message("    -----------------------------------------------------------------------------------------")
+message("    Build with h2 support (w/ nghttp2):        " "BUILD_H2                " ${BUILD_H2})
+message("    Build with tls support (w/ openssl):       " "BUILD_TLS               " ${BUILD_TLS})
+message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
 message("    Debug mode:                                " "DEBUG_MODE              " ${DEBUG_MODE})
+message("    Build unit tests:                          " "BUILD_TESTS             " ${BUILD_TESTS})
 message("    Fortify Source:                            " "FORTIFY                 " ${FORTIFY})
 message("    Build unit tests:                          " "BUILD_TESTS             " ${BUILD_TESTS})
 message("    Build examples:                            " "BUILD_EXAMPLES          " ${BUILD_EXAMPLES})
@@ -44,16 +49,33 @@ message("    Build with tcmalloc:                       " "BUILD_TCMALLOC       
 message("    Enable google cpu/heap profiler support:   " "BUILD_PROFILER          " ${BUILD_PROFILER})
 message("    Build with Address Sanitizer:              " "BUILD_ASAN              " ${BUILD_ASAN})
 message("    Build with Undefined Behavior Sanitizer:   " "BUILD_UBSAN             " ${BUILD_UBSAN})
-message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
 message("")
+# ------------------------------------------------------------------------------
+# build h2
+# ------------------------------------------------------------------------------
+if(BUILD_H2)
+  add_definitions(-DBUILD_H2_WITH_NGHTTP2=1)
+endif()
+# ------------------------------------------------------------------------------
+# build tls
+# ------------------------------------------------------------------------------
+if(BUILD_TLS)
+  add_definitions(-DBUILD_TLS_WITH_OPENSSL=1)
+endif()
+# ------------------------------------------------------------------------------
+# OS X specific code
+# ------------------------------------------------------------------------------
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-   # Mac OS X specific code
    SET(OperatingSystem "Mac OS X")
    # Add MacPorts
-   INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
-   LINK_DIRECTORIES(/usr/local/opt/openssl/lib)
-   INCLUDE_DIRECTORIES(/usr/local/opt/gperftools/include)
-   LINK_DIRECTORIES(/usr/local/opt/gperftools/lib)
+   if(BUILD_TLS)
+     INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
+     LINK_DIRECTORIES(/usr/local/opt/openssl/lib)
+   endif()
+   if(BUILD_TCMALLOC OR BUILD_PROFILER)
+     INCLUDE_DIRECTORIES(/usr/local/opt/gperftools/include)
+     LINK_DIRECTORIES(/usr/local/opt/gperftools/lib)
+   endif()
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # ------------------------------------------------------------------------------
 # Fortify Options
@@ -102,7 +124,6 @@ endif()
 if (BUILD_SYMBOLS)
   add_definitions(-g3)
 endif()
-add_definitions(-DASYNC_DNS_WITH_UDNS=1)
 # ------------------------------------------------------------------------------
 # Build UDNS
 # ------------------------------------------------------------------------------
@@ -163,7 +184,7 @@ endif()
 # ------------------------------------------------------------------------------
 # special build case for OPENSSL
 # ------------------------------------------------------------------------------
-if(BUILD_CUSTOM_OPENSSL)
+if(BUILD_TLS AND BUILD_CUSTOM_OPENSSL)
   INCLUDE_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/include")
   LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}")
   LINK_DIRECTORIES("${BUILD_CUSTOM_OPENSSL}/lib")

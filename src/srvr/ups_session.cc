@@ -13,7 +13,11 @@
 #include "srvr/t_srvr.h"
 #include "srvr/ups_session.h"
 #include "is2/support/ndebug.h"
+#include "is2/nconn/nconn.h"
+#include "nconn/nconn_tcp.h"
+#ifdef BUILD_TLS_WITH_OPENSSL
 #include "nconn/nconn_tls.h"
+#endif
 #include "http_parser/http_parser.h"
 #include "dns/nresolver.h"
 #include "is2/support/nbq.h"
@@ -1185,6 +1189,7 @@ int32_t ups_session::subr_start(subr &a_subr)
                 l_nconn->setup_evr_fd(ups_session::evr_fd_readable_cb,
                                       ups_session::evr_fd_writeable_cb,
                                       ups_session::evr_fd_error_cb);
+#ifdef BUILD_TLS_WITH_OPENSSL
                 if(l_nconn->get_scheme() == SCHEME_TLS)
                 {
                         _SET_NCONN_OPT((*l_nconn),nconn_tls::OPT_TLS_CIPHER_STR,l_t_conf.m_tls_client_ctx_cipher_list.c_str(),l_t_conf.m_tls_client_ctx_cipher_list.length());
@@ -1202,6 +1207,7 @@ int32_t ups_session::subr_start(subr &a_subr)
                                 _SET_NCONN_OPT((*l_nconn), nconn_tls::OPT_TLS_HOSTNAME, a_subr.m_host.c_str(), a_subr.m_host.length());
                         }
                 }
+#endif
                 l_nconn->set_host_info(l_host_info);
                 a_subr.m_host_info = l_host_info;
                 // Reset stats

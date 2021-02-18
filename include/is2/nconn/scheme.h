@@ -16,7 +16,9 @@ namespace ns_is2 {
 // Schemes
 typedef enum scheme_enum {
         SCHEME_TCP = 0,
+#ifdef BUILD_TLS_WITH_OPENSSL
         SCHEME_TLS,
+#endif
         SCHEME_NONE
 } scheme_t;
 }

@@ -139,11 +139,13 @@ void subr::reset_label(void)
                 m_server_label += "http://";
                 break;
         }
+#ifdef BUILD_TLS_WITH_OPENSSL
         case SCHEME_TLS:
         {
                 m_server_label += "https://";
                 break;
         }
+#endif
         default:
         {
                 m_server_label += "default://";
@@ -349,10 +351,12 @@ int32_t subr::init_with_url(const std::string &a_url)
                                 {
                                         m_scheme = SCHEME_TCP;
                                 }
+#ifdef BUILD_TLS_WITH_OPENSSL
                                 else if(l_part == "https")
                                 {
                                         m_scheme = SCHEME_TLS;
                                 }
+#endif
                                 else
                                 {
                                         TRC_ERROR("Error schema[%s] is unsupported\n", l_part.c_str());
@@ -419,11 +423,13 @@ int32_t subr::init_with_url(const std::string &a_url)
                         m_port = 80;
                         break;
                 }
+#ifdef BUILD_TLS_WITH_OPENSSL
                 case SCHEME_TLS:
                 {
                         m_port = 443;
                         break;
                 }
+#endif
                 default:
                 {
                         m_port = 80;

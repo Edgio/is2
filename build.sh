@@ -34,8 +34,6 @@ mkdir -p build && \
 pushd build && \
     cmake ../ \
     -DFORTIFY=ON \
-    -DBUILD_TCMALLOC=ON \
-    -DBUILD_PROFILER=ON \
     -DBUILD_TESTS=ON \
     -DCMAKE_INSTALL_PREFIX=/usr \
     && \
