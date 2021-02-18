@@ -376,7 +376,7 @@ static int32_t run_state_machine(void *a_data, evr_mode_t a_conn_mode)
                 // active -create new timer with
                 // delta time
                 // -----------------------------------------
-                uint64_t l_d_time = (uint32_t)(l_ups->m_timeout_ms - (l_ct_ms - l_ups->m_last_active_ms));
+                uint32_t l_d_time = l_ups->m_timeout_ms - (uint32_t)(l_ct_ms - l_ups->m_last_active_ms);
                 int32_t l_s;
                 l_s = l_t_srvr.add_timer(l_d_time,
                                          ups_session::evr_event_timeout_cb,
@@ -1295,6 +1295,10 @@ int32_t ups_session::subr_start(subr &a_subr)
         // -------------------------------------------------
         // idle timer
         // -------------------------------------------------
+        if(a_subr.m_timeout_ms)
+        {
+                l_ups->m_timeout_ms = a_subr.m_timeout_ms;
+        }
         l_s = l_t_srvr.add_timer(l_ups->m_timeout_ms,
                                  ups_session::evr_event_timeout_cb,
                                  l_nconn,
