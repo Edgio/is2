@@ -11,9 +11,9 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "is2/status.h"
-#include "hurl/support/nbq.h"
-#include "hurl/support/trace.h"
-#include "hurl/support/ndebug.h"
+#include "is2/support/nbq.h"
+#include "is2/support/trace.h"
+#include "is2/support/ndebug.h"
 #include "catch/catch.hpp"
 //: ----------------------------------------------------------------------------
 //: Constants
@@ -47,7 +47,7 @@ char *create_buf(uint32_t a_size)
 //: ----------------------------------------------------------------------------
 //: Test helpers
 //: ----------------------------------------------------------------------------
-void nbq_write(ns_hurl::nbq &a_nbq, char *a_buf, uint32_t a_write_size, uint32_t a_write_per)
+void nbq_write(ns_is2::nbq &a_nbq, char *a_buf, uint32_t a_write_size, uint32_t a_write_per)
 {
         uint64_t l_write_size = a_write_size;
         uint64_t l_left = l_write_size;
@@ -67,7 +67,7 @@ void nbq_write(ns_hurl::nbq &a_nbq, char *a_buf, uint32_t a_write_size, uint32_t
 //: ----------------------------------------------------------------------------
 //: Test helpers
 //: ----------------------------------------------------------------------------
-void nbq_read(ns_hurl::nbq &a_nbq, char *a_buf, uint32_t a_read_per)
+void nbq_read(ns_is2::nbq &a_nbq, char *a_buf, uint32_t a_read_per)
 {
         uint64_t l_read = 0;
         uint32_t l_per_read_size = (a_read_per);
@@ -84,7 +84,7 @@ void nbq_read(ns_hurl::nbq &a_nbq, char *a_buf, uint32_t a_read_per)
 //: ----------------------------------------------------------------------------
 //: Verify contents of nbq
 //: ----------------------------------------------------------------------------
-int32_t verify_contents(ns_hurl::nbq &a_nbq, uint64_t a_len, uint16_t a_offset)
+int32_t verify_contents(ns_is2::nbq &a_nbq, uint64_t a_len, uint16_t a_offset)
 {
         uint64_t l_read = 0;
         //NDBG_PRINT("a_nbq.read_avail(): %lu\n", a_nbq.read_avail());
@@ -148,9 +148,9 @@ int32_t verify_contents(char *l_buf, uint64_t a_len, uint16_t a_offset)
 //: Tests
 //: ----------------------------------------------------------------------------
 TEST_CASE( "nbq test", "[nbq]" ) {
-        ns_hurl::trc_log_level_set(ns_hurl::TRC_LOG_LEVEL_NONE);
+        ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_NONE);
         SECTION("writing then reading to new") {
-                ns_hurl::nbq l_nbq(BLOCK_SIZE);
+                ns_is2::nbq l_nbq(BLOCK_SIZE);
                 char *l_buf = create_buf(888);
                 nbq_write(l_nbq, l_buf, 888, BLOCK_SIZE);
                 REQUIRE(( l_nbq.read_avail() == 888 ));
@@ -170,7 +170,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 }
         }
         SECTION("reset writing then reading to new") {
-                ns_hurl::nbq l_nbq(BLOCK_SIZE);
+                ns_is2::nbq l_nbq(BLOCK_SIZE);
                 char *l_buf = create_buf(888);
                 l_nbq.reset_read();
                 char *l_rbuf = (char *)malloc(888);
@@ -198,7 +198,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 }
         }
         SECTION("reset writing then reading") {
-                ns_hurl::nbq l_nbq(BLOCK_SIZE);
+                ns_is2::nbq l_nbq(BLOCK_SIZE);
                 char *l_buf = create_buf(888);
                 char *l_rbuf = (char *)malloc(888);
                 l_nbq.reset();
@@ -219,7 +219,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 }
         }
         SECTION("Reset Writing/Writing then Reading") {
-                ns_hurl::nbq l_nbq(BLOCK_SIZE);
+                ns_is2::nbq l_nbq(BLOCK_SIZE);
                 char *l_buf = create_buf(1776);
                 char *l_rbuf = (char *)malloc(1776);
                 l_nbq.reset();
@@ -242,7 +242,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 }
         }
         SECTION("split") {
-                ns_hurl::nbq l_nbq(BLOCK_SIZE);
+                ns_is2::nbq l_nbq(BLOCK_SIZE);
                 char *l_uni_buf = create_uniform_buf(703);
                 char *l_rbuf = (char *)malloc(888);
                 l_nbq.reset();
@@ -252,7 +252,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 l_s = verify_contents(l_nbq, 703, 0);
                 REQUIRE(( l_s == STATUS_OK ));
                 l_nbq.reset_read();
-                ns_hurl::nbq *l_nbq_tail;
+                ns_is2::nbq *l_nbq_tail;
                 // split at > written offset -return nothing
                 l_s = l_nbq.split(&l_nbq_tail, 703);
                 REQUIRE(( l_s == STATUS_ERROR ));
@@ -290,12 +290,12 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 }
         }
         SECTION("join") {
-                ns_hurl::nbq *l_nbq = new ns_hurl::nbq(BLOCK_SIZE);
+                ns_is2::nbq *l_nbq = new ns_is2::nbq(BLOCK_SIZE);
                 char *l_uni_buf = create_uniform_buf(703);
                 l_nbq->reset();
                 nbq_write(*l_nbq, l_uni_buf, 703, 155);
                 REQUIRE(( l_nbq->read_avail() == 703 ));
-                ns_hurl::nbq *l_nbq_tail = new ns_hurl::nbq(BLOCK_SIZE);
+                ns_is2::nbq *l_nbq_tail = new ns_is2::nbq(BLOCK_SIZE);
                 nbq_write(*l_nbq_tail, l_uni_buf, 400, 200);
                 int32_t l_s;
                 l_s = l_nbq->join_ref(*l_nbq_tail);
@@ -329,7 +329,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 }
         }
         SECTION("split and join") {
-                ns_hurl::nbq *l_nbq = new ns_hurl::nbq(BLOCK_SIZE);
+                ns_is2::nbq *l_nbq = new ns_is2::nbq(BLOCK_SIZE);
                 char *l_uni_buf = create_uniform_buf(703);
                 nbq_write(*l_nbq, l_uni_buf, 703, 133);
                 REQUIRE(( l_nbq->read_avail() == 703 ));
@@ -337,7 +337,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 l_s = verify_contents(*l_nbq, 703, 0);
                 REQUIRE(( l_s == STATUS_OK ));
                 l_nbq->reset_read();
-                ns_hurl::nbq *l_nbq_tail;
+                ns_is2::nbq *l_nbq_tail;
                 // split at > written offset -return nothing
                 l_s = l_nbq->split(&l_nbq_tail, 703);
                 REQUIRE(( l_s == STATUS_ERROR ));
@@ -364,7 +364,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 l_s = verify_contents(*l_nbq_tail, 303, 0);
                 REQUIRE(( l_s == STATUS_OK ));
                 // join to new
-                ns_hurl::nbq *l_nbq_1 = new ns_hurl::nbq(BLOCK_SIZE);
+                ns_is2::nbq *l_nbq_1 = new ns_is2::nbq(BLOCK_SIZE);
                 nbq_write(*l_nbq_1, l_uni_buf, 300, 155);
                 REQUIRE(( l_nbq_1->read_avail() == 300 ));
                 l_s = l_nbq_1->join_ref(*l_nbq_tail);
@@ -393,7 +393,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 }
         }
         SECTION("write read write on boundaries") {
-                ns_hurl::nbq l_nbq(4096);
+                ns_is2::nbq l_nbq(4096);
                 char *l_buf = create_uniform_buf(4*4096);
                 char *l_rbuf = (char *)malloc(4*4096);
                 nbq_write(l_nbq, l_buf, 4*4096, 4096);
@@ -405,7 +405,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 REQUIRE(( l_s == STATUS_OK ));
                 l_nbq.reset_read();
                 nbq_read(l_nbq, l_rbuf, 4096);
-                //ns_hurl::mem_display((const uint8_t *)l_rbuf, 4*4096, true);
+                //ns_is2::mem_display((const uint8_t *)l_rbuf, 4*4096, true);
                 l_s = verify_contents(l_rbuf, 4*4096, 0);
                 REQUIRE(( l_s == STATUS_OK ));
                 REQUIRE(( l_nbq.b_read_avail() == (0)));
@@ -414,7 +414,7 @@ TEST_CASE( "nbq test", "[nbq]" ) {
                 REQUIRE(( l_nbq.b_read_avail() == (4096)));
                 REQUIRE(( l_nbq.read_avail() == (4*4096)));
                 nbq_read(l_nbq, l_rbuf, 4096);
-                //ns_hurl::mem_display((const uint8_t *)l_rbuf, 4*4096, true);
+                //ns_is2::mem_display((const uint8_t *)l_rbuf, 4*4096, true);
                 l_s = verify_contents(l_rbuf, 4*4096, 0);
                 REQUIRE(( l_s == STATUS_OK ));
                 // -----------------------------------------

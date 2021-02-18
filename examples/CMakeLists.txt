@@ -10,6 +10,8 @@ include_directories(
 # ------------------------------------------------------------------------------
 if(BUILD_TLS)
   set(LIBRARIES is2 crypto ssl pthread)
+else()
+  set(LIBRARIES is2 pthread)
 endif()
 # ------------------------------------------------------------------------------
 # basic

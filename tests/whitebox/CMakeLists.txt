@@ -17,7 +17,8 @@ endif()
 # ------------------------------------------------------------------------------
 # build tests
 # ------------------------------------------------------------------------------
+#add_subdirectory(dns)
+#add_subdirectory(nconn)
+add_subdirectory(srvr)
 add_subdirectory(support)
 add_subdirectory(url_router)
-add_subdirectory(srvr)
-
