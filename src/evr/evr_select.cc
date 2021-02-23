@@ -12,10 +12,12 @@
 //! ----------------------------------------------------------------------------
 #include "evr/evr_select.h"
 #include "is2/support/ndebug.h"
+#include "is2/support/trace.h"
 #include "is2/status.h"
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
+#include <unistd.h>
 namespace ns_is2 {
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -23,12 +25,21 @@ namespace ns_is2 {
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
 evr_select::evr_select(void) :
-	m_conn_map(),
-	m_rfdset(),
-	m_wfdset()
+        m_conn_map(),
+        m_rfdset(),
+        m_wfdset()
 {
-	FD_ZERO(&m_rfdset);
-	FD_ZERO(&m_wfdset);
+        FD_ZERO(&m_rfdset);
+        FD_ZERO(&m_wfdset);
+
+        // Create ctrl fd
+        int l_status = pipe(m_ctrl_fd);
+        if(l_status == -1)
+        {
+                TRC_ERROR("pipe() failed: %s\n", strerror(errno));
+                exit(-1);
+        }
+        FD_SET(m_ctrl_fd[0], &m_rfdset);
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -66,7 +77,7 @@ int evr_select::wait(evr_events_t* a_ev, int a_max_events, int a_timeout_msec)
                                  a_timeout_msec >= 0 ? &l_timeout : NULL);
         } while((l_s < 0) &&
                 (errno == EINTR));
-        //NDBG_PRINT("l_sstat: %d\n", l_sstat);
+        //NDBG_PRINT("l_s: %d\n", l_s);
         if(l_s < 0)
         {
                 //NDBG_PRINT("Error select() failed. Reason: %s\n", strerror(errno));
@@ -75,9 +86,15 @@ int evr_select::wait(evr_events_t* a_ev, int a_max_events, int a_timeout_msec)
         if(l_s > a_max_events)
         {
                 //NDBG_PRINT("Error select() returned too many events (got %d, expected <= %d)\n",
-                //                l_sstat, a_max_events);
+                //                l_s, a_max_events);
                 return STATUS_ERROR;
         }
+        if(FD_ISSET(m_ctrl_fd[0], &l_rfdset))
+        {
+                // NDBG_PRINT("Control fd fired, exiting\n");
+                return STATUS_OK;
+        }
+
         int l_p = 0;
         for(conn_map_t::iterator i_conn = m_conn_map.begin(); i_conn != m_conn_map.end(); ++i_conn)
         {
@@ -167,7 +184,16 @@ int evr_select::del(int a_fd)
 //! ----------------------------------------------------------------------------
 int evr_select::signal(void)
 {
-        // TODO use a pipe for signalling...
+        // Wake up select by writing to control fd pipe
+        uint64_t l_value = 1;
+        ssize_t l_write_status = 0;
+        //NDBG_PRINT("WRITING m_ctrl_fd: %d\n", m_ctrl_fd[1]);
+        l_write_status = write(m_ctrl_fd[1], &l_value, sizeof (l_value));
+        if(l_write_status == -1)
+        {
+                //NDBG_PRINT("l_write_status: %ld\n", l_write_status);
+                return STATUS_ERROR;
+        }
         return STATUS_OK;
 }
 } //namespace ns_is2 {
