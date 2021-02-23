@@ -36,6 +36,7 @@ private:
         conn_map_t m_conn_map;
         fd_set m_rfdset;
         fd_set m_wfdset;
+        int m_ctrl_fd[2];
 };
 } //namespace ns_is2 {
 #endif
