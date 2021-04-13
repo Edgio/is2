@@ -61,7 +61,6 @@ SET(SRCS
   # --------------------------------------------------------
   # support
   # --------------------------------------------------------
-  support/file_util.cc
   support/nbq.cc
   support/ndebug.cc
   support/string_util.cc
