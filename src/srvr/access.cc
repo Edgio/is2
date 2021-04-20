@@ -56,8 +56,6 @@ access_info::~access_info(void)
 //! ----------------------------------------------------------------------------
 void access_info::clear(void)
 {
-        bzero((char *) &m_conn_clnt_sa, sizeof(m_conn_clnt_sa));
-        m_conn_clnt_sa_len = 0;
         bzero((char *) &m_conn_upsv_sa, sizeof(m_conn_upsv_sa));
         m_conn_upsv_sa_len = 0;
         m_rqst_host.clear();
