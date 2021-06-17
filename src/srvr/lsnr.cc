@@ -348,6 +348,7 @@ int32_t lsnr::evr_fd_readable_cb(void *a_data)
         // Set access info
         // TODO move to session???
         // -------------------------------------------------
+        l_nconn->get_remote_sa(l_clnt_conn->m_remote_sa, l_clnt_conn->m_remote_sa_len);
         l_nconn->get_remote_sa(l_cs->m_access_info.m_conn_clnt_sa, l_cs->m_access_info.m_conn_clnt_sa_len);
         l_lsnr->get_sa(l_cs->m_access_info.m_conn_upsv_sa, l_cs->m_access_info.m_conn_upsv_sa_len);
         l_cs->m_access_info.m_start_time_ms = 0;
