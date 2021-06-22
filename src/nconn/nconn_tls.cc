@@ -808,7 +808,7 @@ int32_t nconn_tls::ncset_accepting(int a_fd)
         {
                 SSL* l_ssl = NULL;
                 SSL_CTX* l_ctx = NULL;
-                l_s = s_ssl_accept_cb(&l_ssl, &l_ctx, (sockaddr*)(&m_remote_sa));
+                l_s = s_ssl_accept_cb(s_ssl_accept_ctx, (sockaddr*)(&m_remote_sa), &l_ssl, &l_ctx);
                 if((l_s == STATUS_OK) &&
                     l_ssl &&
                     l_ctx)

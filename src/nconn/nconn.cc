@@ -25,6 +25,7 @@ namespace ns_is2 {
 //! static
 //! ----------------------------------------------------------------------------
 ssl_accept_cb_t nconn::s_ssl_accept_cb = NULL;
+void* nconn::s_ssl_accept_ctx = NULL;
 //! ----------------------------------------------------------------------------
 //! \details: TODO
 //! \return:  TODO
