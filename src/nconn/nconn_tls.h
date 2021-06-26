@@ -78,8 +78,8 @@ public:
         // ---------------------------------------
         nconn_tls():
           nconn_tcp(),
-          m_tls_ctx(NULL),
-          m_tls(NULL),
+          m_ssl_ctx(NULL),
+          m_ssl(NULL),
           m_tls_opt_verify(false),
           m_tls_opt_sni(false),
           m_tls_opt_verify_allow_self_signed(false),
@@ -134,8 +134,8 @@ private:
         // -------------------------------------------------
         // Private members
         // -------------------------------------------------
-        SSL_CTX * m_tls_ctx;
-        SSL *m_tls;
+        SSL_CTX * m_ssl_ctx;
+        SSL *m_ssl;
         bool m_tls_opt_verify;
         bool m_tls_opt_sni;
         bool m_tls_opt_verify_allow_self_signed;
