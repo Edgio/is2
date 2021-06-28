@@ -812,7 +812,11 @@ int32_t nconn_tls::ncset_accepting(int a_fd)
         // -------------------------------------------------
         if (!m_ssl)
         {
-                init();
+                l_s = init();
+                if (l_s != NC_STATUS_OK)
+                {
+                        return NC_STATUS_ERROR;
+                }
         }
         // -------------------------------------------------
         // set connection socket to tls state
