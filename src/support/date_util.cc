@@ -12,7 +12,7 @@
 //! ----------------------------------------------------------------------------
 #include <unistd.h>
 #include <time.h>
-#include "date_util.h"
+#include "is2/support/date_util.h"
 // Mach time support clock_get_time
 #ifdef __MACH__
 #include <mach/clock.h>
