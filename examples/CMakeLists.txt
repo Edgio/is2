@@ -28,13 +28,13 @@ ADD_DEPENDENCIES(files_cmd is2)
 SET_TARGET_PROPERTIES(files_cmd PROPERTIES OUTPUT_NAME "files")
 TARGET_LINK_LIBRARIES(files_cmd ${LIBRARIES})
 # ------------------------------------------------------------------------------
-# sfiles
+# https_files
 # ------------------------------------------------------------------------------
 if(BUILD_TLS)
-    ADD_EXECUTABLE(sfiles_cmd sfiles.cc)
-    ADD_DEPENDENCIES(sfiles_cmd is2)
-    SET_TARGET_PROPERTIES(sfiles_cmd PROPERTIES OUTPUT_NAME "sfiles")
-    TARGET_LINK_LIBRARIES(sfiles_cmd ${LIBRARIES})
+    ADD_EXECUTABLE(https_files_cmd https_files.cc)
+    ADD_DEPENDENCIES(https_files_cmd is2)
+    SET_TARGET_PROPERTIES(https_files_cmd PROPERTIES OUTPUT_NAME "https_files")
+    TARGET_LINK_LIBRARIES(https_files_cmd ${LIBRARIES})
 endif()
 # ------------------------------------------------------------------------------
 # proxy
