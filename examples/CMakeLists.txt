@@ -9,9 +9,9 @@ include_directories(
 # tls support
 # ------------------------------------------------------------------------------
 if(BUILD_TLS)
-  set(LIBRARIES is2 crypto ssl pthread)
+    set(LIBRARIES is2 crypto ssl pthread)
 else()
-  set(LIBRARIES is2 pthread)
+    set(LIBRARIES is2 pthread)
 endif()
 # ------------------------------------------------------------------------------
 # basic
@@ -27,6 +27,15 @@ ADD_EXECUTABLE(files_cmd files.cc)
 ADD_DEPENDENCIES(files_cmd is2)
 SET_TARGET_PROPERTIES(files_cmd PROPERTIES OUTPUT_NAME "files")
 TARGET_LINK_LIBRARIES(files_cmd ${LIBRARIES})
+# ------------------------------------------------------------------------------
+# https_files
+# ------------------------------------------------------------------------------
+if(BUILD_TLS)
+    ADD_EXECUTABLE(https_files_cmd https_files.cc)
+    ADD_DEPENDENCIES(https_files_cmd is2)
+    SET_TARGET_PROPERTIES(https_files_cmd PROPERTIES OUTPUT_NAME "https_files")
+    TARGET_LINK_LIBRARIES(https_files_cmd ${LIBRARIES})
+endif()
 # ------------------------------------------------------------------------------
 # proxy
 # ------------------------------------------------------------------------------
