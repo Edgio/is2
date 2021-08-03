@@ -21,11 +21,11 @@
 #include <string.h>
 #include <stdio.h>
 //#include <gperftools/profiler.h>
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static int32_t create_response(ns_is2::session &a_session,
                                const char *a_resp_buf,
                                uint64_t a_resp_len)
@@ -51,9 +51,9 @@ static int32_t create_response(ns_is2::session &a_session,
         ns_is2::queue_api_resp(a_session, l_api_resp);
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: define handler for get
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! define handler for get
+//! ----------------------------------------------------------------------------
 class subrequest_handler: public ns_is2::default_rqst_h
 {
 public:
@@ -69,11 +69,11 @@ public:
                                   ns_is2::http_status_t a_status,
                                   const char *a_error_str);
 };
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 ns_is2::h_resp_t subrequest_handler::do_default(ns_is2::session &a_session,
                                                 ns_is2::rqst &a_rqst,
                                                 const ns_is2::url_pmap_t &a_url_pmap)
@@ -95,11 +95,11 @@ ns_is2::h_resp_t subrequest_handler::do_default(ns_is2::session &a_session,
         }
         return ns_is2::H_RESP_DONE;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t subrequest_handler::s_completion_cb(ns_is2::subr &a_subr,
                                             ns_is2::nconn &a_nconn,
                                             ns_is2::resp &a_resp)
@@ -111,11 +111,11 @@ int32_t subrequest_handler::s_completion_cb(ns_is2::subr &a_subr,
         (void)l_s;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t subrequest_handler::s_error_cb(ns_is2::subr &a_subr,
                                        ns_is2::nconn *a_nconn,
                                        ns_is2::http_status_t a_status,
@@ -128,9 +128,9 @@ int32_t subrequest_handler::s_error_cb(ns_is2::subr &a_subr,
         (void)l_s;
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: main
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! main
+//! ----------------------------------------------------------------------------
 int main(void)
 {
         //ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_ERROR);
