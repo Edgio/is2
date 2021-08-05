@@ -30,7 +30,7 @@
 //! ----------------------------------------------------------------------------
 void print_usage(FILE* a_stream, int a_exit_code)
 {
-        fprintf(a_stream, "Usage: sao_server [options]\n");
+        fprintf(a_stream, "Usage: https_files [options]\n");
         fprintf(a_stream, "Options:\n");
         fprintf(a_stream, "  -h, --help          display this help and exit.\n");
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
