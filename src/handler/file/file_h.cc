@@ -27,6 +27,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
+#define _FILE_MAX_READ_PER_BYTES (64*1024)
 namespace ns_is2 {
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -204,7 +208,7 @@ h_resp_t file_h::get_file(session &a_session,
         // -------------------------------------------------
         // Read up to 64k
         // -------------------------------------------------
-        uint32_t l_read = 64*1024;
+        uint32_t l_read = _FILE_MAX_READ_PER_BYTES;
         if (l_read - l_q.read_avail() > 0)
         {
                 l_read = l_read - l_q.read_avail();

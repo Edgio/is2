@@ -36,6 +36,7 @@ void print_usage(FILE* a_stream, int a_exit_code)
         fprintf(a_stream, "  -p, --port          port (default: 12345)\n");
         fprintf(a_stream, "  -k, --key           certificate key file\n");
         fprintf(a_stream, "  -c, --cert          public certificate file\n");
+        fprintf(a_stream, "  -b, --block_size    set block size for contiguous send/recv sizes\n");
         exit(a_exit_code);
 }
 //! ----------------------------------------------------------------------------
@@ -53,6 +54,7 @@ int main(int argc, char** argv)
         uint16_t l_port = 12345;
         std::string l_key;
         std::string l_cert;
+        uint32_t l_block_size = 4096;
         // -------------------------------------------------
         // options
         // -------------------------------------------------
@@ -63,13 +65,16 @@ int main(int argc, char** argv)
                 // -----------------------------------------
                 { "help",         0, 0, 'h' },
                 { "port",         1, 0, 'p' },
+                { "key",          1, 0, 'k' },
+                { "cert",         1, 0, 'c' },
+                { "block_size",   1, 0, 'b' },
                 // list sentinel
                 { 0, 0, 0, 0 }
         };
         // -------------------------------------------------
         // Args...
         // -------------------------------------------------
-        char l_short_arg_list[] = "hp:k:c:";
+        char l_short_arg_list[] = "hp:k:c:b:";
         while ((l_opt = getopt_long_only(argc, argv, l_short_arg_list, l_long_options, &l_option_index)) != -1)
         {
                 if (optarg)
@@ -129,6 +134,21 @@ int main(int argc, char** argv)
                         break;
                 }
                 // -----------------------------------------
+                // block_size
+                // -----------------------------------------
+                case 'b':
+                {
+                        int l_port_val;
+                        l_port_val = atoi(optarg);
+                        if ((l_port_val < 1))
+                        {
+                                printf("Error bad block size value: %d.\n", l_port_val);
+                                print_usage(stdout, STATUS_ERROR);
+                        }
+                        l_block_size = (uint32_t)l_port_val;
+                        break;
+                }
+                // -----------------------------------------
                 // What???
                 // -----------------------------------------
                 case '?':
@@ -164,6 +184,7 @@ int main(int argc, char** argv)
         ns_is2::srvr *l_srvr = new ns_is2::srvr();
         l_srvr->set_tls_server_ctx_key(l_key);
         l_srvr->set_tls_server_ctx_crt(l_cert);
+        l_srvr->set_block_size(l_block_size);
         l_srvr->register_lsnr(l_lsnr);
         l_srvr->set_num_threads(0);
         l_srvr->run();
