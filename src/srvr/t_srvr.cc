@@ -22,6 +22,7 @@
 #include "is2/support/nbq.h"
 #include "is2/status.h"
 #include "is2/support/trace.h"
+#include "is2/srvr/srvr.h"
 #include "is2/srvr/resp.h"
 #include "is2/srvr/lsnr.h"
 #include "is2/srvr/session.h"
@@ -427,9 +428,14 @@ void *t_srvr::t_run(void *a_nothing)
 //! ----------------------------------------------------------------------------
 nbq *t_srvr::get_nbq(nbq *a_nbq)
 {
+        uint32_t l_b_size = _DEFAULT_NBQ_BLOCK_SIZE;
+        if (m_srvr)
+        {
+                l_b_size = m_srvr->get_block_size();
+        }
         UNUSED(a_nbq);
         nbq *l_nbq = NULL;
-        l_nbq = new nbq(4*1024);
+        l_nbq = new nbq(l_b_size);
         return l_nbq;
 }
 //! ----------------------------------------------------------------------------

@@ -26,11 +26,15 @@
 #include "is2/srvr/session.h"
 #include "is2/srvr/api_resp.h"
 //! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
+#define UPS_READ_AHEAD_SIZE (64*1024)
+//! ----------------------------------------------------------------------------
 //! macros
 //! ----------------------------------------------------------------------------
 #define CHECK_FOR_NULL_ERROR_DEBUG(_data) \
         do {\
-                if(!_data) {\
+                if (!_data) {\
                         NDBG_PRINT("Error.\n");\
                         return STATUS_ERROR;\
                 }\
@@ -38,7 +42,7 @@
 
 #define CHECK_FOR_NULL_ERROR(_data) \
         do {\
-                if(!_data) {\
+                if (!_data) {\
                         return STATUS_ERROR;\
                 }\
         } while(0);
@@ -87,24 +91,24 @@ session::~session(void)
         l_s = cancel_evr_writeable();
         // TODO check status
         UNUSED(l_s);
-        if(m_rqst)
+        if (m_rqst)
         {
                 delete m_rqst;
                 m_rqst = NULL;
         }
-        if(m_in_q)
+        if (m_in_q)
         {
                 delete m_in_q;
                 m_in_q = NULL;
         }
-        if(m_out_q)
+        if (m_out_q)
         {
                 delete m_out_q;
                 m_out_q = NULL;
         }
-        if(m_u)
+        if (m_u)
         {
-                if(!m_u->ups_done())
+                if (!m_u->ups_done())
                 {
                         m_u->ups_cancel();
                 }
@@ -142,13 +146,13 @@ int32_t session::add_evr_timer(uint32_t a_ms)
 //! ----------------------------------------------------------------------------
 int32_t session::cancel_evr_timer(void)
 {
-        if(!m_evr_timeout)
+        if (!m_evr_timeout)
         {
                 return STATUS_OK;
         }
         int32_t l_status;
         l_status = m_t_srvr.cancel_event(m_evr_timeout);
-        if(l_status != STATUS_OK)
+        if (l_status != STATUS_OK)
         {
                 return STATUS_ERROR;
         }
@@ -162,13 +166,13 @@ int32_t session::cancel_evr_timer(void)
 //! ----------------------------------------------------------------------------
 int32_t session::cancel_evr_readable(void)
 {
-        if(!m_evr_readable)
+        if (!m_evr_readable)
         {
                 return STATUS_OK;
         }
         int32_t l_status;
         l_status = m_t_srvr.cancel_event(m_evr_readable);
-        if(l_status != STATUS_OK)
+        if (l_status != STATUS_OK)
         {
                 return STATUS_ERROR;
         }
@@ -182,13 +186,13 @@ int32_t session::cancel_evr_readable(void)
 //! ----------------------------------------------------------------------------
 int32_t session::cancel_evr_writeable(void)
 {
-        if(!m_evr_writeable)
+        if (!m_evr_writeable)
         {
                 return STATUS_OK;
         }
         int32_t l_status;
         l_status = m_t_srvr.cancel_event(m_evr_writeable);
-        if(l_status != STATUS_OK)
+        if (l_status != STATUS_OK)
         {
                 return STATUS_ERROR;
         }
@@ -211,7 +215,7 @@ uint32_t session::get_timeout_ms(void)
 //! ----------------------------------------------------------------------------
 host_info session::get_host_info(void)
 {
-        if(m_nconn)
+        if (m_nconn)
         {
                 return m_nconn->get_host_info();
         }
@@ -225,7 +229,7 @@ host_info session::get_host_info(void)
 //! ----------------------------------------------------------------------------
 scheme_t session::get_scheme(void)
 {
-        if(m_nconn)
+        if (m_nconn)
         {
                 return m_nconn->get_scheme();
         }
@@ -265,9 +269,6 @@ void session::set_last_active_ms(uint64_t a_time_ms)
 //! ----------------------------------------------------------------------------
 int32_t session::teardown(void)
 {
-        //NDBG_PRINT("%sTEARDOWN%s: this: %p m_nconn: %p m_rqst: %p\n",
-        //           ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
-        //           this, m_nconn, m_rqst);
         // -------------------------------------------------
         // cancel timer
         // -------------------------------------------------
@@ -276,12 +277,12 @@ int32_t session::teardown(void)
         // TODO Check status
         UNUSED(l_s);
         // if upstream object associated w/ clnt request...
-        if(m_u)
+        if (m_u)
         {
-                if(!m_u->ups_done())
+                if (!m_u->ups_done())
                 {
                         l_s = m_u->ups_cancel();
-                        if(l_s != STATUS_OK)
+                        if (l_s != STATUS_OK)
                         {
                                 TRC_ERROR("performing ups_cancel\n");
                         }
@@ -292,7 +293,7 @@ int32_t session::teardown(void)
         // -------------------------------------------------
         // disassociate connection
         // -------------------------------------------------
-        if(m_nconn)
+        if (m_nconn)
         {
                 m_nconn->set_ctx(NULL);
                 m_nconn->set_data(NULL);
@@ -309,7 +310,7 @@ int32_t session::teardown(void)
 //! ----------------------------------------------------------------------------
 static int32_t run_state_machine(void *a_data, evr_mode_t a_conn_mode)
 {
-        //NDBG_PRINT("RUN a_conn_mode: %d a_data: %p\n", a_conn_mode, a_data);
+        //NDBG_PRINT("%sRUN%s a_conn_mode: %d a_data: %p\n", ANSI_COLOR_BG_MAGENTA, ANSI_COLOR_OFF, a_conn_mode, a_data);
         CHECK_FOR_NULL_ERROR(a_data);
         nconn* l_nconn = static_cast<nconn*>(a_data);
         CHECK_FOR_NULL_ERROR(l_nconn->get_ctx());
@@ -326,13 +327,13 @@ static int32_t run_state_machine(void *a_data, evr_mode_t a_conn_mode)
         case EVR_MODE_ERROR:
         {
                 // ignore callbacks for free connections
-                if(l_nconn->is_free())
+                if (l_nconn->is_free())
                 {
                         TRC_ERROR("call back for free connection\n");
                         return STATUS_DONE;
                 }
-                //if(l_t_srvr) { ++(l_t_srvr->m_stat.m_clnt_errors); }
-                if(l_cs)
+                //if (l_t_srvr) { ++(l_t_srvr->m_stat.m_clnt_errors); }
+                if (l_cs)
                 {
                         int32_t l_s;
                         l_s = l_cs->teardown();
@@ -351,13 +352,13 @@ static int32_t run_state_machine(void *a_data, evr_mode_t a_conn_mode)
         case EVR_MODE_TIMEOUT:
         {
                 // ignore callbacks for free connections
-                if(l_nconn->is_free())
+                if (l_nconn->is_free())
                 {
                         TRC_ERROR("call back for free connection\n");
                         return STATUS_OK;
                 }
                 // calc time since last active
-                if(!l_cs)
+                if (!l_cs)
                 {
                         TRC_ERROR("a_conn_mode[%d] session[%p] == NULL\n",
                                         a_conn_mode,
@@ -368,7 +369,7 @@ static int32_t run_state_machine(void *a_data, evr_mode_t a_conn_mode)
                 // timeout
                 // -----------------------------------------
                 uint64_t l_ct_ms = get_time_ms();
-                if(((uint32_t)(l_ct_ms - l_cs->get_last_active_ms())) >= l_cs->get_timeout_ms())
+                if (((uint32_t)(l_ct_ms - l_cs->get_last_active_ms())) >= l_cs->get_timeout_ms())
                 {
                         //++(l_t_srvr->m_stat.m_clnt_idle_killed);
                         //++(l_t_srvr->m_stat.m_clnt_errors);
@@ -384,7 +385,7 @@ static int32_t run_state_machine(void *a_data, evr_mode_t a_conn_mode)
                 // active -create new timer with
                 // delta time
                 // -----------------------------------------
-                else if(l_cs)
+                else if (l_cs)
                 {
                         uint64_t l_d_time = (uint32_t)(l_cs->get_timeout_ms() - (l_ct_ms - l_cs->get_last_active_ms()));
                         int32_t l_s;
@@ -420,7 +421,7 @@ static int32_t run_state_machine(void *a_data, evr_mode_t a_conn_mode)
         // -------------------------------------------------
         // set last active
         // -------------------------------------------------
-        if(l_cs)
+        if (l_cs)
         {
                 l_cs->set_last_active_ms(get_time_ms());
         }
@@ -436,7 +437,7 @@ state_top:
         // -------------------------------------------------
         // check srvr state
         // -------------------------------------------------
-        if(l_t_srvr &&
+        if (l_t_srvr &&
            !l_t_srvr->is_running())
         {
                 return STATUS_OK;
@@ -451,7 +452,7 @@ state_top:
         // -------------------------------------------------
         case nconn::NC_STATE_DONE:
         {
-                if(!l_cs)
+                if (!l_cs)
                 {
                         return STATUS_DONE;
                 }
@@ -482,7 +483,7 @@ state_top:
                 // -----------------------------------------
                 int32_t l_s;
                 l_s = l_nconn->ncaccept();
-                if(l_s == nconn::NC_STATUS_ERROR)
+                if (l_s == nconn::NC_STATUS_ERROR)
                 {
                         TRC_ERROR("performing ncaccept\n");
                         return STATUS_ERROR;
@@ -490,9 +491,8 @@ state_top:
                 // -----------------------------------------
                 // check state
                 // -----------------------------------------
-                if(l_nconn->is_accepting())
+                if (l_nconn->is_accepting())
                 {
-                        //NDBG_PRINT("Still connecting...\n");
                         return STATUS_OK;
                 }
                 l_nconn->set_state(nconn::NC_STATE_CONNECTED);
@@ -514,15 +514,15 @@ state_top:
                 {
                         // TODO get from session
                         nbq *l_in_q = NULL;
-                        if(l_cs)
+                        if (l_cs)
                         {
                                 l_in_q = l_cs->m_in_q;
                         }
-                        else if(l_t_srvr)
+                        else if (l_t_srvr)
                         {
                                 l_in_q = l_t_srvr->m_orphan_in_q;
                         }
-                        if(!l_in_q)
+                        if (!l_in_q)
                         {
                                 TRC_ERROR("l_in_q == NULL\n");
                                 return STATUS_ERROR;
@@ -532,12 +532,12 @@ state_top:
                         char *l_buf = NULL;
                         uint64_t l_off = l_in_q->get_cur_write_offset();
                         l_s = l_nconn->nc_read(l_in_q, &l_buf, l_read);
-                        if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_read += l_read; }
-                        if(l_cs) {l_cs->m_access_info.m_bytes_in += l_read; }
+                        if (l_t_srvr) { l_t_srvr->m_stat.m_bytes_read += l_read; }
+                        if (l_cs) {l_cs->m_access_info.m_bytes_in += l_read; }
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
-                        if(l_s != nconn::NC_STATUS_OK)
+                        if (l_s != nconn::NC_STATUS_OK)
                         {
                         switch(l_s)
                         {
@@ -554,7 +554,7 @@ state_top:
                         // ---------------------------------
                         case nconn::NC_STATUS_ERROR:
                         {
-                                //if(l_t_srvr) { ++(l_t_srvr->m_stat.m_clnt_errors);}
+                                //if (l_t_srvr) { ++(l_t_srvr->m_stat.m_clnt_errors);}
                                 l_nconn->set_state_done();
                                 goto state_top;
                         }
@@ -595,10 +595,10 @@ state_top:
                         // stats
                         // ---------------------------------
 #if 0
-                        if(m_collect_stats_flag && (ao_read > 0))
+                        if (m_collect_stats_flag && (ao_read > 0))
                         {
                                 m_stat.m_total_bytes += ao_read;
-                                if(m_stat.m_tt_first_read_us == 0)
+                                if (m_stat.m_tt_first_read_us == 0)
                                 {
                                         m_stat.m_tt_first_read_us = get_delta_time_us(m_request_start_time_us);
                                 }
@@ -607,26 +607,20 @@ state_top:
                         // ---------------------------------
                         // read data...
                         // ---------------------------------
-                        if((l_read > 0) &&
+                        if ((l_read > 0) &&
                            l_cs &&
                            l_cs->m_rqst &&
                            l_cs->m_rqst->m_http_parser)
                         {
                                 hmsg *l_hmsg = static_cast<hmsg *>(l_cs->m_rqst);
                                 size_t l_parse_status = 0;
-                                //NDBG_PRINT("%sHTTP_PARSER%s: m_read_buf: %p, m_read_buf_idx: %d, l_bytes_read: %d\n",
-                                //              ANSI_COLOR_BG_WHITE, ANSI_COLOR_OFF,
-                                //              l_buf,
-                                //              (int)l_off,
-                                //              (int)l_read);
                                 l_hmsg->m_cur_buf = l_in_q->b_write_data_ptr();
                                 l_parse_status = http_parser_execute(l_hmsg->m_http_parser,
                                                                      l_hmsg->m_http_parser_settings,
                                                                      reinterpret_cast<const char *>(l_buf),
                                                                      l_read);
                                 l_hmsg->m_cur_off = l_off;
-                                //NDBG_PRINT("STATUS: %lu\n", l_parse_status);
-                                if((l_parse_status < (size_t)l_read))
+                                if ((l_parse_status < (size_t)l_read))
                                 {
                                         TRC_ERROR("http parse error[%d]: %s: %s\n",
                                                    l_hmsg->m_http_parser->http_errno,
@@ -644,7 +638,7 @@ state_top:
                         // ---------------------------------
                         // send expect response -if signal
                         // ---------------------------------
-                        if(l_cs &&
+                        if (l_cs &&
                            l_cs->m_rqst &&
                            l_cs->m_rqst->m_expect)
                         {
@@ -653,21 +647,21 @@ state_top:
                                 l_nbq.write(l_exp_reply, strlen(l_exp_reply));
                                 uint32_t l_w;
                                 l_nconn->nc_write(&l_nbq, l_w);
-                                if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_written += strlen(l_exp_reply);}
+                                if (l_t_srvr) { l_t_srvr->m_stat.m_bytes_written += strlen(l_exp_reply);}
                                 l_cs->m_access_info.m_bytes_out += l_w;
                                 l_cs->m_rqst->m_expect = false;
                         }
                         // ---------------------------------
                         // rqst complete
                         // ---------------------------------
-                        if(l_cs &&
+                        if (l_cs &&
                            l_cs->m_rqst &&
                            l_cs->m_rqst->m_complete)
                         {
-                                if(l_t_srvr) { ++l_t_srvr->m_stat.m_reqs; }
+                                if (l_t_srvr) { ++l_t_srvr->m_stat.m_reqs; }
                                 int32_t l_rs = STATUS_OK;
                                 l_rs = l_cs->handle_req();
-                                if(l_rs != STATUS_OK)
+                                if (l_rs != STATUS_OK)
                                 {
                                         TRC_ERROR("performing handle_req\n");
                                         l_nconn->set_state_done();
@@ -676,7 +670,7 @@ state_top:
                                 bool l_ka = l_cs->m_rqst->m_supports_keep_alives;
                                 l_cs->m_rqst->init();
                                 l_cs->m_rqst->m_supports_keep_alives = l_ka;
-                                if(l_cs->m_in_q)
+                                if (l_cs->m_in_q)
                                 {
                                         l_cs->m_in_q->reset_write();
                                 }
@@ -692,9 +686,9 @@ state_top:
                         // out q
                         // ---------------------------------
                         nbq *l_out_q = NULL;
-                        if(l_cs)
+                        if (l_cs)
                         {
-                                if(!l_cs->m_out_q &&
+                                if (!l_cs->m_out_q &&
                                    l_t_srvr)
                                 {
                                         l_cs->m_out_q = l_t_srvr->m_orphan_out_q;
@@ -703,12 +697,12 @@ state_top:
                                 }
                                 l_out_q = l_cs->m_out_q;
                         }
-                        else if(l_t_srvr)
+                        else if (l_t_srvr)
                         {
                                 TRC_WARN("l_out_q == t_srvr orphan out q\n");
                                 l_out_q = l_t_srvr->m_orphan_out_q;
                         }
-                        if(!l_out_q)
+                        if (!l_out_q)
                         {
                                 TRC_ERROR("l_out_q == NULL\n");
                                 return STATUS_ERROR;
@@ -719,12 +713,12 @@ state_top:
                         uint32_t l_written = 0;
                         int32_t l_s = nconn::NC_STATUS_OK;
                         l_s = l_nconn->nc_write(l_out_q, l_written);
-                        if(l_t_srvr) { l_t_srvr->m_stat.m_bytes_written += l_written; }
-                        if(l_cs) {l_cs->m_access_info.m_bytes_out += l_written; }
+                        if (l_t_srvr) { l_t_srvr->m_stat.m_bytes_written += l_written; }
+                        if (l_cs) {l_cs->m_access_info.m_bytes_out += l_written; }
                         // ---------------------------------
                         // handle error
                         // ---------------------------------
-                        if(l_s != nconn::NC_STATUS_OK)
+                        if (l_s != nconn::NC_STATUS_OK)
                         {
                         switch(l_s)
                         {
@@ -773,11 +767,11 @@ state_top:
                         // ---------------------------------
                         // TODO
 #if 0
-                        if(l_cs->m_u &&
+                        if (l_cs->m_u &&
                           (l_cs->m_u->get_type() == proxy_u::S_UPS_TYPE_PROXY))
                         {
                                 proxy_u *l_proxy_u = static_cast<proxy_u *>(l_cs->m_u);
-                                if(l_proxy_u->get_subr() &&
+                                if (l_proxy_u->get_subr() &&
                                    l_proxy_u->get_subr()->get_ups_srvr_session() &&
                                    l_proxy_u->get_again() &&
                                    !l_cs->m_out_q->read_avail_is_max_limit())
@@ -786,7 +780,6 @@ state_top:
                                         //          l_cs,
                                         //          l_nconn,
                                         //          l_proxy_u->get_subr()->get_path().c_str());
-                                        //NDBG_PRINT("dequeueing\n");
                                         l_proxy_u->set_again(false);
                                         l_s = l_proxy_u->get_subr()->get_ups_srvr_session()->queue_input();
                                 }
@@ -795,18 +788,18 @@ state_top:
                         // ---------------------------------
                         // check is done
                         // ---------------------------------
-                        if(l_cs &&
+                        if (l_cs &&
                            l_cs->m_out_q &&
                            !l_cs->m_out_q->read_avail())
                         {
                                 bool l_done = false;
                                 bool l_shutdown = false;
-                                if(l_cs->m_u)
+                                if (l_cs->m_u)
                                 {
                                         // -----------------
                                         // done
                                         // -----------------
-                                        if(l_cs->m_u->ups_done())
+                                        if (l_cs->m_u->ups_done())
                                         {
                                                 l_shutdown = l_cs->m_u->get_shutdown();
                                                 delete l_cs->m_u;
@@ -819,18 +812,18 @@ state_top:
                                         else
                                         {
                                                 ssize_t l_ra_s = 0;
-                                                l_ra_s = l_cs->m_u->ups_read_ahead(64*1024);
-                                                if(l_ra_s > 0)
+                                                l_ra_s = l_cs->m_u->ups_read_ahead(UPS_READ_AHEAD_SIZE);
+                                                if (l_ra_s > 0)
                                                 {
                                                         goto state_top;
                                                 }
                                         }
                                 }
-                                else if(!l_nconn->is_accepting())
+                                else if (!l_nconn->is_accepting())
                                 {
                                         l_done = true;
                                 }
-                                if(l_done)
+                                if (l_done)
                                 {
                                         // -----------------
                                         // stat
@@ -839,18 +832,18 @@ state_top:
                                         // -----------------
                                         // done
                                         // -----------------
-                                        if(l_cs->m_resp_done_cb)
+                                        if (l_cs->m_resp_done_cb)
                                         {
                                                 int32_t l_status;
                                                 l_status = l_cs->m_resp_done_cb(*l_cs);
-                                                if(l_status != 0)
+                                                if (l_status != 0)
                                                 {
                                                         // TODO Do nothing???
                                                 }
                                                 l_cs->m_access_info.clear();
                                         }
                                         l_cs->m_out_q->reset_write();
-                                        if(!l_shutdown &&
+                                        if (!l_shutdown &&
                                            (l_cs->m_rqst != NULL) &&
                                            (l_cs->m_rqst->m_supports_keep_alives))
                                         {
@@ -888,7 +881,6 @@ state_top:
         // -------------------------------------------------
         default:
         {
-                //NDBG_PRINT("default\n");
                 TRC_ERROR("unexpected conn state %d\n", l_nconn->get_state());
                 return STATUS_ERROR;
         }
@@ -935,7 +927,7 @@ int32_t session::evr_event_timeout_cb(void *a_data)
         CHECK_FOR_NULL_ERROR(a_data);
         nconn* l_nconn = static_cast<nconn*>(a_data);
         session *l_cs = static_cast<session *>(l_nconn->get_data());
-        if(l_cs &&
+        if (l_cs &&
            l_cs->m_evr_timeout)
         {
                 l_cs->m_evr_timeout = NULL;
@@ -955,7 +947,7 @@ int32_t session::evr_event_readable_cb(void *a_data)
         CHECK_FOR_NULL_ERROR(a_data);
         nconn* l_nconn = static_cast<nconn*>(a_data);
         session *l_cs = static_cast<session *>(l_nconn->get_data());
-        if(l_cs &&
+        if (l_cs &&
            l_cs->m_evr_readable)
         {
                 l_cs->m_evr_readable = NULL;
@@ -975,7 +967,7 @@ int32_t session::evr_event_writeable_cb(void *a_data)
         CHECK_FOR_NULL_ERROR(a_data);
         nconn* l_nconn = static_cast<nconn*>(a_data);
         session *l_cs = static_cast<session *>(l_nconn->get_data());
-        if(l_cs &&
+        if (l_cs &&
            l_cs->m_evr_writeable)
         {
                 l_cs->m_evr_writeable = NULL;
@@ -989,19 +981,19 @@ int32_t session::evr_event_writeable_cb(void *a_data)
 //! ----------------------------------------------------------------------------
 int32_t session::handle_req(void)
 {
-        if(!m_lsnr)
+        if (!m_lsnr)
         {
                 TRC_ERROR("m_lsnr == NULL\n");
                 return STATUS_ERROR;
         }
         url_router *l_router = m_lsnr->get_url_router();
-        if(!l_router)
+        if (!l_router)
         {
                 TRC_ERROR("m_lsnr->get_url_router() == NULL\n");
                 return STATUS_ERROR;
         }
         const data_t &l_url = m_rqst->get_url();
-        if(!l_url.m_data ||
+        if (!l_url.m_data ||
            !l_url.m_len)
         {
                 TRC_ERROR("rqst url empty\n");
@@ -1022,7 +1014,7 @@ int32_t session::handle_req(void)
         const mutable_data_map_list_t &l_headers = m_rqst->get_header_map();
         mutable_data_t l_v;
 #define SET_ACCESS_INFO(_str, _field) do { \
-        if(find_first(l_v, l_headers, _str, sizeof(_str))) { \
+        if (find_first(l_v, l_headers, _str, sizeof(_str))) { \
                 m_access_info.m_rqst_##_field.assign(l_v.m_data, l_v.m_len); \
         }} while(0)
         SET_ACCESS_INFO("User-Agent", http_user_agent);
@@ -1046,9 +1038,9 @@ int32_t session::handle_req(void)
                                                   l_url_path.m_len,
                                                   l_pmap);
         TRC_VERBOSE("l_rqst_h: %p\n", l_rqst_h);
-        if(l_rqst_h)
+        if (l_rqst_h)
         {
-                if(l_rqst_h->get_do_default())
+                if (l_rqst_h->get_do_default())
                 {
                         l_hdlr_status = l_rqst_h->do_default(*this, *m_rqst, l_pmap);
                 }
@@ -1089,7 +1081,7 @@ int32_t session::handle_req(void)
         {
                 TRC_VERBOSE("no handler\n");
                 rqst_h *l_default_rqst_h = m_lsnr->get_default_route();
-                if(l_default_rqst_h)
+                if (l_default_rqst_h)
                 {
                         TRC_VERBOSE("default handler\n");
                         l_hdlr_status = l_default_rqst_h->do_default(*this, *m_rqst, l_pmap);
@@ -1126,7 +1118,7 @@ int32_t session::handle_req(void)
         }
         }
         // TODO Handler errors?
-        if(l_hdlr_status == H_RESP_SERVER_ERROR)
+        if (l_hdlr_status == H_RESP_SERVER_ERROR)
         {
                 return STATUS_ERROR;
         }
@@ -1142,11 +1134,11 @@ void session::log_status(void)
         t_stat_cntr_t& l_stat = m_t_srvr.m_stat;
         //++l_stat.m_resp;
         uint16_t l_status = m_access_info.m_resp_status;
-        if((l_status >= 100) && (l_status < 200)) {/* TODO log 1xx's? */}
-        else if((l_status >= 200) && (l_status < 300)){++l_stat.m_resp_status_2xx;}
-        else if((l_status >= 300) && (l_status < 400)){++l_stat.m_resp_status_3xx;}
-        else if((l_status >= 400) && (l_status < 500)){++l_stat.m_resp_status_4xx;}
-        else if((l_status >= 500) && (l_status < 600)){++l_stat.m_resp_status_5xx;}
+        if ((l_status >= 100) && (l_status < 200)) {/* TODO log 1xx's? */}
+        else if ((l_status >= 200) && (l_status < 300)){++l_stat.m_resp_status_2xx;}
+        else if ((l_status >= 300) && (l_status < 400)){++l_stat.m_resp_status_3xx;}
+        else if ((l_status >= 400) && (l_status < 500)){++l_stat.m_resp_status_4xx;}
+        else if ((l_status >= 500) && (l_status < 600)){++l_stat.m_resp_status_5xx;}
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -1155,7 +1147,7 @@ void session::log_status(void)
 //! ----------------------------------------------------------------------------
 int32_t session::queue_output(void)
 {
-        if(m_evr_writeable)
+        if (m_evr_writeable)
         {
                 // one's already queue'd up
                 return STATUS_OK;
@@ -1164,7 +1156,7 @@ int32_t session::queue_output(void)
         l_s = m_t_srvr.queue_event(&m_evr_writeable,
                                      session::evr_event_writeable_cb,
                                      m_nconn);
-        if(l_s != STATUS_OK)
+        if (l_s != STATUS_OK)
         {
                 TRC_ERROR("performing queue_output\n");
                 return STATUS_ERROR;
@@ -1237,7 +1229,7 @@ api_resp &create_api_resp(session &a_session)
 //! ----------------------------------------------------------------------------
 int32_t queue_api_resp(session &a_session, api_resp &a_api_resp)
 {
-        if(!a_session.m_out_q)
+        if (!a_session.m_out_q)
         {
                 a_session.m_out_q = a_session.m_t_srvr.get_nbq(NULL);
         }
@@ -1246,12 +1238,12 @@ int32_t queue_api_resp(session &a_session, api_resp &a_api_resp)
         a_session.log_status();
         int32_t l_s;
         l_s = a_api_resp.serialize(*(a_session.m_out_q));
-        if(l_s != STATUS_OK)
+        if (l_s != STATUS_OK)
         {
                 return STATUS_ERROR;
         }
         l_s = a_session.queue_output();
-        if(l_s != STATUS_OK)
+        if (l_s != STATUS_OK)
         {
                 return STATUS_ERROR;
         }
@@ -1267,7 +1259,7 @@ int32_t queue_resp(session &a_session)
 {
         int32_t l_s;
         l_s = a_session.queue_output();
-        if(l_s != STATUS_OK)
+        if (l_s != STATUS_OK)
         {
                 return STATUS_ERROR;
         }
@@ -1286,14 +1278,14 @@ int32_t add_timer(void *a_t_srvr,
                   void *a_data,
                   void **ao_timer)
 {
-        if(!a_t_srvr)
+        if (!a_t_srvr)
         {
                 return STATUS_ERROR;
         }
         t_srvr *l_t_svr = static_cast<t_srvr *>(a_t_srvr);
         int32_t l_status;
         l_status = l_t_svr->add_timer(a_ms, a_cb, a_data, ao_timer);
-        if(l_status != STATUS_OK)
+        if (l_status != STATUS_OK)
         {
                 return STATUS_ERROR;
         }
@@ -1306,14 +1298,14 @@ int32_t add_timer(void *a_t_srvr,
 //! ----------------------------------------------------------------------------
 int32_t cancel_timer(void *a_t_srvr, void *a_timer)
 {
-        if(!a_t_srvr)
+        if (!a_t_srvr)
         {
             return STATUS_ERROR;
         }
         t_srvr *l_t_srvr = static_cast<t_srvr *>(a_t_srvr);
         int32_t l_status;
         l_status = l_t_srvr->cancel_event(a_timer);
-        if(l_status != STATUS_OK)
+        if (l_status != STATUS_OK)
         {
                 return STATUS_ERROR;
         }

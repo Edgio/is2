@@ -19,6 +19,10 @@
 #include "is2/nconn/conn_status.h"
 #include "is2/srvr/stat.h"
 //! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
+#define _DEFAULT_NBQ_BLOCK_SIZE (4*1024)
+//! ----------------------------------------------------------------------------
 //! extern Fwd Decl's
 //! ----------------------------------------------------------------------------
 struct ssl_st;
@@ -70,6 +74,8 @@ public:
         void set_num_parallel(uint32_t a_num_parallel);
         void set_num_reqs_per_conn(int32_t a_num_reqs_per_conn);
         void set_stat_update_ms(uint32_t a_update_ms);
+        void set_block_size(uint32_t a_size) { m_block_size = a_size; }
+        uint32_t get_block_size(void) { return m_block_size; }
         void get_stat(t_stat_cntr_t &ao_stat, t_stat_calc_t &ao_calc_stat, bool a_no_cache=false);
         void display_stat(void);
         // Server name
@@ -136,6 +142,7 @@ private:
         std::string m_dns_ai_cache_file;
         t_srvr_list_t m_t_srvr_list;
         bool m_is_initd;
+        uint32_t m_block_size;
         // stats
         uint64_t m_start_time_ms;
         pthread_mutex_t m_stat_mutex;

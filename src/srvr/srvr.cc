@@ -43,6 +43,7 @@ srvr::srvr(void):
         m_dns_ai_cache_file(NRESOLVER_DEFAULT_AI_CACHE_FILE),
         m_t_srvr_list(),
         m_is_initd(false),
+        m_block_size(_DEFAULT_NBQ_BLOCK_SIZE),
         m_start_time_ms(0),
         m_stat_mutex(),
         m_stat_update_ms(S_STAT_UPDATE_MS_DEFAULT),

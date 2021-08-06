@@ -27,6 +27,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+//! ----------------------------------------------------------------------------
+//! constants
+//! ----------------------------------------------------------------------------
+#define _FILE_MAX_READ_PER_BYTES (64*1024)
 namespace ns_is2 {
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -67,14 +71,14 @@ h_resp_t file_h::do_get(session &a_session, rqst &a_rqst, const url_pmap_t &a_ur
         l_s = get_path(l_path,
                        m_route,
                        l_url_path_str);
-        if(l_s != STATUS_OK)
+        if (l_s != STATUS_OK)
         {
                 return H_RESP_CLIENT_ERROR;
         }
-        if(l_path.empty() ||
+        if (l_path.empty() ||
           (l_path == "/"))
         {
-                if(!m_index.empty())
+                if (!m_index.empty())
                 {
                         l_path = "/" + m_index;
                 }
@@ -83,7 +87,7 @@ h_resp_t file_h::do_get(session &a_session, rqst &a_rqst, const url_pmap_t &a_ur
                         return H_RESP_CLIENT_ERROR;
                 }
         }
-        if(!m_root.empty())
+        if (!m_root.empty())
         {
                 l_path = m_root + l_path;
         }
@@ -132,10 +136,10 @@ h_resp_t file_h::get_file(session &a_session,
                           rqst &a_rqst,
                           const std::string &a_path)
 {
-        if(!a_session.m_out_q)
+        if (!a_session.m_out_q)
         {
                 a_session.m_out_q = a_session.m_t_srvr.get_nbq(NULL);
-                if(!a_session.m_out_q)
+                if (!a_session.m_out_q)
                 {
                         TRC_ERROR("a_session.m_out_q\n");
                         return send_internal_server_error(a_session, a_rqst.m_supports_keep_alives);
@@ -145,7 +149,7 @@ h_resp_t file_h::get_file(session &a_session,
         file_u *l_fs = new file_u(a_session);
         int32_t l_s;
         l_s = l_fs->fsinit(a_path.c_str());
-        if(l_s != STATUS_OK)
+        if (l_s != STATUS_OK)
         {
                 delete l_fs;
                 l_fs = NULL;
@@ -163,7 +167,7 @@ h_resp_t file_h::get_file(session &a_session,
         // Get extension
         std::string l_ext = get_file_ext(a_path);
         mime_types::ext_type_map_t::const_iterator i_m = mime_types::S_EXT_TYPE_MAP.find(l_ext);
-        if(i_m != mime_types::S_EXT_TYPE_MAP.end())
+        if (i_m != mime_types::S_EXT_TYPE_MAP.end())
         {
                 nbq_write_header(l_q, "Content-type", i_m->second.c_str());
         }
@@ -176,7 +180,7 @@ h_resp_t file_h::get_file(session &a_session,
         nbq_write_header(l_q, "Content-Length", l_length_str);
         // TODO get last modified for file...
         nbq_write_header(l_q, "Last-Modified", get_date_str());
-        if(a_rqst.m_supports_keep_alives)
+        if (a_rqst.m_supports_keep_alives)
         {
                 nbq_write_header(l_q, "Connection", "keep-alive");
         }
@@ -188,13 +192,13 @@ h_resp_t file_h::get_file(session &a_session,
         // -------------------------------------------------
         // check for zero bytes
         // -------------------------------------------------
-        if(l_fs->fssize() <= 0)
+        if (l_fs->fssize() <= 0)
         {
                 // all done; close the file.
                 l_fs->set_ups_done();
                 int32_t l_s;
                 l_s = a_session.queue_output();
-                if(l_s != STATUS_OK)
+                if (l_s != STATUS_OK)
                 {
                         TRC_ERROR("performing queue_output\n");
                         return H_RESP_SERVER_ERROR;
@@ -204,18 +208,18 @@ h_resp_t file_h::get_file(session &a_session,
         // -------------------------------------------------
         // Read up to 64k
         // -------------------------------------------------
-        uint32_t l_read = 64*1024;
-        if(l_read - l_q.read_avail() > 0)
+        uint32_t l_read = _FILE_MAX_READ_PER_BYTES;
+        if (l_read - l_q.read_avail() > 0)
         {
                 l_read = l_read - l_q.read_avail();
         }
-        if(l_fs->fssize() < l_read)
+        if (l_fs->fssize() < l_read)
         {
                 l_read = l_fs->fssize();
         }
         ssize_t l_ups_read_s;
         l_ups_read_s = l_fs->ups_read_ahead(l_read);
-        if(l_ups_read_s < 0)
+        if (l_ups_read_s < 0)
         {
                 TRC_ERROR("performing ups_read\n");
         }
@@ -243,7 +247,7 @@ file_u::file_u(session &a_session):
 //! ----------------------------------------------------------------------------
 file_u::~file_u()
 {
-        if(m_fd > 0)
+        if (m_fd > 0)
         {
                 close(m_fd);
                 m_fd = -1;
@@ -271,10 +275,10 @@ int32_t file_u::fsinit(const char *a_filename)
         }
         struct stat l_stat;
         l_s = fstat(m_fd, &l_stat);
-        if(l_s != 0)
+        if (l_s != 0)
         {
                 TRC_ERROR("performing stat on file: %s.  Reason: %s\n", a_filename, strerror(errno));
-                if(m_fd > 0)
+                if (m_fd > 0)
                 {
                         close(m_fd);
                         m_fd = -1;
@@ -282,10 +286,10 @@ int32_t file_u::fsinit(const char *a_filename)
                 return STATUS_ERROR;
         }
         // Check if is regular file
-        if(!(l_stat.st_mode & S_IFREG))
+        if (!(l_stat.st_mode & S_IFREG))
         {
                 TRC_ERROR("opening file: %s.  Reason: is NOT a regular file\n", a_filename);
-                if(m_fd > 0)
+                if (m_fd > 0)
                 {
                         close(m_fd);
                         m_fd = -1;
@@ -318,12 +322,12 @@ ssize_t file_u::ups_read(char *ao_dst, size_t a_len)
                 m_state = DONE;
                 return 0;
         }
-        else if(l_read < 0)
+        else if (l_read < 0)
         {
                 //NDBG_PRINT("Error performing read. Reason: %s\n", strerror(errno));
                 return STATUS_ERROR;
         }
-        if(l_read > 0)
+        if (l_read > 0)
         {
                 m_read += l_read;
         }
@@ -347,12 +351,12 @@ ssize_t file_u::ups_read(size_t a_len)
 //! ----------------------------------------------------------------------------
 ssize_t file_u::ups_read_ahead(size_t a_len)
 {
-        if(m_fd < 0)
+        if (m_fd < 0)
         {
                 return 0;
         }
         m_state = UPS_STATE_SENDING;
-        if(!(m_session.m_out_q))
+        if (!(m_session.m_out_q))
         {
                 TRC_ERROR("m_session->m_out_q == NULL\n");
                 return STATUS_ERROR;
@@ -362,7 +366,7 @@ ssize_t file_u::ups_read_ahead(size_t a_len)
         ssize_t l_last;
         size_t l_len_read = (a_len > (m_size - m_read))?(m_size - m_read): a_len;
         l_read = m_session.m_out_q->write_fd(m_fd, l_len_read, l_last);
-        if(l_read < 0)
+        if (l_read < 0)
         {
                 TRC_ERROR("performing read. Reason: %s\n", strerror(errno));
                 return STATUS_ERROR;
@@ -376,11 +380,11 @@ ssize_t file_u::ups_read_ahead(size_t a_len)
                 m_fd = -1;
                 m_state = UPS_STATE_DONE;
         }
-        if(l_read > 0)
+        if (l_read > 0)
         {
                 int32_t l_s;
                 l_s = m_session.queue_output();
-                if(l_s != STATUS_OK)
+                if (l_s != STATUS_OK)
                 {
                         TRC_ERROR("performing queue_output\n");
                         return STATUS_ERROR;
@@ -395,7 +399,7 @@ ssize_t file_u::ups_read_ahead(size_t a_len)
 //! ----------------------------------------------------------------------------
 int32_t file_u::ups_cancel(void)
 {
-        if(m_fd > 0)
+        if (m_fd > 0)
         {
                 close(m_fd);
                 m_state = UPS_STATE_DONE;
