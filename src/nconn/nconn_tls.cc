@@ -910,43 +910,60 @@ int32_t nconn_tls::ncwrite(char *a_buf, uint32_t a_buf_len)
                  m_ssl,
                  l_s,
                  strerror(errno));
-        if (l_s > 0) TRC_ALL_MEM((const uint8_t *)a_buf, l_s);
-        if (l_s < 0)
+        if (l_s > 0)
         {
-                int l_te = ::SSL_get_error(m_ssl, l_s);
-                if (l_te == SSL_ERROR_WANT_READ)
-                {
-                        return NC_STATUS_AGAIN;
-                }
-                else if (l_te == SSL_ERROR_WANT_WRITE)
-                {
-                        // Add to writeable
-                        if (m_evr_loop)
-                        {
-                                l_s = m_evr_loop->mod_fd(m_fd,
-                                                EVR_FILE_ATTR_MASK_WRITE|
-                                                EVR_FILE_ATTR_MASK_STATUS_ERROR |
-                                                EVR_FILE_ATTR_MASK_RD_HUP |
-                                                EVR_FILE_ATTR_MASK_HUP |
-                                                EVR_FILE_ATTR_MASK_ET,
-                                                &m_evr_fd);
-                                if (l_s != STATUS_OK)
-                                {
-                                        NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
-                                                    "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
-                                                    m_label.c_str());
-                                        return NC_STATUS_ERROR;
-                                }
-                        }
-                        return NC_STATUS_AGAIN;
-                }
-                else
-                {
-                        NCONN_ERROR(CONN_STATUS_ERROR_SEND, "LABEL[%s]: Error: performing SSL_write.\n", m_label.c_str());
-                        return NC_STATUS_ERROR;
-                }
+                TRC_ALL_MEM((const uint8_t *)a_buf, l_s);
         }
-        return l_s;
+        // -------------------------------------------------
+        // write >= 0 bytes successfully
+        // -------------------------------------------------
+        if (l_s >= 0)
+        {
+                return l_s;
+        }
+        // -------------------------------------------------
+        // get error message
+        // -------------------------------------------------
+        int l_te = ::SSL_get_error(m_ssl, l_s);
+        // -------------------------------------------------
+        // SSL_ERROR_WANT_READ
+        // -------------------------------------------------
+        if (l_te == SSL_ERROR_WANT_READ)
+        {
+                return NC_STATUS_AGAIN;
+        }
+        // -------------------------------------------------
+        // SSL_ERROR_WANT_WRITE
+        // -------------------------------------------------
+        else if (l_te == SSL_ERROR_WANT_WRITE)
+        {
+                // Add to writeable
+                if (m_evr_loop)
+                {
+                        l_s = m_evr_loop->mod_fd(m_fd,
+                                        EVR_FILE_ATTR_MASK_WRITE|
+                                        EVR_FILE_ATTR_MASK_STATUS_ERROR |
+                                        EVR_FILE_ATTR_MASK_RD_HUP |
+                                        EVR_FILE_ATTR_MASK_HUP |
+                                        EVR_FILE_ATTR_MASK_ET,
+                                        &m_evr_fd);
+                        if (l_s != STATUS_OK)
+                        {
+                                NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
+                                            "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
+                                            m_label.c_str());
+                                return NC_STATUS_ERROR;
+                        }
+                }
+                return NC_STATUS_AGAIN;
+        }
+        // -------------------------------------------------
+        // unknown error
+        // -------------------------------------------------
+        NCONN_ERROR(CONN_STATUS_ERROR_SEND,
+                    "LABEL[%s]: Error: performing SSL_write.\n",
+                    m_label.c_str());
+        return NC_STATUS_ERROR;
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
