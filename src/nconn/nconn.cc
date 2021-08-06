@@ -8,7 +8,7 @@
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
 //! ----------------------------------------------------------------------------
-//! Includes
+//! includes
 //! ----------------------------------------------------------------------------
 #include "is2/support/ndebug.h"
 #include "is2/nconn/nconn.h"
@@ -33,7 +33,6 @@ void* nconn::s_ssl_accept_ctx = NULL;
 //! ----------------------------------------------------------------------------
 int32_t nconn::nc_read(nbq *a_in_q, char **ao_buf, uint32_t &ao_read)
 {
-        //NDBG_PRINT("%sTRY_READ%s: a_in_q: %p\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF, a_in_q);
         ao_read = 0;
         if (!a_in_q)
         {
@@ -57,7 +56,6 @@ int32_t nconn::nc_read(nbq *a_in_q, char **ao_buf, uint32_t &ao_read)
                 int32_t l_s = a_in_q->b_write_add_avail();
                 if (l_s <= 0)
                 {
-                        //NDBG_PRINT("Error performing b_write_add_avail\n");
                         return NC_STATUS_ERROR;
                 }
         }
@@ -70,19 +68,8 @@ int32_t nconn::nc_read(nbq *a_in_q, char **ao_buf, uint32_t &ao_read)
         {
                 l_read_size = a_in_q->b_write_avail();
         }
-        //NDBG_PRINT("%sTRY_READ%s: l_read_size: %d\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF, l_read_size);
         char *l_buf = a_in_q->b_write_ptr();
-        //NDBG_PRINT("%sTRY_READ%s: m_out_q->read_ptr(): %p l_read_size: %d\n",
-        //                ANSI_COLOR_FG_RED, ANSI_COLOR_OFF,
-        //                l_buf,
-        //                l_read_size);
         l_s = ncread(l_buf, l_read_size);
-        //NDBG_PRINT("%sTRY_READ%s: l_bytes_read: %d\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, l_s);
-        //NDBG_PRINT("%sTRY_READ%s: l_bytes_read: %d old_size: %d-error:%d: %s\n",
-        //                ANSI_COLOR_FG_RED, ANSI_COLOR_OFF,
-        //                l_s,
-        //                (int)a_in_q->read_avail(),
-        //                errno, strerror(errno));
         if (l_s < 0)
         {
                 switch(l_s)
@@ -108,7 +95,6 @@ int32_t nconn::nc_read(nbq *a_in_q, char **ao_buf, uint32_t &ao_read)
                 return l_s;
         }
         ao_read += l_s;
-        //mem_display((uint8_t *)(l_buf), l_bytes_read);
         *ao_buf = l_buf;
         a_in_q->b_write_incr(l_s);
         return NC_STATUS_OK;
@@ -120,7 +106,6 @@ int32_t nconn::nc_read(nbq *a_in_q, char **ao_buf, uint32_t &ao_read)
 //! ----------------------------------------------------------------------------
 int32_t nconn::nc_write(nbq *a_out_q, uint32_t &ao_written)
 {
-        //NDBG_PRINT("%sTRY_WRITE%s: m_out_q: %p\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, a_out_q);
         ao_written = 0;
         if (!a_out_q)
         {
@@ -129,7 +114,6 @@ int32_t nconn::nc_write(nbq *a_out_q, uint32_t &ao_written)
         }
         if (!a_out_q->read_avail())
         {
-                //TRC_ERROR("Error a_out_q->read_avail() == 0\n");
                 return NC_STATUS_OK;
         }
         // -------------------------------------------------
@@ -139,12 +123,7 @@ int32_t nconn::nc_write(nbq *a_out_q, uint32_t &ao_written)
         //     add
         // -------------------------------------------------
         int32_t l_s;
-        //NDBG_PRINT("%sTRY_WRITE%s: m_out_q->b_read_ptr(): %p m_out_q->b_read_avail(): %d\n",
-        //                ANSI_COLOR_FG_GREEN, ANSI_COLOR_OFF,
-        //                a_out_q->b_read_ptr(),
-        //                a_out_q->b_read_avail());
         l_s = ncwrite(a_out_q->b_read_ptr(), a_out_q->b_read_avail());
-        //NDBG_PRINT("%sTRY_WRITE%s: l_bytes_written: %d\n", ANSI_COLOR_FG_GREEN, ANSI_COLOR_OFF, l_s);
         if (l_s < 0)
         {
                 switch(l_s)
@@ -155,7 +134,6 @@ int32_t nconn::nc_write(nbq *a_out_q, uint32_t &ao_written)
                 }
                 default:
                 {
-                        //NDBG_PRINT("Error performing ncwrite: status: %d\n", l_bytes_written);
                         return NC_STATUS_ERROR;
                 }
                 }
@@ -180,7 +158,6 @@ int32_t nconn::nc_write(nbq *a_out_q, uint32_t &ao_written)
 //! ----------------------------------------------------------------------------
 bool nconn::can_reuse(void)
 {
-        //NDBG_PRINT("CONN ka num %ld / %ld \n", m_num_reqs, m_num_reqs_per_conn);
         if (((m_num_reqs_per_conn == -1) ||
             (m_num_reqs < m_num_reqs_per_conn)))
         {
@@ -188,9 +165,6 @@ bool nconn::can_reuse(void)
         }
         else
         {
-                //NDBG_PRINT("CONN m_num_reqs: %ld m_num_reqs_per_conn: %ld \n",
-                //                m_num_reqs,
-                //                m_num_reqs_per_conn);
                 return false;
         }
 }
@@ -201,7 +175,6 @@ bool nconn::can_reuse(void)
 //! ----------------------------------------------------------------------------
 int32_t nconn::nc_set_listening(int32_t a_val)
 {
-        //NDBG_PRINT("%sRUN_STATE_MACHINE%s: SET_LISTENING[%d]\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF, a_val);
         int32_t l_s;
         l_s = ncset_listening(a_val);
         if (l_s != NC_STATUS_OK)
@@ -218,7 +191,6 @@ int32_t nconn::nc_set_listening(int32_t a_val)
 //! ----------------------------------------------------------------------------
 int32_t nconn::nc_set_listening_nb(int32_t a_val)
 {
-        //NDBG_PRINT("%sRUN_STATE_MACHINE%s: SET_LISTENING[%d]\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF, a_val);
         int32_t l_s;
         l_s = ncset_listening_nb(a_val);
         if (l_s != NC_STATUS_OK)
@@ -267,12 +239,6 @@ int32_t nconn::nc_set_connected(void)
 //! ----------------------------------------------------------------------------
 int32_t nconn::nc_cleanup()
 {
-        //NDBG_PRINT("%s--CONN--%s[%s] last_state: %d this: %p\n",
-        //                ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
-        //                m_label.c_str(),
-        //                m_nc_state,
-        //                this);
-        //NDBG_PRINT_BT();
         TRC_VERBOSE("tearing down: label: %s\n", m_label.c_str());
         int32_t l_s;
         l_s = nccleanup();
@@ -317,7 +283,6 @@ nconn::nconn(void):
       m_alpn_buf_len(0),
       m_timer_obj(NULL)
 {
-        //NDBG_PRINT("%s--CONN--%s last_state: %d this: %p\n", ANSI_COLOR_FG_GREEN, ANSI_COLOR_OFF, m_nc_state, this);
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -326,7 +291,6 @@ nconn::nconn(void):
 //! ----------------------------------------------------------------------------
 nconn::~nconn(void)
 {
-        //NDBG_PRINT("%s--CONN--%s last_state: %d this: %p\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, m_nc_state, this);
         if (m_alpn_buf)
         {
                 free(m_alpn_buf);

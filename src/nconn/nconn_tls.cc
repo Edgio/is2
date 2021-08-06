@@ -194,9 +194,6 @@ SSL_CTX* tls_init_ctx(const std::string &a_cipher_list,
         if (a_options)
         {
                 SSL_CTX_set_options(l_ctx, a_options);
-                // TODO Check return
-                //long l_results = SSL_CTX_set_options(l_ctx, a_options);
-                //NDBG_PRINT("Set SSL CTX options: 0x%08lX -set to: 0x%08lX \n", l_results, a_options);
         }
         if (!a_tls_crt_file.empty())
         {
@@ -247,7 +244,6 @@ SSL_CTX* tls_init_ctx(const std::string &a_cipher_list,
         // ???
         SSL_CTX_set_mode(l_ctx, SSL_MODE_AUTO_RETRY);
         SSL_CTX_set_mode(l_ctx, SSL_MODE_RELEASE_BUFFERS);
-        //NDBG_PRINT("SSL_CTX_new success\n");
         return l_ctx;
 }
 //! ----------------------------------------------------------------------------
@@ -257,7 +253,6 @@ SSL_CTX* tls_init_ctx(const std::string &a_cipher_list,
 //! ----------------------------------------------------------------------------
 int32_t show_tls_info(nconn *a_nconn)
 {
-        //NDBG_PRINT("%sconnected%s...\n", ANSI_COLOR_FG_GREEN, ANSI_COLOR_OFF);
         if (!a_nconn)
         {
                 TRC_ERROR("a_nconn == NULL\n");
@@ -335,7 +330,6 @@ int32_t nconn_tls::init(void)
         // options
         // -------------------------------------------------
         const long l_tls_options = m_tls_opt_options;
-        //NDBG_PRINT("l_tls_options: 0x%08lX\n", l_tls_options);
         if (l_tls_options)
         {
                 // clear all options and set specified options
@@ -343,8 +337,7 @@ int32_t nconn_tls::init(void)
                 long l_result = ::SSL_set_options(m_ssl, l_tls_options);
                 if (l_tls_options != l_result)
                 {
-                        //NDBG_PRINT("Failed to set tls options: 0x%08lX -set to: 0x%08lX \n", l_result, l_tls_options);
-                        //return NC_STATUS_ERROR;
+                        // TODO handle error
                 }
         }
         // -------------------------------------------------
@@ -397,13 +390,11 @@ int32_t nconn_tls::tls_connect(void)
         int l_s;
         m_tls_state = TLS_STATE_TLS_CONNECTING;
         l_s = SSL_connect(m_ssl);
-        //NDBG_PRINT("l_s: %d\n", l_s);
         if (l_s <= 0)
         {
-                int l_tls_error = 0;
-                l_tls_error = SSL_get_error(m_ssl, l_s);
-                //NDBG_PRINT("l_tls_error: %d\n", l_tls_error);
-                switch(l_tls_error) {
+                int l_te = 0;
+                l_te = SSL_get_error(m_ssl, l_s);
+                switch(l_te) {
                 case SSL_ERROR_SSL:
                 {
                         m_last_err = ERR_get_error();
@@ -421,13 +412,11 @@ int32_t nconn_tls::tls_connect(void)
                 }
                 case SSL_ERROR_WANT_READ:
                 {
-                        //NDBG_PRINT("%sSSL_CON%s[%3d]: SSL_ERROR_WANT_READ\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, m_fd);
                         m_tls_state = TLS_STATE_TLS_CONNECTING_WANT_READ;
                         return NC_STATUS_AGAIN;
                 }
                 case SSL_ERROR_WANT_WRITE:
                 {
-                        //NDBG_PRINT("%sSSL_CON%s[%3d]: TLS_STATE_TLS_CONNECTING_WANT_WRITE\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, m_fd);
                         m_tls_state = TLS_STATE_TLS_CONNECTING_WANT_WRITE;
                         return NC_STATUS_AGAIN;
                 }
@@ -435,7 +424,6 @@ int32_t nconn_tls::tls_connect(void)
                 {
                         NCONN_ERROR(CONN_STATUS_ERROR_CONNECT_TLS, "LABEL[%s]: SSL_ERROR_WANT_X509_LOOKUP\n", m_label.c_str());
                         m_last_err = ERR_get_error();
-                        //NDBG_PRINT("LABEL[%s]: SSL_ERROR_WANT_X509_LOOKUP\n", m_label.c_str());
                         break;
                 }
                 // look at error stack/return value/errno
@@ -483,7 +471,6 @@ int32_t nconn_tls::tls_connect(void)
         }
         else if (l_s == 1)
         {
-                //NDBG_PRINT("CONNECTED\n");
                 m_tls_state = TLS_STATE_CONNECTED;
         }
         //did_connect = 1;
@@ -501,16 +488,10 @@ int32_t nconn_tls::tls_accept(void)
         l_s = SSL_accept(m_ssl);
         if (l_s <= 0)
         {
-                //NDBG_PRINT("SSL connection failed - %d\n", l_s);
-                int l_tls_error = ::SSL_get_error(m_ssl, l_s);
-                //NDBG_PRINT("Showing error: %d.\n", l_tls_error);
-                switch(l_tls_error) {
+                int l_te = ::SSL_get_error(m_ssl, l_s);
+                switch(l_te) {
                 case SSL_ERROR_SSL:
                 {
-                        //NDBG_PRINT("LABEL[%s]: TLS_ERROR %lu: %s.\n",
-                        //                m_label.c_str(),
-                        //                ERR_get_error(),
-                        //                ERR_error_string(ERR_get_error(),NULL));
                         if (gts_last_tls_error[0] != '\0')
                         {
                                 NCONN_ERROR(CONN_STATUS_ERROR_CONNECT_TLS,
@@ -534,13 +515,11 @@ int32_t nconn_tls::tls_accept(void)
                 }
                 case SSL_ERROR_WANT_READ:
                 {
-                        //NDBG_PRINT("%sSSL_CON%s[%3d]: SSL_ERROR_WANT_READ\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, m_fd);
                         m_tls_state = TLS_STATE_TLS_ACCEPTING_WANT_READ;
                         return NC_STATUS_AGAIN;
                 }
                 case SSL_ERROR_WANT_WRITE:
                 {
-                        //NDBG_PRINT("%sSSL_CON%s[%3d]: TLS_STATE_TLS_CONNECTING_WANT_WRITE\n", ANSI_COLOR_BG_GREEN, ANSI_COLOR_OFF, m_fd);
                         m_tls_state = TLS_STATE_TLS_ACCEPTING_WANT_WRITE;
                         return NC_STATUS_AGAIN;
                 }
@@ -593,7 +572,6 @@ int32_t nconn_tls::tls_accept(void)
                 }
                 }
                 //ERR_print_errors_fp(stderr);
-                //NDBG_PRINT("RETURNING ERROR\n");
                 return NC_STATUS_ERROR;
         }
         else if (1 == l_s)
@@ -610,8 +588,6 @@ int32_t nconn_tls::tls_accept(void)
 //! ----------------------------------------------------------------------------
 int32_t nconn_tls::set_opt(uint32_t a_opt, const void *a_buf, uint32_t a_len)
 {
-        //NDBG_PRINT("HERE: a_opt: %d a_buf: %p\n", a_opt, a_buf);
-        // TODO RUN SUPER
         int32_t l_s;
         l_s = nconn_tcp::set_opt(a_opt, a_buf, a_len);
         if ((l_s != NC_STATUS_OK) && (l_s != NC_STATUS_UNSUPPORTED))
@@ -686,7 +662,6 @@ int32_t nconn_tls::set_opt(uint32_t a_opt, const void *a_buf, uint32_t a_len)
         }
         default:
         {
-                //NDBG_PRINT("Error unsupported option: %d\n", a_opt);
                 return NC_STATUS_UNSUPPORTED;
         }
         }
@@ -735,7 +710,6 @@ int32_t nconn_tls::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
         }
         default:
         {
-                //NDBG_PRINT("Error unsupported option: %d\n", a_opt);
                 return NC_STATUS_ERROR;
         }
         }
@@ -752,7 +726,6 @@ int32_t nconn_tls::ncset_listening(int32_t a_val)
         l_s = nconn_tcp::ncset_listening(a_val);
         if (l_s != NC_STATUS_OK)
         {
-                //NDBG_PRINT("Error performing nconn_tcp::ncset_listening.\n");
                 return NC_STATUS_ERROR;
         }
         m_tls_state = TLS_STATE_LISTENING;
@@ -769,7 +742,6 @@ int32_t nconn_tls::ncset_listening_nb(int32_t a_val)
         l_s = nconn_tcp::ncset_listening_nb(a_val);
         if (l_s != NC_STATUS_OK)
         {
-                //NDBG_PRINT("Error performing nconn_tcp::ncset_listening.\n");
                 return NC_STATUS_ERROR;
         }
         m_tls_state = TLS_STATE_LISTENING;
@@ -887,19 +859,13 @@ int32_t nconn_tls::ncread(char *a_buf, uint32_t a_buf_len)
         if (l_s > 0) TRC_ALL_MEM((const uint8_t *)a_buf, l_s);
         if (l_s <= 0)
         {
-                int l_tls_error = ::SSL_get_error(m_ssl, l_s);
-                //NDBG_PRINT("%sSSL_READ%s[%3d] l_bytes_read: %d error: %d\n",
-                //                ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,
-                //                SSL_get_fd(m_ssl), l_bytes_read,
-                //                l_tls_error);
-                if (l_tls_error == SSL_ERROR_WANT_READ)
+                int l_te = ::SSL_get_error(m_ssl, l_s);
+                if (l_te == SSL_ERROR_WANT_READ)
                 {
-                        // ...
                         return NC_STATUS_AGAIN;
                 }
-                else if (l_tls_error == SSL_ERROR_WANT_WRITE)
+                else if (l_te == SSL_ERROR_WANT_WRITE)
                 {
-                        // ...
                         return NC_STATUS_AGAIN;
                 }
         }
@@ -915,7 +881,6 @@ int32_t nconn_tls::ncread(char *a_buf, uint32_t a_buf_len)
         {
                 return NC_STATUS_EOF;
         }
-        // TODO Translate status...
         switch(errno)
         {
                 case EAGAIN:
@@ -948,19 +913,31 @@ int32_t nconn_tls::ncwrite(char *a_buf, uint32_t a_buf_len)
         if (l_s > 0) TRC_ALL_MEM((const uint8_t *)a_buf, l_s);
         if (l_s < 0)
         {
-                int l_tls_error = ::SSL_get_error(m_ssl, l_s);
-                //NDBG_PRINT("%sSSL_WRITE%s[%3d] l_bytes_read: %d error: %d\n",
-                //                ANSI_COLOR_FG_BLUE, ANSI_COLOR_OFF,
-                //                SSL_get_fd(m_ssl), l_s,
-                //                l_tls_error);
-                if (l_tls_error == SSL_ERROR_WANT_READ)
+                int l_te = ::SSL_get_error(m_ssl, l_s);
+                if (l_te == SSL_ERROR_WANT_READ)
                 {
-                        // ...
                         return NC_STATUS_AGAIN;
                 }
-                else if (l_tls_error == SSL_ERROR_WANT_WRITE)
+                else if (l_te == SSL_ERROR_WANT_WRITE)
                 {
-                        // ...
+                        // Add to writeable
+                        if (m_evr_loop)
+                        {
+                                l_s = m_evr_loop->mod_fd(m_fd,
+                                                EVR_FILE_ATTR_MASK_WRITE|
+                                                EVR_FILE_ATTR_MASK_STATUS_ERROR |
+                                                EVR_FILE_ATTR_MASK_RD_HUP |
+                                                EVR_FILE_ATTR_MASK_HUP |
+                                                EVR_FILE_ATTR_MASK_ET,
+                                                &m_evr_fd);
+                                if (l_s != STATUS_OK)
+                                {
+                                        NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
+                                                    "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
+                                                    m_label.c_str());
+                                        return NC_STATUS_ERROR;
+                                }
+                        }
                         return NC_STATUS_AGAIN;
                 }
                 else
@@ -999,11 +976,8 @@ int32_t nconn_tls::ncsetup()
 //! ----------------------------------------------------------------------------
 int32_t nconn_tls::ncaccept()
 {
-        //NDBG_PRINT("%sSSL_ACCEPT%s: STATE[%d] --START\n",
-        //                ANSI_COLOR_BG_BLUE, ANSI_COLOR_OFF, m_tls_state);
+        int l_s;
 ncaccept_state_top:
-        //NDBG_PRINT("%sSSL_ACCEPT%s: STATE[%d]\n",
-        //                ANSI_COLOR_BG_BLUE, ANSI_COLOR_OFF, m_tls_state);
         switch (m_tls_state)
         {
         // -------------------------------------------------
@@ -1011,7 +985,6 @@ ncaccept_state_top:
         // -------------------------------------------------
         case TLS_STATE_LISTENING:
         {
-                int32_t l_s;
                 l_s = nconn_tcp::ncaccept();
                 return l_s;
         }
@@ -1031,13 +1004,14 @@ ncaccept_state_top:
                         {
                                 if (m_evr_loop)
                                 {
-                                        if (0 != m_evr_loop->mod_fd(m_fd,
-                                                                    EVR_FILE_ATTR_MASK_READ |
-                                                                    EVR_FILE_ATTR_MASK_STATUS_ERROR |
-                                                                    EVR_FILE_ATTR_MASK_RD_HUP |
-                                                                    EVR_FILE_ATTR_MASK_HUP |
-                                                                    EVR_FILE_ATTR_MASK_ET,
-                                                                    &m_evr_fd))
+                                        l_s = m_evr_loop->mod_fd(m_fd,
+                                                        EVR_FILE_ATTR_MASK_READ |
+                                                        EVR_FILE_ATTR_MASK_STATUS_ERROR |
+                                                        EVR_FILE_ATTR_MASK_RD_HUP |
+                                                        EVR_FILE_ATTR_MASK_HUP |
+                                                        EVR_FILE_ATTR_MASK_ET,
+                                                        &m_evr_fd);
+                                        if (l_s != STATUS_OK)
                                         {
                                                 NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
                                                             "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
@@ -1050,13 +1024,14 @@ ncaccept_state_top:
                         {
                                 if (m_evr_loop)
                                 {
-                                        if (0 != m_evr_loop->mod_fd(m_fd,
-                                                                    EVR_FILE_ATTR_MASK_WRITE|
-                                                                    EVR_FILE_ATTR_MASK_STATUS_ERROR |
-                                                                    EVR_FILE_ATTR_MASK_RD_HUP |
-                                                                    EVR_FILE_ATTR_MASK_HUP |
-                                                                    EVR_FILE_ATTR_MASK_ET,
-                                                                    &m_evr_fd))
+                                        l_s = m_evr_loop->mod_fd(m_fd,
+                                                        EVR_FILE_ATTR_MASK_WRITE|
+                                                        EVR_FILE_ATTR_MASK_STATUS_ERROR |
+                                                        EVR_FILE_ATTR_MASK_RD_HUP |
+                                                        EVR_FILE_ATTR_MASK_HUP |
+                                                        EVR_FILE_ATTR_MASK_ET,
+                                                        &m_evr_fd);
+                                        if (l_s != STATUS_OK)
                                         {
                                                 NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
                                                             "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
@@ -1069,19 +1044,19 @@ ncaccept_state_top:
                 }
                 else if (l_s != NC_STATUS_OK)
                 {
-                        //NDBG_PRINT("Returning ERROR\n");
                         return NC_STATUS_ERROR;
                 }
                 // Add to event handler
                 if (m_evr_loop)
                 {
-                        if (0 != m_evr_loop->mod_fd(m_fd,
-                                                    EVR_FILE_ATTR_MASK_READ|
-                                                    EVR_FILE_ATTR_MASK_STATUS_ERROR |
-                                                    EVR_FILE_ATTR_MASK_RD_HUP |
-                                                    EVR_FILE_ATTR_MASK_HUP |
-                                                    EVR_FILE_ATTR_MASK_ET,
-                                                    &m_evr_fd))
+                        l_s = m_evr_loop->mod_fd(m_fd,
+                                        EVR_FILE_ATTR_MASK_READ|
+                                        EVR_FILE_ATTR_MASK_STATUS_ERROR |
+                                        EVR_FILE_ATTR_MASK_RD_HUP |
+                                        EVR_FILE_ATTR_MASK_HUP |
+                                        EVR_FILE_ATTR_MASK_ET,
+                                        &m_evr_fd);
+                        if (l_s != STATUS_OK)
                         {
                                 NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
                                             "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
@@ -1104,7 +1079,6 @@ ncaccept_state_top:
         // -------------------------------------------------
         default:
         {
-                //NDBG_PRINT("State error: %d\n", m_tls_state);
                 return NC_STATUS_ERROR;
         }
         }
@@ -1117,11 +1091,7 @@ ncaccept_state_top:
 //! ----------------------------------------------------------------------------
 int32_t nconn_tls::ncconnect()
 {
-        //NDBG_PRINT("%stls_connect%s: STATE[%d] --START\n",
-        //                ANSI_COLOR_BG_BLUE, ANSI_COLOR_OFF, m_tls_state);
 ncconnect_state_top:
-        //NDBG_PRINT("%stls_connect%s: STATE[%d]\n",
-        //                ANSI_COLOR_BG_BLUE, ANSI_COLOR_OFF, m_tls_state);
         switch (m_tls_state)
         {
         // -------------------------------------------------
@@ -1133,12 +1103,10 @@ ncconnect_state_top:
                 l_s = nconn_tcp::ncconnect();
                 if (l_s == NC_STATUS_ERROR)
                 {
-                        //NDBG_PRINT("Error performing nconn_tcp::ncconnect\n");
                         return NC_STATUS_ERROR;
                 }
                 if (nconn_tcp::is_connecting())
                 {
-                        //NDBG_PRINT("Still connecting...\n");
                         return NC_STATUS_OK;
                 }
                 m_tls_state = TLS_STATE_TLS_CONNECTING;
@@ -1153,7 +1121,6 @@ ncconnect_state_top:
         {
                 int l_s;
                 l_s = tls_connect();
-                //NDBG_PRINT("%stls_connectING%s status = %d m_tls_state = %d\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF, l_s, m_tls_state);
                 if (l_s == NC_STATUS_AGAIN)
                 {
                         if (TLS_STATE_TLS_CONNECTING_WANT_READ == m_tls_state)
@@ -1183,9 +1150,8 @@ ncconnect_state_top:
                         int32_t l_s;
                         // Do verify
                         l_s = validate_server_certificate(m_ssl,
-                                                               m_tls_opt_hostname.c_str(),
-                                                               (!m_tls_opt_verify_allow_self_signed));
-                        //NDBG_PRINT("VERIFY l_s: %d\n", l_s);
+                                                          m_tls_opt_hostname.c_str(),
+                                                          (!m_tls_opt_verify_allow_self_signed));
                         if (l_s != 0)
                         {
                                 NCONN_ERROR(CONN_STATUS_ERROR_CONNECT_TLS_HOST,
@@ -1241,9 +1207,12 @@ int32_t nconn_tls::nccleanup()
                 SSL_free(m_ssl);
                 m_ssl = NULL;
         }
+        // -------------------------------------------------
         // Reset all the values
         // TODO Make init function...
-        // Set num use back to zero -we need reset method here?
+        // Set num use back to zero
+        // need reset method here?
+        // -------------------------------------------------
         m_tls_state = TLS_STATE_NONE;
         // Super
         nconn_tcp::nccleanup();

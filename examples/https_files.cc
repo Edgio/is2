@@ -46,7 +46,7 @@ int main(int argc, char** argv)
         // -------------------------------------------------
         // defaults
         // -------------------------------------------------
-        ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_NONE);
+        ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_ERROR);
         char l_opt;
         std::string l_arg;
         int l_option_index = 0;
@@ -167,8 +167,8 @@ int main(int argc, char** argv)
         l_srvr->register_lsnr(l_lsnr);
         l_srvr->set_num_threads(0);
         l_srvr->run();
-        if(l_srvr) {delete l_srvr; l_srvr = NULL;}
-        if(l_file_h) {delete l_file_h; l_file_h = NULL;}
+        if (l_srvr) {delete l_srvr; l_srvr = NULL;}
+        if (l_file_h) {delete l_file_h; l_file_h = NULL;}
         return 0;
 }
 

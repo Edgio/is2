@@ -51,7 +51,7 @@ evr_loop::evr_loop(evr_loop_type_t a_type,
                 m_evr = new evr_epoll();
         }
 #endif
-        if(!m_evr)
+        if (!m_evr)
         {
                 //NDBG_PRINT("Using evr_select\n");
                 m_evr = new evr_select();
@@ -68,19 +68,19 @@ evr_loop::~evr_loop(void)
         while(!m_event_pq.empty())
         {
                 evr_event_t *l_timer = m_event_pq.top();
-                if(l_timer)
+                if (l_timer)
                 {
                         delete l_timer;
                         l_timer = NULL;
                 }
                 m_event_pq.pop();
         }
-        if(m_events)
+        if (m_events)
         {
                 free(m_events);
                 m_events = NULL;
         }
-        if(m_evr)
+        if (m_evr)
         {
                 delete m_evr;
                 m_evr = NULL;
@@ -103,14 +103,14 @@ uint32_t evr_loop::dequeue_events(void)
         {
                 uint64_t l_now_ms = get_time_ms();
                 l_event = m_event_pq.top();
-                if(!l_event ||
+                if (!l_event ||
                    (l_event->m_magic != EVR_EVENT_MAGIC))
                 {
                         TRC_ERROR("bad event -ignoring.\n");
                         m_event_pq.pop();
                         continue;
                 }
-                if(l_event->m_state == EVR_EVENT_CANCELLED)
+                if (l_event->m_state == EVR_EVENT_CANCELLED)
                 {
                         //NDBG_PRINT("%sDELETING%s TIMER: %p\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, l_timer);
                         m_event_pq.pop();
@@ -119,14 +119,14 @@ uint32_t evr_loop::dequeue_events(void)
                         continue;
                 }
                 uint64_t l_ev_time_ms = l_event->m_time_ms;
-                if(l_now_ms < l_ev_time_ms)
+                if (l_now_ms < l_ev_time_ms)
                 {
                         l_time_diff_ms = l_ev_time_ms - l_now_ms;
                         break;
                 }
                 // remove -service event
                 m_event_pq.pop();
-                if(l_event->m_cb)
+                if (l_event->m_cb)
                 {
                         //NDBG_PRINT("%sRUNNING_%s TIMER: %p at %lu ms\n",ANSI_COLOR_FG_YELLOW, ANSI_COLOR_OFF,l_event,l_now_ms);
                         int32_t l_s;
@@ -158,12 +158,12 @@ int32_t evr_loop::run(void)
         //NDBG_PRINT("%sWAIT4_CONNECTIONS%s: l_time_diff_ms = %d\n", ANSI_COLOR_FG_RED, ANSI_COLOR_OFF, l_time_diff_ms);
         l_num_events = m_evr->wait(m_events, m_max_events, l_time_diff_ms);
         //NDBG_PRINT("%sSTART_CONNECTIONS%s: l_num_events = %d\n", ANSI_COLOR_FG_MAGENTA, ANSI_COLOR_OFF, l_num_events);
-        if(l_num_events < 0)
+        if (l_num_events < 0)
         {
                 TRC_ERROR("performing wait.\n");
                 return STATUS_ERROR;
         }
-        else if(l_num_events == 0)
+        else if (l_num_events == 0)
         {
                 // dequeue any pending timeouts
                 l_time_diff_ms = dequeue_events();
@@ -184,7 +184,7 @@ int32_t evr_loop::run(void)
                 // -----------------------------------------
                 // Validity checks
                 // -----------------------------------------
-                if(!l_evr_fd ||
+                if (!l_evr_fd ||
                    (l_evr_fd->m_magic != EVR_EVENT_FD_MAGIC))
                 {
                         TRC_ERROR("bad event -ignoring.\n");
@@ -193,33 +193,33 @@ int32_t evr_loop::run(void)
                 // -----------------------------------------
                 // in
                 // -----------------------------------------
-                if(l_events & EVR_EV_VAL_READABLE)
+                if (l_events & EVR_EV_VAL_READABLE)
                 {
-                        if(l_evr_fd->m_read_cb &&
+                        if (l_evr_fd->m_read_cb &&
                           (l_evr_fd->m_attr_mask & EVR_FILE_ATTR_VAL_READABLE))
                         {
                                 int32_t l_status;
                                 //NDBG_PRINT("%sEVENTS%s: %s%sREAD%s\n", ANSI_COLOR_FG_CYAN, ANSI_COLOR_OFF, ANSI_COLOR_FG_RED, ANSI_COLOR_BG_WHITE, ANSI_COLOR_OFF);
                                 l_status = l_evr_fd->m_read_cb(l_evr_fd->m_data);
-                                if(l_status == STATUS_DONE)
+                                if (l_status == STATUS_DONE)
                                 {
                                         // Skip handling more events for this fd
                                         continue;
                                 }
-                                if(l_status != STATUS_OK)
+                                if (l_status != STATUS_OK)
                                 {
                                         TRC_ERROR("performing read_cb\n");
                                         // Skip handling more events for this fd
                                         continue;
                                 }
                         }
-                        if(l_events & EVR_EV_HUP)
+                        if (l_events & EVR_EV_HUP)
                         {
                                 // Skip handling more events for this fd
                                 //TRC_ERROR("EVR_EV_HUP\n");
                                 //continue;
                         }
-                        if(l_events & EVR_EV_ERR)
+                        if (l_events & EVR_EV_ERR)
                         {
                                 // Skip handling more events for this fd
                                 TRC_ERROR("EVR_EV_ERR\n");
@@ -229,20 +229,20 @@ int32_t evr_loop::run(void)
                 // -----------------------------------------
                 // out
                 // -----------------------------------------
-                if(l_events & EVR_EV_VAL_WRITEABLE)
+                if (l_events & EVR_EV_VAL_WRITEABLE)
                 {
-                        if(l_evr_fd->m_write_cb &&
+                        if (l_evr_fd->m_write_cb &&
                           (l_evr_fd->m_attr_mask & EVR_FILE_ATTR_VAL_WRITEABLE))
                         {
                                 int32_t l_status;
                                 //NDBG_PRINT("%sEVENTS%s: %s%sWRITE%s\n", ANSI_COLOR_FG_CYAN, ANSI_COLOR_OFF, ANSI_COLOR_FG_BLUE, ANSI_COLOR_BG_WHITE, ANSI_COLOR_OFF);
                                 l_status = l_evr_fd->m_write_cb(l_evr_fd->m_data);
-                                if(l_status == STATUS_DONE)
+                                if (l_status == STATUS_DONE)
                                 {
                                         // Skip handling more events for this fd
                                         continue;
                                 }
-                                if(l_status != STATUS_OK)
+                                if (l_status != STATUS_OK)
                                 {
                                         TRC_ERROR("performing write_cb\n");
                                         // Skip handling more events for this fd
@@ -258,20 +258,20 @@ int32_t evr_loop::run(void)
                 // by read callbacks
                 // -----------------------------------------
                 //uint32_t l_other_events = l_events & (~(EPOLLIN | EPOLLOUT));
-                //if(l_events & EPOLLRDHUP)
-                //if(l_events & EPOLLERR)
-                //if(0)
+                //if (l_events & EPOLLRDHUP)
+                //if (l_events & EPOLLERR)
+                //if (0)
                 //{
-                //        if(l_evr_event->m_error_cb)
+                //        if (l_evr_event->m_error_cb)
                 //        {
                 //                int32_t l_status = STATUS_OK;
                 //                l_status = l_evr_event->m_error_cb(l_evr_event->m_data);
-                //                if(l_status == STATUS_DONE)
+                //                if (l_status == STATUS_DONE)
                 //                {
                 //                        // Skip handling more events for this fd
                 //                        continue;
                 //                }
-                //                if(l_status != STATUS_OK)
+                //                if (l_status != STATUS_OK)
                 //                {
                 //                        //NDBG_PRINT("Error: l_status: %d\n", l_status);
                 //                        // Skip handling more events for this fd
@@ -289,7 +289,7 @@ int32_t evr_loop::run(void)
 //! ----------------------------------------------------------------------------
 int32_t evr_loop::add_fd(int a_fd, uint32_t a_attr_mask, evr_fd_t *a_evr_fd_event)
 {
-        if(!a_evr_fd_event)
+        if (!a_evr_fd_event)
         {
                 return STATUS_ERROR;
         }
@@ -306,7 +306,7 @@ int32_t evr_loop::add_fd(int a_fd, uint32_t a_attr_mask, evr_fd_t *a_evr_fd_even
 //! ----------------------------------------------------------------------------
 int32_t evr_loop::mod_fd(int a_fd, uint32_t a_attr_mask, evr_fd_t *a_evr_fd_event)
 {
-        if(!a_evr_fd_event)
+        if (!a_evr_fd_event)
         {
                 return STATUS_ERROR;
         }
@@ -323,7 +323,7 @@ int32_t evr_loop::mod_fd(int a_fd, uint32_t a_attr_mask, evr_fd_t *a_evr_fd_even
 //! ----------------------------------------------------------------------------
 int32_t evr_loop::del_fd(int a_fd)
 {
-        if(!m_evr)
+        if (!m_evr)
         {
                 return STATUS_OK;
         }
@@ -365,7 +365,7 @@ int32_t evr_loop::cancel_event(evr_event_t *a_event)
         //NDBG_PRINT("%sCANCEL__%s TIMER: %p\n",ANSI_COLOR_BG_RED, ANSI_COLOR_OFF,a_timer);
         //NDBG_PRINT_BT();
         // TODO synchronization???
-        if(a_event)
+        if (a_event)
         {
                 //printf("%sXXX%s: %p TIMER AT %24lu ms --> %24lu\n",ANSI_COLOR_FG_RED, ANSI_COLOR_OFF,a_timer,0,l_timer_event->m_time_ms);
                 a_event->m_cb = NULL;
@@ -387,7 +387,7 @@ int32_t evr_loop::cancel_event(evr_event_t *a_event)
 int32_t evr_loop::signal(void)
 {
         //NDBG_PRINT("%sSIGNAL%s\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF);
-        if(!m_evr)
+        if (!m_evr)
         {
                 return STATUS_ERROR;
         }

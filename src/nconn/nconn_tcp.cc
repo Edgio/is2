@@ -78,7 +78,6 @@ int32_t nconn_tcp::set_opt(uint32_t a_opt, const void *a_buf, uint32_t a_len)
         }
         default:
         {
-                //NDBG_PRINT("Error unsupported option: %d\n", a_opt);
                 return NC_STATUS_UNSUPPORTED;
         }
         }
@@ -143,10 +142,10 @@ int32_t nconn_tcp::ncset_listening_nb(int32_t a_val)
 {
         m_fd = a_val;
         m_tcp_state = TCP_STATE_LISTENING;
-        // -------------------------------------------
+        // -------------------------------------------------
         // Get/set flags for setting non-blocking
         // Can set with set_sock_opt???
-        // -------------------------------------------
+        // -------------------------------------------------
         errno = 0;
         const int flags = ::fcntl(m_fd, F_GETFL, 0);
         if (flags == -1)
@@ -195,9 +194,9 @@ int32_t nconn_tcp::ncset_accepting(int a_fd)
         m_fd = a_fd;
         // Using accept4 -TODO portable???
 #if 0
-        // -------------------------------------------
+        // -------------------------------------------------
         // Can set with set_sock_opt???
-        // -------------------------------------------
+        // -------------------------------------------------
         // Set the file descriptor to no-delay mode.
         const int flags = ::fcntl(m_fd, F_GETFL, 0);
         if (flags == -1)
@@ -267,26 +266,25 @@ int32_t nconn_tcp::ncset_connected(void)
 //! ----------------------------------------------------------------------------
 int32_t nconn_tcp::ncread(char *a_buf, uint32_t a_buf_len)
 {
-        ssize_t l_status;
+        ssize_t l_s;
         int32_t l_bytes_read = 0;
-        //l_status = read(m_fd, a_buf, a_buf_len);
+        //l_s = read(m_fd, a_buf, a_buf_len);
         errno = 0;
-        l_status = recvfrom(m_fd, a_buf, a_buf_len, 0, NULL, NULL);
+        l_s = recvfrom(m_fd, a_buf, a_buf_len, 0, NULL, NULL);
         TRC_ALL("HOST[%s] fd[%3d] READ: %zd bytes. buf: %p. Reason: %s\n",
                 m_label.c_str(),
                 m_fd,
-                l_status,
+                l_s,
                 a_buf,
                 ::strerror(errno));
-        if (l_status > 0) TRC_ALL_MEM((const uint8_t *)a_buf, l_status);
-        if (l_status > 0)
+        if (l_s > 0) TRC_ALL_MEM((const uint8_t *)a_buf, l_s);
+        if (l_s > 0)
         {
-                l_bytes_read += l_status;
+                l_bytes_read += l_s;
                 return l_bytes_read;
         }
-        else if (l_status == 0)
+        else if (l_s == 0)
         {
-                //NDBG_PRINT("l_status: %ld --errno: %d -%s\n", l_status, errno, ::strerror(errno));
                 return NC_STATUS_EOF;
         }
         else
@@ -318,59 +316,65 @@ int32_t nconn_tcp::ncread(char *a_buf, uint32_t a_buf_len)
 //! ----------------------------------------------------------------------------
 int32_t nconn_tcp::ncwrite(char *a_buf, uint32_t a_buf_len)
 {
-        int l_status;
-        // ---------------------------------------------------------------------
-        // TODO see post: http://noahdesu.github.io/2014/01/16/port-sendmsg.html
-        //      for info on porting MSG_NOSIGNAL to OSX
-        //      OSX has SO_NOSIGPIPE socket option -can be enabled with
-        //      int val = 1;
-        //      setsockopt(sd, SOL_SOCKET, SO_NOSIGPIPE, (void*)&val, sizeof(val));
-        // ---------------------------------------------------------------------
+        int l_s;
+        // -------------------------------------------------
+        // TODO see post:
+        // http://noahdesu.github.io/2014/01/16/port-sendmsg.html
+        // for info on porting MSG_NOSIGNAL to OSX
+        // OSX has SO_NOSIGPIPE socket option
+        // -can be enabled with
+        // int val = 1;
+        // setsockopt(sd, SOL_SOCKET, SO_NOSIGPIPE, (void*)&val, sizeof(val));
+        // -------------------------------------------------
+        errno = 0;
 #ifdef __MACH__
-        l_status = send(m_fd, a_buf, a_buf_len, 0);
+        l_s = send(m_fd, a_buf, a_buf_len, 0);
 #else
-        l_status = send(m_fd, a_buf, a_buf_len, MSG_NOSIGNAL);
+        l_s = send(m_fd, a_buf, a_buf_len, MSG_NOSIGNAL);
 #endif
-        TRC_ALL("HOST[%s] fd[%3d] WRITE: %d bytes. Reason: %s\n",
-                m_label.c_str(),
-                m_fd,
-                l_status,
-                ::strerror(errno));
-        if (l_status > 0) TRC_ALL_MEM((const uint8_t*)(a_buf), (uint32_t)(l_status));
-        //NDBG_PRINT("write: status: %d\n", l_status);
-        if (l_status < 0)
+        if (l_s > 0)
         {
-                if (errno == EAGAIN)
-                {
-                        // Add to writeable
-                        if (m_evr_loop)
-                        {
-                                if (0 != m_evr_loop->mod_fd(m_fd,
-                                                           EVR_FILE_ATTR_MASK_WRITE|
-                                                           EVR_FILE_ATTR_MASK_STATUS_ERROR |
-                                                           EVR_FILE_ATTR_MASK_RD_HUP |
-                                                           EVR_FILE_ATTR_MASK_HUP |
-                                                           EVR_FILE_ATTR_MASK_ET,
-                                                           &m_evr_fd))
-                                {
-                                        NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
-                                                    "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
-                                                    m_label.c_str());
-                                        return NC_STATUS_ERROR;
-                                }
-                        }
-                        return NC_STATUS_AGAIN;
-                }
-                else
-                {
-                        //NDBG_PRINT("LABEL[%s]: Error: performing write.  Reason: %s.\n", m_label.c_str(), ::strerror(errno));
-                        NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
-                                    "LABEL[%s]: Error: performing write.  Reason: %s.\n",
-                                    m_label.c_str(), ::strerror(errno));
-                        return NC_STATUS_ERROR;
-                }
+                TRC_ALL_MEM((const uint8_t*)(a_buf), (uint32_t)(l_s));
         }
-        return l_status;
+        // -------------------------------------------------
+        // write >= 0 bytes successfully
+        // -------------------------------------------------
+        if (l_s >= 0)
+        {
+                return l_s;
+        }
+        // -------------------------------------------------
+        // EAGAIN
+        // -------------------------------------------------
+        if (errno == EAGAIN)
+        {
+                // Add to writeable
+                if (m_evr_loop)
+                {
+                        l_s = m_evr_loop->mod_fd(m_fd,
+                                        EVR_FILE_ATTR_MASK_WRITE|
+                                        EVR_FILE_ATTR_MASK_STATUS_ERROR |
+                                        EVR_FILE_ATTR_MASK_RD_HUP |
+                                        EVR_FILE_ATTR_MASK_HUP |
+                                        EVR_FILE_ATTR_MASK_ET,
+                                        &m_evr_fd);
+                        if (l_s != STATUS_OK)
+                        {
+                                NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
+                                            "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
+                                            m_label.c_str());
+                                return NC_STATUS_ERROR;
+                        }
+                }
+                return NC_STATUS_AGAIN;
+        }
+        // -------------------------------------------------
+        // unknown error
+        // -------------------------------------------------
+        NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
+                    "LABEL[%s]: Error: performing write.  Reason: %s.\n",
+                    m_label.c_str(), ::strerror(errno));
+        return NC_STATUS_ERROR;
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -379,10 +383,9 @@ int32_t nconn_tcp::ncwrite(char *a_buf, uint32_t a_buf_len)
 //! ----------------------------------------------------------------------------
 int32_t nconn_tcp::ncsetup()
 {
-        //NDBG_PRINT("LABEL: %s --m_host_info: %p\n",
-        //           get_label().c_str(),
-        //           m_host_info);
-        // Make a socket.
+        // -------------------------------------------------
+        // create socket.
+        // -------------------------------------------------
 #ifdef __linux__
         m_fd = ::socket(m_host_info.m_sock_family,
                         m_host_info.m_sock_type | SOCK_CLOEXEC,
@@ -393,7 +396,6 @@ int32_t nconn_tcp::ncsetup()
                         m_host_info.m_sock_protocol);
         fcntl(m_fd, F_SETFD, FD_CLOEXEC);
 #endif
-        //NDBG_PRINT("%sSOCKET %s[%3d]: \n", ANSI_COLOR_BG_BLUE, ANSI_COLOR_OFF, m_fd);
         if (m_fd < 0)
         {
                 NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
@@ -401,9 +403,9 @@ int32_t nconn_tcp::ncsetup()
                             m_label.c_str(), ::strerror(errno));
                 return NC_STATUS_ERROR;
         }
-        // -------------------------------------------
-        // Socket options
-        // -------------------------------------------
+        // -------------------------------------------------
+        // socket options
+        // -------------------------------------------------
         // TODO --set to REUSE????
         SET_SOCK_OPT(m_fd, SOL_SOCKET, SO_REUSEADDR, 1);
 #ifdef SO_REUSEPORT
@@ -421,9 +423,9 @@ int32_t nconn_tcp::ncsetup()
         {
                 SET_SOCK_OPT(m_fd, SOL_TCP, TCP_NODELAY, 1);
         }
-        // -------------------------------------------
+        // -------------------------------------------------
         // Can set with set_sock_opt???
-        // -------------------------------------------
+        // -------------------------------------------------
         // Set the file descriptor to no-delay mode.
         const int flags = ::fcntl(m_fd, F_GETFL, 0);
         if (flags == -1)
@@ -440,13 +442,15 @@ int32_t nconn_tcp::ncsetup()
                             m_label.c_str(), ::strerror(errno));
                 return NC_STATUS_ERROR;
         }
-        // -------------------------------------------
+        // -------------------------------------------------
         // Add to reactor
-        // -------------------------------------------
+        // -------------------------------------------------
         if (m_evr_loop)
         {
                 if (0 != m_evr_loop->add_fd(m_fd,
-                                            EVR_FILE_ATTR_MASK_READ|EVR_FILE_ATTR_MASK_RD_HUP|EVR_FILE_ATTR_MASK_ET,
+                                            EVR_FILE_ATTR_MASK_READ|
+                                            EVR_FILE_ATTR_MASK_RD_HUP|
+                                            EVR_FILE_ATTR_MASK_ET,
                                             &m_evr_fd))
                 {
                         NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
@@ -464,62 +468,70 @@ int32_t nconn_tcp::ncsetup()
 //! ----------------------------------------------------------------------------
 int32_t nconn_tcp::ncaccept()
 {
-        if (m_tcp_state == TCP_STATE_LISTENING)
+        if (m_tcp_state != TCP_STATE_LISTENING)
         {
-                int l_fd;
-                //NDBG_PRINT("%sRUN_STATE_MACHINE%s: ACCEPT[%d]\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF, m_fd);
-                m_remote_sa_len = sizeof(m_remote_sa);
-                bzero(&m_remote_sa, m_remote_sa_len);
-                errno = 0;
-#ifdef __linux__
-                l_fd = accept4(m_fd,
-                               (struct sockaddr *)&m_remote_sa,
-                               &m_remote_sa_len,
-                               SOCK_NONBLOCK | SOCK_CLOEXEC);
-#else
-                l_fd = accept(m_fd,
-                              (struct sockaddr *)&m_remote_sa,
-                              &m_remote_sa_len);
-#endif
-                if (l_fd < 0)
-                {
-                        switch (errno)
-                        {
-                        case EAGAIN:
-                        {
-                                // Return here -still in accepting state
-                                return NC_STATUS_OK;
-                        }
-                        default:
-                        {
-                                TRC_ERROR("accept failed. Reason[%d]: %s\n", errno, ::strerror(errno));
-                                return NC_STATUS_ERROR;
-                        }
-                        }
-                }
-#ifndef __linux__
-                int l_s;
-                errno = 0;
-                int l_flags = fcntl(l_fd, F_GETFL, 0);
-                if (l_flags == -1)
-                {
-                        TRC_ERROR("fcntl failed. Reason[%d]: %s\n", errno, ::strerror(errno));
-                        return NC_STATUS_ERROR;
-                }
-                errno = 0;
-                l_s = fcntl(l_fd, F_SETFL, l_flags | O_NONBLOCK);
-                if (l_s == -1)
-                {
-                        TRC_ERROR("fcntl failed. Reason[%d]: %s\n", errno, ::strerror(errno));
-                        return NC_STATUS_ERROR;
-                }
-                fcntl(l_fd, F_SETFD, FD_CLOEXEC);
-                // TODO check for errors
-#endif
-                return l_fd;
+                m_tcp_state = TCP_STATE_CONNECTED;
+                return nconn::NC_STATUS_OK;
         }
-        m_tcp_state = TCP_STATE_CONNECTED;
-        return nconn::NC_STATUS_OK;
+        // -------------------------------------------------
+        // init state
+        // -------------------------------------------------
+        int l_fd;
+        m_remote_sa_len = sizeof(m_remote_sa);
+        bzero(&m_remote_sa, m_remote_sa_len);
+        errno = 0;
+        // -------------------------------------------------
+        // accept
+        // -------------------------------------------------
+#ifdef __linux__
+        l_fd = accept4(m_fd,
+                       (struct sockaddr *)&m_remote_sa,
+                       &m_remote_sa_len,
+                       SOCK_NONBLOCK|SOCK_CLOEXEC);
+#else
+        l_fd = accept(m_fd,
+                      (struct sockaddr *)&m_remote_sa,
+                      &m_remote_sa_len);
+#endif
+        if (l_fd < 0)
+        {
+                switch (errno)
+                {
+                case EAGAIN:
+                {
+                        // Return here -still in accepting state
+                        return NC_STATUS_OK;
+                }
+                default:
+                {
+                        TRC_ERROR("accept failed. Reason[%d]: %s\n", errno, ::strerror(errno));
+                        return NC_STATUS_ERROR;
+                }
+                }
+        }
+        // -------------------------------------------------
+        // if no accept4 -setup socket options
+        // -------------------------------------------------
+#ifndef __linux__
+        int l_s;
+        errno = 0;
+        int l_flags = fcntl(l_fd, F_GETFL, 0);
+        if (l_flags == -1)
+        {
+                TRC_ERROR("fcntl failed. Reason[%d]: %s\n", errno, ::strerror(errno));
+                return NC_STATUS_ERROR;
+        }
+        errno = 0;
+        l_s = fcntl(l_fd, F_SETFL, l_flags | O_NONBLOCK);
+        if (l_s == -1)
+        {
+                TRC_ERROR("fcntl failed. Reason[%d]: %s\n", errno, ::strerror(errno));
+                return NC_STATUS_ERROR;
+        }
+        fcntl(l_fd, F_SETFD, FD_CLOEXEC);
+        // TODO check for errors
+#endif
+        return l_fd;
 }
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -529,20 +541,20 @@ int32_t nconn_tcp::ncaccept()
 int32_t nconn_tcp::ncconnect()
 {
         uint32_t l_retry_connect_count = 0;
-        int l_connect_status = 0;
+        int l_cs = 0;
+        // -------------------------------------------------
         // Set to connecting
+        // -------------------------------------------------
         m_tcp_state = TCP_STATE_CONNECTING;
 state_top:
         errno = 0;
-        l_connect_status = ::connect(m_fd,
-                                   ((struct sockaddr*) &(m_host_info.m_sa)),
-                                   (m_host_info.m_sa_len));
-        //NDBG_PRINT("%sCONNECT%s[%3d]: Retry: %d Status %3d. Reason[%d]: %s\n",
-        //           ANSI_COLOR_FG_CYAN, ANSI_COLOR_OFF,
-        //           m_fd, l_retry_connect_count, l_connect_status,
-        //           errno,
-        //           ::strerror(errno));
-        if (l_connect_status < 0)
+        // -------------------------------------------------
+        // try connect
+        // -------------------------------------------------
+        l_cs = ::connect(m_fd,
+                         ((struct sockaddr*) &(m_host_info.m_sa)),
+                         (m_host_info.m_sa_len));
+        if (l_cs < 0)
         {
                 switch (errno)
                 {
@@ -578,18 +590,19 @@ state_top:
                 case EAGAIN:
                 case EINPROGRESS:
                 {
-                        //NDBG_PRINT("Error Connection in progress. Reason: %s\n", ::strerror(errno));
                         // Set to writeable and try again
                         if (m_evr_loop)
                         {
-                                if (0 != m_evr_loop->mod_fd(m_fd,
-                                                           EVR_FILE_ATTR_MASK_READ |
-                                                           EVR_FILE_ATTR_MASK_WRITE |
-                                                           EVR_FILE_ATTR_MASK_STATUS_ERROR |
-                                                           EVR_FILE_ATTR_MASK_RD_HUP |
-                                                           EVR_FILE_ATTR_MASK_HUP |
-                                                           EVR_FILE_ATTR_MASK_ET,
-                                                           &m_evr_fd))
+                                int l_s;
+                                l_s = m_evr_loop->mod_fd(m_fd,
+                                                EVR_FILE_ATTR_MASK_READ |
+                                                EVR_FILE_ATTR_MASK_WRITE |
+                                                EVR_FILE_ATTR_MASK_STATUS_ERROR |
+                                                EVR_FILE_ATTR_MASK_RD_HUP |
+                                                EVR_FILE_ATTR_MASK_HUP |
+                                                EVR_FILE_ATTR_MASK_ET,
+                                                &m_evr_fd);
+                                if (l_s != STATUS_OK)
                                 {
                                         NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
                                                     "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
@@ -602,9 +615,10 @@ state_top:
                 }
                 case EADDRNOTAVAIL:
                 {
-                        // TODO -bad to spin like this???
+                        // ---------------------------------
                         // Retry connect
-                        //NDBG_PRINT("%sRETRY CONNECT%s\n", ANSI_COLOR_BG_YELLOW, ANSI_COLOR_OFF);
+                        // TODO -bad to spin like this???
+                        // ---------------------------------
                         if (++l_retry_connect_count < 1024)
                         {
                                 usleep(1000);
@@ -628,9 +642,13 @@ state_top:
                 }
                 }
         }
+        // -------------------------------------------------
         // Set to connected state
+        // -------------------------------------------------
         m_tcp_state = TCP_STATE_CONNECTED;
+        // -------------------------------------------------
         // TODO Stats???
+        // -------------------------------------------------
         //if (m_collect_stats_flag)
         //{
         //        m_stat.m_tt_connect_us = get_delta_time_us(m_connect_start_time_us);
@@ -640,14 +658,16 @@ state_top:
         // Add to readable
         if (m_evr_loop)
         {
-                if (0 != m_evr_loop->mod_fd(m_fd,
-                                           EVR_FILE_ATTR_MASK_READ |
-                                           EVR_FILE_ATTR_MASK_WRITE |
-                                           EVR_FILE_ATTR_MASK_STATUS_ERROR |
-                                           EVR_FILE_ATTR_MASK_RD_HUP |
-                                           EVR_FILE_ATTR_MASK_HUP |
-                                           EVR_FILE_ATTR_MASK_ET,
-                                           &m_evr_fd))
+                int l_s;
+                l_s = m_evr_loop->mod_fd(m_fd,
+                                EVR_FILE_ATTR_MASK_READ |
+                                EVR_FILE_ATTR_MASK_WRITE |
+                                EVR_FILE_ATTR_MASK_STATUS_ERROR |
+                                EVR_FILE_ATTR_MASK_RD_HUP |
+                                EVR_FILE_ATTR_MASK_HUP |
+                                EVR_FILE_ATTR_MASK_ET,
+                                &m_evr_fd);
+                if (l_s != STATUS_OK)
                 {
                         NCONN_ERROR(CONN_STATUS_ERROR_INTERNAL,
                                     "LABEL[%s]: Error: Couldn't add socket file descriptor\n",
@@ -664,9 +684,9 @@ state_top:
 //! ----------------------------------------------------------------------------
 int32_t nconn_tcp::nccleanup()
 {
-        // Shut down connection
-        //NDBG_PRINT("%sCLOSE%s: fd: %6d evr_fd: %p\n", ANSI_COLOR_BG_RED, ANSI_COLOR_OFF, m_fd, &m_evr_fd);
-        //NDBG_PRINT_BT();
+        // -------------------------------------------------
+        // shut down connection
+        // -------------------------------------------------
         if (m_evr_loop)
         {
                 m_evr_loop->del_fd(m_fd);
@@ -709,9 +729,9 @@ int nconn_get_fd(nconn &a_nconn)
 {
         int *l_fd;
         uint32_t l_len;
-        int l_status;
-        l_status = a_nconn.get_opt(nconn_tcp::OPT_TCP_FD, (void **)&l_fd, &l_len);
-        if (l_status != nconn::NC_STATUS_OK)
+        int l_s;
+        l_s = a_nconn.get_opt(nconn_tcp::OPT_TCP_FD, (void **)&l_fd, &l_len);
+        if (l_s != nconn::NC_STATUS_OK)
         {
                 return -1;
         }
