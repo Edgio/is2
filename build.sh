@@ -1,43 +1,57 @@
 #!/bin/bash
-# ----------------------------------------------------------------------------
-# Copyright (C) 2018 Verizon.  All Rights Reserved.
-# All Rights Reserved
-#
-#   Author: Reed Morrison
-#   Date:   01/06/2018
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-#
 # ------------------------------------------------------------------------------
+# Usage
 # ------------------------------------------------------------------------------
-# To build...
-# ------------------------------------------------------------------------------
-which cmake g++ make || {
-    echo "Failed to find required build packages. Please install with:   sudo apt-get install cmake make g++"
-    exit 1
+usage() {
+	cat <<EOM
+$0: [hs]
+	-h display some help, you know, this
+	-s shallow clone, useful for faster builds
+	-p install prefix
+
+-s doesn't work with git prior to 2.8 (e.g. xenial)
+EOM
+	exit 1
 }
 # ------------------------------------------------------------------------------
-# Build is2
+# Requirements to build...
 # ------------------------------------------------------------------------------
-set -o errexit
-mkdir -p build && \
-pushd build && \
-    cmake ../ \
-    -DFORTIFY=ON \
-    -DBUILD_TESTS=ON \
-    -DCMAKE_INSTALL_PREFIX=/usr \
-    && \
-    make -j$(nproc) && \
-    make test && \
-popd
+check_req() {
+	which cmake g++ make || {
+		echo "Failed to find required build packages. Please install with: sudo apt-get install cmake make g++"
+		exit 1
+	}
+}
+# ------------------------------------------------------------------------------
+# build...
+# ------------------------------------------------------------------------------
+main() {
+	check_req
+	mkdir -p build
+	pushd build && \
+		cmake ../ \
+		-DBUILD_SYMBOLS=ON \
+		-DCMAKE_INSTALL_PREFIX=${install_prefix} && \
+		make -j${NPROC} && \
+		umask 0022 && chmod -R a+rX . && \
+		make package && \
+		popd && \
+	exit $?
+}
+install_prefix="/usr"
+#parse options
+while getopts ":hsp:" opts; do
+	case "${opts}" in
+		h)
+			usage
+			;;
+		p)
+			install_prefix="${OPTARG}"
+			;;
+		*)
+			usage
+			;;
+	esac
+done
 
+main
