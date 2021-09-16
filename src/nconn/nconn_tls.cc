@@ -291,7 +291,7 @@ int32_t show_tls_info(nconn *a_nconn)
         TRC_OUTPUT("|                      T L S   S E S S I O N   I N F O                         |\n");
         TRC_OUTPUT("+------------------------------------------------------------------------------+\n");
         TRC_OUTPUT("%s", ANSI_COLOR_OFF);
-        SSL_SESSION_print_fp(stdout, m_tls_session);
+        //SSL_SESSION_print_fp(stdout, m_tls_session);
         //int32_t l_protocol_num = get_tls_info_protocol_num(l_tls);
         //std::string l_cipher = get_tls_info_cipher_str(l_tls);
         //std::string l_protocol = get_tls_info_protocol_str(l_protocol_num);
