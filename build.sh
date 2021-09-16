@@ -31,6 +31,7 @@ main() {
 	pushd build && \
 		cmake ../ \
 		-DBUILD_SYMBOLS=ON \
+		-DBUILD_TLS=ON \
 		-DCMAKE_INSTALL_PREFIX=${install_prefix} && \
 		make -j${NPROC} && \
 		umask 0022 && chmod -R a+rX . && \
