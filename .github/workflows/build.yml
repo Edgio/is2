@@ -31,7 +31,7 @@ jobs:
     - name: Install macOS dependencies
       if: matrix.os == 'macos-latest'
       run: |
-        brew install cmake gperftools
+        brew install cmake gperftools dpkg
 
     - name: Run build script
       run: |
