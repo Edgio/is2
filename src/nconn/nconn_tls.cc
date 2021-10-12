@@ -280,18 +280,18 @@ int32_t show_tls_info(nconn *a_nconn)
                 return STATUS_ERROR;
         }
         TRC_OUTPUT("%s", ANSI_COLOR_FG_MAGENTA);
-        TRC_OUTPUT("+------------------------------------------------------------------------------+\n");
-        TRC_OUTPUT("| *************** T L S   S E R V E R   C E R T I F I C A T E **************** |\n");
-        TRC_OUTPUT("+------------------------------------------------------------------------------+\n");
-        TRC_OUTPUT("%s", ANSI_COLOR_OFF);
-        X509_print_fp(stdout, l_cert);
-        SSL_SESSION *m_tls_session = SSL_get_session(l_tls);
-        TRC_OUTPUT("%s", ANSI_COLOR_FG_YELLOW);
-        TRC_OUTPUT("+------------------------------------------------------------------------------+\n");
-        TRC_OUTPUT("|                      T L S   S E S S I O N   I N F O                         |\n");
-        TRC_OUTPUT("+------------------------------------------------------------------------------+\n");
-        TRC_OUTPUT("%s", ANSI_COLOR_OFF);
-        //SSL_SESSION_print_fp(stdout, m_tls_session);
+        //TRC_OUTPUT("+------------------------------------------------------------------------------+\n");
+        //TRC_OUTPUT("| *************** T L S   S E R V E R   C E R T I F I C A T E **************** |\n");
+        //TRC_OUTPUT("+------------------------------------------------------------------------------+\n");
+        //TRC_OUTPUT("%s", ANSI_COLOR_OFF);
+        //X509_print_fp(stdout, l_cert);
+        //SSL_SESSION *l_tls_session = SSL_get_session(l_tls);
+        //TRC_OUTPUT("%s", ANSI_COLOR_FG_YELLOW);
+        //TRC_OUTPUT("+------------------------------------------------------------------------------+\n");
+        //TRC_OUTPUT("|                      T L S   S E S S I O N   I N F O                         |\n");
+        //TRC_OUTPUT("+------------------------------------------------------------------------------+\n");
+        //TRC_OUTPUT("%s", ANSI_COLOR_OFF);
+        //SSL_SESSION_print_fp(stdout, l_tls_session);
         //int32_t l_protocol_num = get_tls_info_protocol_num(l_tls);
         //std::string l_cipher = get_tls_info_cipher_str(l_tls);
         //std::string l_protocol = get_tls_info_protocol_str(l_protocol_num);
@@ -768,9 +768,24 @@ int32_t nconn_tls::ncset_accepting(int a_fd)
         // -------------------------------------------------
         if (s_ssl_accept_cb)
         {
+                // -----------------------------------------
+                // get sockaddr for accepted socket
+                // -----------------------------------------
+                sockaddr l_sockaddr;
+                socklen_t l_sockaddr_len = sizeof(l_sockaddr);
+                l_s = getsockname(a_fd, &l_sockaddr, &l_sockaddr_len);
+                if (l_s == -1)
+                {
+                        TRC_ERROR("performing getsockname: reason: %s\n",
+                                  strerror(errno));
+                        return NC_STATUS_ERROR;
+                }
+                // -----------------------------------------
+                // call cb
+                // -----------------------------------------
                 SSL* l_ssl = NULL;
                 SSL_CTX* l_ctx = NULL;
-                l_s = s_ssl_accept_cb(s_ssl_accept_ctx, (sockaddr*)(&m_remote_sa), &l_ssl, &l_ctx);
+                l_s = s_ssl_accept_cb(s_ssl_accept_ctx, &l_sockaddr, &l_ssl, &l_ctx);
                 if ((l_s == STATUS_OK) &&
                     l_ssl &&
                     l_ctx)
