@@ -20,6 +20,8 @@
 #include <is2/support/time_util.h>
 #include <string.h>
 #include <stdio.h>
+#define __STDC_FORMAT_MACROS 1
+#include <inttypes.h>
 //#include <gperftools/profiler.h>
 //! ----------------------------------------------------------------------------
 //! \details: TODO
@@ -37,7 +39,7 @@ static int32_t create_response(ns_is2::session &a_session,
         l_api_resp.set_header("Date", l_date_str);
         l_api_resp.set_header("Content-type", "application/json");
         char l_length_str[64];
-        sprintf(l_length_str, "%lu", a_resp_len);
+        sprintf(l_length_str, "%" PRIu64 "", a_resp_len);
         l_api_resp.set_header("Content-Length", l_length_str);
         if(a_session.m_rqst->m_supports_keep_alives)
         {
