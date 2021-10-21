@@ -17,6 +17,8 @@
 #include <errno.h>
 // for displaying addresses
 #include <arpa/inet.h>
+#define __STDC_FORMAT_MACROS 1
+#include <inttypes.h>
 //! ----------------------------------------------------------------------------
 //! globals
 //! ----------------------------------------------------------------------------
@@ -75,7 +77,7 @@ static int32_t s_resp_done_cb(ns_is2::session &a_session)
                         printf("Error performing inet_ntop.\n");
                 }
         }
-        fprintf(g_accesslog_file_ptr, "%s [%s] \"%s %s HTTP/%u.%u\" %u %lu%lu  %lu %s %s\n",
+        fprintf(g_accesslog_file_ptr, "%s [%s] \"%s %s HTTP/%u.%u\" %u %" PRIu64 "%" PRIu64 "  %" PRIu64 " %s %s\n",
                 l_cln_addr_str,                     // remote addr
                 "DATE STRING",                      // local time
                 l_ai.m_rqst_request.c_str(),        // request line
