@@ -459,9 +459,9 @@ int32_t nbq::split(nbq **ao_nbq_tail, uint64_t a_offset)
                 TRC_ERROR("requested split at offset: %" PRIu64 " > write_offset: %" PRIu64 "\n", a_offset, m_cur_write_offset);
                 return STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // find block at offset
-        // ---------------------------------------
+        // -------------------------------------------------
         uint64_t i_offset = a_offset;
         nb_list_t::iterator i_b;
         for(i_b = m_q.begin();
@@ -480,9 +480,9 @@ int32_t nbq::split(nbq **ao_nbq_tail, uint64_t a_offset)
                 }
                 i_offset -= l_w;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // create new nbq and append remainder
-        // ---------------------------------------
+        // -------------------------------------------------
         nbq* l_nbq = new nbq(m_bsize);
         if(i_offset > 0)
         {
@@ -499,9 +499,9 @@ int32_t nbq::split(nbq **ao_nbq_tail, uint64_t a_offset)
                 l_b.write_reset();
                 l_b.write_inc(i_offset);
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // add the tail
-        // ---------------------------------------
+        // -------------------------------------------------
         ++i_b;
         while(i_b != m_q.end())
         {

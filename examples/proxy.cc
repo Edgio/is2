@@ -43,7 +43,7 @@ int main(void)
         ns_is2::trc_log_level_set(ns_is2::TRC_LOG_LEVEL_ERROR);
         ns_is2::trc_log_file_open("/dev/stdout");
         ns_is2::lsnr *l_lsnr = new ns_is2::lsnr(12345, ns_is2::SCHEME_TCP);
-        ns_is2::proxy_h *l_proxy_h = new ns_is2::proxy_h("http://127.0.0.1:8089", "");
+        ns_is2::proxy_h *l_proxy_h = new ns_is2::proxy_h("https://www.google.com", "");
         l_proxy_h->set_timeout_ms(1000);
         l_lsnr->set_default_route(l_proxy_h);
         g_srvr = new ns_is2::srvr();
