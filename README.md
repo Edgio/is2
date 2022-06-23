@@ -1,4 +1,4 @@
-![is2-ci](https://github.com/EdgeCast/is2/workflows/is2-ci/badge.svg)
+![is2-ci](https://github.com/edgioinc/is2/workflows/is2-ci/badge.svg)
 
 # is2
 > _Event driven http(s) API server library -in C++_
@@ -51,7 +51,7 @@ A basic example of instantation/registration:
 ```
 ### The Reactor
 
-`is2` has an [event system](https://github.com/EdgeCast/is2/tree/master/src/evr) similar to [libevent](http://libevent.org/) or [libuv](https://libuv.org/).  The reactor is a `std::priority_queue` of timer events with inverted ordering, for dequeue'ing the next nearest timeout.  The "next nearest timeout" is used for the subsequent call to wait for events (`epoll_wait`, `select`, `kqueue`).
+`is2` has an [event system](https://github.com/edgioinc/is2/tree/master/src/evr) similar to [libevent](http://libevent.org/) or [libuv](https://libuv.org/).  The reactor is a `std::priority_queue` of timer events with inverted ordering, for dequeue'ing the next nearest timeout.  The "next nearest timeout" is used for the subsequent call to wait for events (`epoll_wait`, `select`, `kqueue`).
 
 Reactor loop psuedo code:
 
@@ -169,7 +169,7 @@ int main(void)
 {"msg": "Hello World"}
 ```
 
-#### Performance with [hurl](https://github.com/EdgeCast/hurl)
+#### Performance with [hurl](https://github.com/edgioinc/hurl)
 ```sh
 >hurl 'http://127.0.0.1:12345/hello' -t1 -p100 -l5
 Running 1 threads 100 parallel connections per thread with infinite requests per connection
