@@ -26,12 +26,12 @@ jobs:
       if: matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-18.04'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libgoogle-perftools-dev rapidjson-dev
+        sudo apt-get install -y libgoogle-perftools-dev
 
     - name: Install macOS dependencies
       if: matrix.os == 'macos-latest'
       run: |
-        brew install cmake gperftools dpkg rapidjson
+        brew install cmake gperftools dpkg
 
     - name: Run build script
       run: |
