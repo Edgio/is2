@@ -8,6 +8,9 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/ext/udns-0.4
   ${CMAKE_SOURCE_DIR}/ext/nghttp2/include
   ${CMAKE_SOURCE_DIR}/ext/nghttp2/src
+  # OS X hack to support /usr/local/include
+  # ref: https://gitlab.kitware.com/cmake/cmake/-/issues/19120
+  /usr/local/include
 )
 add_definitions(-DHAVE_CONFIG_H)
 # ------------------------------------------------------------------------------
