@@ -22,13 +22,6 @@
 #include "nconn/nconn_tls.h"
 #include <openssl/ssl.h>
 #endif
-//! ----------------------------------------------------------------------------
-//! macros
-//! ----------------------------------------------------------------------------
-#define JS_ADD_MEMBER(_obj, _key, _val, _l_js_alloc)\
-_obj.AddMember(_key,\
-                rapidjson::Value(_val, _l_js_alloc).Move(),\
-                _l_js_alloc)
 namespace ns_is2 {
 //! ----------------------------------------------------------------------------
 //! \details: TODO

@@ -18,10 +18,10 @@
 #include "is2/srvr/stat.h"
 #include "is2/handler/stat_h.h"
 #include "is2/support/ndebug.h"
-#include "rapidjson/rapidjson.h"
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/prettywriter.h"
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
 #ifdef BUILD_TLS_WITH_OPENSSL
 #include <openssl/opensslv.h>
 #endif

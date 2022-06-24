@@ -16,11 +16,7 @@
 #include "is2/nconn/host_info.h"
 #include "is2/status.h"
 #include "base64/base64.h"
-// json support
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Werror"
-#include "rapidjson/document.h"
-//#pragma GCC diagnostic pop
+#include <rapidjson/document.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
