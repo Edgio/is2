@@ -136,11 +136,11 @@ SSL_CTX* tls_init_ctx(const std::string &a_cipher_list,
         // TODO Make configurable
         if (a_server_flag)
         {
-                l_ctx = SSL_CTX_new(SSLv23_server_method());
+                l_ctx = SSL_CTX_new(TLS_server_method());
         }
         else
         {
-                l_ctx = SSL_CTX_new(SSLv23_client_method());
+                l_ctx = SSL_CTX_new(TLS_client_method());
         }
         if (l_ctx == NULL)
         {

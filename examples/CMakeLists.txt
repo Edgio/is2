@@ -64,3 +64,10 @@ ADD_EXECUTABLE(w_stat_cmd w_stat.cc)
 ADD_DEPENDENCIES(w_stat_cmd is2)
 SET_TARGET_PROPERTIES(w_stat_cmd PROPERTIES OUTPUT_NAME "w_stat")
 TARGET_LINK_LIBRARIES(w_stat_cmd ${LIBRARIES})
+# ------------------------------------------------------------------------------
+# fingerprint
+# ------------------------------------------------------------------------------
+ADD_EXECUTABLE(fingerprint_cmd fingerprint.cc)
+ADD_DEPENDENCIES(fingerprint_cmd is2)
+SET_TARGET_PROPERTIES(fingerprint_cmd PROPERTIES OUTPUT_NAME "fingerprint_cmd")
+TARGET_LINK_LIBRARIES(fingerprint_cmd ${LIBRARIES})
