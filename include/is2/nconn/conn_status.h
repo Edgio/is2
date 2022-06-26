@@ -14,12 +14,16 @@
 //! ----------------------------------------------------------------------------
 #include <string>
 //! ----------------------------------------------------------------------------
-//! Fwd Decl
+//! fwd decl
 //! ----------------------------------------------------------------------------
 #ifdef BUILD_TLS_WITH_OPENSSL
 typedef struct ssl_st SSL;
 #endif
 namespace ns_is2 {
+//! ----------------------------------------------------------------------------
+//! internal fwd decl
+//! ----------------------------------------------------------------------------
+class ja3;
 // ---------------------------------------
 // Connection status
 // ---------------------------------------
@@ -50,9 +54,9 @@ int nconn_get_fd(nconn &a_nconn);
 #ifdef BUILD_TLS_WITH_OPENSSL
 SSL *nconn_get_SSL(nconn &a_nconn);
 long nconn_get_last_SSL_err(nconn &a_nconn);
+ja3 *nconn_get_ja3(nconn &a_nconn);
 #endif
 conn_status_t nconn_get_status(nconn &a_nconn);
 const std::string &nconn_get_last_error_str(nconn &a_nconn);
-
 }
 #endif

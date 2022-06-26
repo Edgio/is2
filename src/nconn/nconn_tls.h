@@ -13,6 +13,7 @@
 //! includes
 //! ----------------------------------------------------------------------------
 #include "nconn/nconn_tcp.h"
+#include "is2/support/ja3.h"
 //! ----------------------------------------------------------------------------
 //! ext fwd decl's
 //! ----------------------------------------------------------------------------
@@ -58,6 +59,7 @@ public:
                 OPT_TLS_OPTIONS = 1002,
                 OPT_TLS_SSL = 1003,
                 OPT_TLS_SSL_LAST_ERR = 1004,
+                OPT_TLS_JA3 = 1020,
                 // Verify options
                 OPT_TLS_VERIFY = 1100,
                 OPT_TLS_SNI = 1102,
@@ -80,6 +82,7 @@ public:
           nconn_tcp(),
           m_ssl_ctx(NULL),
           m_ssl(NULL),
+          m_ja3(),
           m_tls_opt_verify(false),
           m_tls_opt_sni(false),
           m_tls_opt_verify_allow_self_signed(false),
@@ -136,6 +139,7 @@ private:
         // -------------------------------------------------
         SSL_CTX * m_ssl_ctx;
         SSL *m_ssl;
+        ja3 m_ja3;
         bool m_tls_opt_verify;
         bool m_tls_opt_sni;
         bool m_tls_opt_verify_allow_self_signed;
