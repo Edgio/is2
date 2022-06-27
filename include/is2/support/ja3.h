@@ -52,6 +52,7 @@ public:
                 m_md5.clear();
         }
         int32_t extract_fp(SSL* a_ssl);
+        int32_t extract_bytes(const char* a_buf, uint16_t a_len);
         const std::string& get_str(void);
         const std::string& get_md5(void);
         // -------------------------------------------------
@@ -74,7 +75,6 @@ private:
         // Disallow copy/assign
         ja3& operator=(const ja3 &);
         ja3(const ja3 &);
-        int32_t extract_bytes(const char* a_buf, uint16_t a_len);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

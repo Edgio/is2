@@ -62,8 +62,9 @@
 #endif
 //! ----------------------------------------------------------------------------
 //! grease code checking
+//! ref: https://tools.ietf.org/id/draft-ietf-tls-grease-01.html
 //! ----------------------------------------------------------------------------
-#define IS_GREASE_CODE(code) (((code)&0x0f0f) == 0x0a0a && ((code)&0xff) == ((code)>>8))
+#define IS_GREASE_VAL(code) (((code)&0x0f0f) == 0x0a0a && ((code)&0xff) == ((code)>>8))
 //! ----------------------------------------------------------------------------
 //! \details: convert to string
 //! \return:  TODO
@@ -75,37 +76,6 @@ static std::string _to_string(const T& a_num)
         std::stringstream l_s;
         l_s << a_num;
         return l_s.str();
-}
-//! ----------------------------------------------------------------------------
-//! \details: TODO
-//! \return:  TODO
-//! \param:   TODO
-//! ----------------------------------------------------------------------------
-static bool _is_ext_greased(uint16_t a_ext)
-{
-        static std::set<uint16_t> s_grease_ext = {
-                        0x0a0a,
-                        0x1a1a,
-                        0x2a2a,
-                        0x3a3a,
-                        0x4a4a,
-                        0x5a5a,
-                        0x6a6a,
-                        0x7a7a,
-                        0x8a8a,
-                        0x9a9a,
-                        0xaaaa,
-                        0xbaba,
-                        0xcaca,
-                        0xdada,
-                        0xeaea,
-                        0xfafa,
-        };
-        if (s_grease_ext.find(a_ext) != s_grease_ext.end())
-        {
-                return true;
-        }
-        return false;
 }
 //! ----------------------------------------------------------------------------
 //! md5 hasher obj
@@ -257,13 +227,10 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         {
                 return STATUS_ERROR;
         }
-        uint8_t l_rh_type = (uint8_t)(*l_cur); _INCR_BY(1);
-        uint16_t l_rh_p_ver = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
-        uint16_t l_rh_msg_type = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
-        NDBG_PRINT("[EXTRACT]           len:              %u\n", a_len);
-        NDBG_PRINT("[TLS_RECORD_HEADER] type:             0x%x\n", l_rh_type);
-        NDBG_PRINT("[TLS_RECORD_HEADER] protocol_version: 0x%04x\n", l_rh_p_ver);
-        NDBG_PRINT("[TLS_RECORD_HEADER] len:              %d\n", l_rh_msg_type);
+        //uint8_t l_rh_type = (uint8_t)(*l_cur); _INCR_BY(1);
+        //uint16_t l_rh_p_ver = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+        //uint16_t l_rh_msg_type = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+        _INCR_BY(5);
         // -------------------------------------------------
         // *************************************************
         // record header
@@ -279,8 +246,6 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         l_hs_len = (l_hs_len << 8) + (uint8_t)(*l_cur); _INCR_BY(1);
         l_hs_len = (l_hs_len << 8) + (uint8_t)(*l_cur); _INCR_BY(1);
         l_hs_len = (l_hs_len << 8) + (uint8_t)(*l_cur); _INCR_BY(1);
-        NDBG_PRINT("[TLS_HNDSHK_HEADER] type:             0x%x\n", l_hs_type);
-        NDBG_PRINT("[TLS_HNDSHK_HEADER] len:              %d\n", l_hs_len);
         if (l_hs_type != _TLS_CLIENT_HELLO)
         {
                 return STATUS_OK;
@@ -296,7 +261,6 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
                 return STATUS_ERROR;
         }
         uint16_t l_clnt_ver = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
-        NDBG_PRINT("[TLS_CLINT_VERSION] version:          0x%04x :: %8u\n", l_clnt_ver, l_clnt_ver);
         m_fp_ssl_version = l_clnt_ver;
         // -------------------------------------------------
         // *************************************************
@@ -310,7 +274,6 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         // *************************************************
         // -------------------------------------------------
         uint8_t l_sid_len = (uint8_t)(*l_cur); _INCR_BY(1);
-        NDBG_PRINT("[TLS_SESSION_ID   ] length:           0x%04x :: %8u\n", l_sid_len, l_sid_len);
         _INCR_BY(l_sid_len);
         // -------------------------------------------------
         // *************************************************
@@ -318,12 +281,9 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         // *************************************************
         // -------------------------------------------------
         uint16_t l_cs_len = (ntohs(*((uint16_t*)(l_cur))))/2; _INCR_BY(2);
-        NDBG_PRINT("[TLS_CIPHER_SUITES] length:           0x%x :: %u\n", l_cs_len, l_cs_len);
-        m_fp_cipher_list.clear();
         for (uint16_t i_cs = 0; i_cs < l_cs_len; ++i_cs)
         {
                 uint16_t l_cs = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
-                NDBG_PRINT("[TLS_CIPHER_SUITES] cipher[%2u]:       0x%04x :: %8u\n", i_cs, l_cs, l_cs);
                 m_fp_cipher_list.push_back(l_cs);
         }
         // -------------------------------------------------
@@ -332,7 +292,6 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         // *************************************************
         // -------------------------------------------------
         uint8_t l_cs_mt_len = (uint8_t)(*l_cur); _INCR_BY(1);
-        NDBG_PRINT("[TLS_COMPRESSION  ] length:           0x%04x :: %8u\n", l_cs_mt_len, l_cs_mt_len);
         _INCR_BY(l_cs_mt_len);
         // -------------------------------------------------
         // *************************************************
@@ -344,7 +303,6 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
                 return STATUS_OK;
         }
         uint16_t l_ext_len = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
-        NDBG_PRINT("[TLS_EXTENTIONS   ] length:           0x%04x :: %8u\n", l_ext_len, l_ext_len);
         // -------------------------------------------------
         // for each extension
         // -------------------------------------------------
@@ -353,18 +311,15 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         l_read+=_val; \
         l_left-=_val; \
         l_ext_left-=_val; \
-        if (l_left < 0) { NDBG_PRINT("ERROR early exit! l_left: %d l_read: %u\n", l_left, l_read); return STATUS_ERROR; }\
+        if (l_left < 0) { return STATUS_OK; }\
         if (l_ext_left <= 0) { break; } \
 } while(0)
         uint16_t l_ext_idx = 0;
         uint16_t l_ext_left = l_ext_len;
-        m_fp_ssl_ext_list.clear();
         while (l_ext_left)
         {
                 uint16_t l_ext_type = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
                 uint16_t l_ext_len = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
-                NDBG_PRINT("[TLS_EXTENTION] [%2u] type[%6d]: 0x%04x :: len: %6u left: %6d\n", l_ext_idx, l_ext_type, l_ext_type, l_ext_len, l_left);
-                m_fp_ssl_ext_list.push_back(l_ext_type);
                 // -----------------------------------------
                 // *****************************************
                 // extensions: elliptic point format
@@ -372,17 +327,13 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
                 // -----------------------------------------
                 if (l_ext_type == 0x000B)
                 {
-                        NDBG_PRINT("[TLS_EC_POINT_FMT]   type: 0x%04x :: len: %u\n",  l_ext_type, l_ext_len);
-                        mem_display((const uint8_t*)l_cur, (uint32_t)l_ext_len, true);
                         uint8_t l_ec_pf_len = (uint8_t)(*l_cur); _INCR_EXT_BY(1);
-                        m_fp_ec_pt_format_list.clear();
                         for (int i_pf = 0; i_pf < l_ec_pf_len; ++i_pf)
                         {
                                 uint8_t l_ec_pf = (uint8_t)(*l_cur); _INCR_EXT_BY(1);
-                                NDBG_PRINT("[TLS_EC_POINT_FMT]   point format: %u\n",  l_ec_pf);
                                 m_fp_ec_pt_format_list.push_back(l_ec_pf);
                         }
-                        if (l_left <= 0) { return STATUS_ERROR; }
+                        if (l_left <= 0) { return STATUS_OK; }
                         if (l_ext_left <= 0) { break; }
                 }
                 // -----------------------------------------
@@ -392,15 +343,10 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
                 // -----------------------------------------
                 else if (l_ext_type == 0x000A)
                 {
-                        NDBG_PRINT("[TLS_EC_CURVES]      type: 0x%04x :: len: %u\n",  l_ext_type, l_ext_len);
-                        mem_display((const uint8_t*)l_cur, (uint32_t)l_ext_len, true);
                         uint16_t l_ecg_len = (ntohs(*((uint16_t*)(l_cur))))/2; _INCR_EXT_BY(2);
-                        NDBG_PRINT("[TLS_EC_CURVES]      l_ecg_len: %u\n",  l_ecg_len);
-                        m_fp_ec_curve_list.clear();
                         for (int i_ecg = 0; i_ecg < l_ecg_len; ++i_ecg)
                         {
                                 uint16_t l_ecg = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
-                                NDBG_PRINT("[TLS_EC_GROUP]   group: %u\n",  l_ecg);
                                 m_fp_ec_curve_list.push_back(l_ecg);
                         }
                 }
@@ -420,10 +366,6 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
                 }
                 ++l_ext_idx;
         }
-        // -------------------------------------------------
-        // display
-        // -------------------------------------------------
-        mem_display((const uint8_t*)a_buf, (uint32_t)a_len, true);
         // -------------------------------------------------
         // done
         // -------------------------------------------------
@@ -489,7 +431,7 @@ const std::string& ja3::get_str(void)
         // -------------------------------------------------
 #define _PRINT_LIST(_list) do { \
         for (auto & i_c : _list) { \
-                if (_is_ext_greased(i_c)) { continue; } \
+                if (IS_GREASE_VAL(i_c)) { continue; } \
                 m_str += _to_string(i_c); \
                 if (&i_c != &_list.back()) { \
                         m_str += "-"; \
