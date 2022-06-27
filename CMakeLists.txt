@@ -67,6 +67,7 @@ endif()
 # ------------------------------------------------------------------------------
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    SET(OperatingSystem "Mac OS X")
+   INCLUDE_DIRECTORIES(/usr/local/opt/rapidjson/include)
    # Add MacPorts
    if(BUILD_TLS)
      INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)

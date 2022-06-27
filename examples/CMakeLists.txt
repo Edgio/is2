@@ -2,9 +2,11 @@
 # include paths
 # ------------------------------------------------------------------------------
 include_directories(
-    "/opt/local/include"
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src
+    # OS X hack to support /usr/local/include
+    # ref: https://gitlab.kitware.com/cmake/cmake/-/issues/19120
+    /usr/local/include
 )
 # ------------------------------------------------------------------------------
 # tls support
