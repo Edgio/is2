@@ -18,8 +18,7 @@ namespace ns_is2 {
 //! ----------------------------------------------------------------------------
 //! fwd decl's
 //! ----------------------------------------------------------------------------
-int32_t get_path(std::string &ao_path,
-                 const std::string &a_route,
-                 const std::string &a_url_path);
+int32_t get_path(std::string &ao_path, const std::string &a_route, const std::string &a_url_path);
+int32_t read_file(const char* a_file, char** a_buf, size_t* a_len);
 }
 #endif

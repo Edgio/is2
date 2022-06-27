@@ -20,6 +20,7 @@ macro (add_is2_wb_test test_name)
                               is2
                               ${LIBRARIES})	
 	endif()
+	target_compile_definitions("wb_${test_name}" PUBLIC TEST_RESOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/")
     add_test(${test_name} "wb_${test_name}")
 endmacro()
 # ------------------------------------------------------------------------------

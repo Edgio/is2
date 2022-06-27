@@ -320,6 +320,7 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         {
                 uint16_t l_ext_type = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
                 uint16_t l_ext_len = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
+                m_fp_ssl_ext_list.push_back(l_ext_type);
                 // -----------------------------------------
                 // *****************************************
                 // extensions: elliptic point format
