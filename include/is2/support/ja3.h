@@ -74,6 +74,7 @@ private:
         // Disallow copy/assign
         ja3& operator=(const ja3 &);
         ja3(const ja3 &);
+        int32_t extract_bytes(const char* a_buf, uint16_t a_len);
         // -------------------------------------------------
         // private members
         // -------------------------------------------------

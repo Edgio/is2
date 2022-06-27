@@ -26,6 +26,7 @@
 // ---------------------------------------------------------
 // std system includes
 // ---------------------------------------------------------
+#include <string.h>
 #include <arpa/inet.h>
 // ---------------------------------------------------------
 // std c++ libs
@@ -216,6 +217,223 @@ namespace ns_is2 {
 //! \return:  TODO
 //! \param:   TODO
 //! ----------------------------------------------------------------------------
+int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
+{
+        // -------------------------------------------------
+        // *************************************************
+        // check for handshake+hello
+        // *************************************************
+        // -------------------------------------------------
+        if (a_len < 5)
+        {
+                return STATUS_OK;
+        }
+#define _TLS_HANDSHAKE_RECORD 0x16
+#define _TLS_CLIENT_HELLO     0x01
+        if (((uint16_t)(a_buf[0]) != _TLS_HANDSHAKE_RECORD) ||
+            ((uint16_t)(a_buf[5]) != _TLS_CLIENT_HELLO))
+        {
+                return STATUS_OK;
+        }
+        // -------------------------------------------------
+        // extract
+        // -------------------------------------------------
+        const char* l_cur = a_buf;
+        uint16_t l_read = 0;
+        int32_t l_left = a_len;
+        // -------------------------------------------------
+        // *************************************************
+        // record header
+        // *************************************************
+        // -------------------------------------------------
+#define _INCR_BY(_val) do { \
+        l_cur+=_val; \
+        l_read+=_val; \
+        l_left-=_val; \
+        if (l_left <= 0) { return STATUS_ERROR; }\
+} while(0)
+#define _TLS_RECORD_HEADER_SIZE 5
+        if (l_left < _TLS_RECORD_HEADER_SIZE)
+        {
+                return STATUS_ERROR;
+        }
+        uint8_t l_rh_type = (uint8_t)(*l_cur); _INCR_BY(1);
+        uint16_t l_rh_p_ver = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+        uint16_t l_rh_msg_type = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+        NDBG_PRINT("[EXTRACT]           len:              %u\n", a_len);
+        NDBG_PRINT("[TLS_RECORD_HEADER] type:             0x%x\n", l_rh_type);
+        NDBG_PRINT("[TLS_RECORD_HEADER] protocol_version: 0x%04x\n", l_rh_p_ver);
+        NDBG_PRINT("[TLS_RECORD_HEADER] len:              %d\n", l_rh_msg_type);
+        // -------------------------------------------------
+        // *************************************************
+        // record header
+        // *************************************************
+        // -------------------------------------------------
+#define _TLS_HANDSHAKE_HEADER_SIZE 4
+        if (l_left < _TLS_HANDSHAKE_HEADER_SIZE)
+        {
+                return STATUS_ERROR;
+        }
+        uint8_t l_hs_type = (uint8_t)(*l_cur); _INCR_BY(1);
+        uint32_t l_hs_len = 0;
+        l_hs_len = (l_hs_len << 8) + (uint8_t)(*l_cur); _INCR_BY(1);
+        l_hs_len = (l_hs_len << 8) + (uint8_t)(*l_cur); _INCR_BY(1);
+        l_hs_len = (l_hs_len << 8) + (uint8_t)(*l_cur); _INCR_BY(1);
+        NDBG_PRINT("[TLS_HNDSHK_HEADER] type:             0x%x\n", l_hs_type);
+        NDBG_PRINT("[TLS_HNDSHK_HEADER] len:              %d\n", l_hs_len);
+        if (l_hs_type != _TLS_CLIENT_HELLO)
+        {
+                return STATUS_OK;
+        }
+        // -------------------------------------------------
+        // *************************************************
+        // client version
+        // *************************************************
+        // -------------------------------------------------
+#define _TLS_CLIENT_VERSION_SIZE 2
+        if (l_left < _TLS_CLIENT_VERSION_SIZE)
+        {
+                return STATUS_ERROR;
+        }
+        uint16_t l_clnt_ver = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+        NDBG_PRINT("[TLS_CLINT_VERSION] version:          0x%04x :: %8u\n", l_clnt_ver, l_clnt_ver);
+        m_fp_ssl_version = l_clnt_ver;
+        // -------------------------------------------------
+        // *************************************************
+        // client random
+        // *************************************************
+        // -------------------------------------------------
+        _INCR_BY(32);
+        // -------------------------------------------------
+        // *************************************************
+        // session id
+        // *************************************************
+        // -------------------------------------------------
+        uint8_t l_sid_len = (uint8_t)(*l_cur); _INCR_BY(1);
+        NDBG_PRINT("[TLS_SESSION_ID   ] length:           0x%04x :: %8u\n", l_sid_len, l_sid_len);
+        _INCR_BY(l_sid_len);
+        // -------------------------------------------------
+        // *************************************************
+        // cipher suites
+        // *************************************************
+        // -------------------------------------------------
+        uint16_t l_cs_len = (ntohs(*((uint16_t*)(l_cur))))/2; _INCR_BY(2);
+        NDBG_PRINT("[TLS_CIPHER_SUITES] length:           0x%x :: %u\n", l_cs_len, l_cs_len);
+        m_fp_cipher_list.clear();
+        for (uint16_t i_cs = 0; i_cs < l_cs_len; ++i_cs)
+        {
+                uint16_t l_cs = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+                NDBG_PRINT("[TLS_CIPHER_SUITES] cipher[%2u]:       0x%04x :: %8u\n", i_cs, l_cs, l_cs);
+                m_fp_cipher_list.push_back(l_cs);
+        }
+        // -------------------------------------------------
+        // *************************************************
+        // compression methods
+        // *************************************************
+        // -------------------------------------------------
+        uint8_t l_cs_mt_len = (uint8_t)(*l_cur); _INCR_BY(1);
+        NDBG_PRINT("[TLS_COMPRESSION  ] length:           0x%04x :: %8u\n", l_cs_mt_len, l_cs_mt_len);
+        _INCR_BY(l_cs_mt_len);
+        // -------------------------------------------------
+        // *************************************************
+        // extensions
+        // *************************************************
+        // -------------------------------------------------
+        if (l_left <= 0)
+        {
+                return STATUS_OK;
+        }
+        uint16_t l_ext_len = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+        NDBG_PRINT("[TLS_EXTENTIONS   ] length:           0x%04x :: %8u\n", l_ext_len, l_ext_len);
+        // -------------------------------------------------
+        // for each extension
+        // -------------------------------------------------
+#define _INCR_EXT_BY(_val) do { \
+        l_cur+=_val; \
+        l_read+=_val; \
+        l_left-=_val; \
+        l_ext_left-=_val; \
+        if (l_left < 0) { NDBG_PRINT("ERROR early exit! l_left: %d l_read: %u\n", l_left, l_read); return STATUS_ERROR; }\
+        if (l_ext_left <= 0) { break; } \
+} while(0)
+        uint16_t l_ext_idx = 0;
+        uint16_t l_ext_left = l_ext_len;
+        m_fp_ssl_ext_list.clear();
+        while (l_ext_left)
+        {
+                uint16_t l_ext_type = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
+                uint16_t l_ext_len = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
+                NDBG_PRINT("[TLS_EXTENTION] [%2u] type[%6d]: 0x%04x :: len: %6u left: %6d\n", l_ext_idx, l_ext_type, l_ext_type, l_ext_len, l_left);
+                m_fp_ssl_ext_list.push_back(l_ext_type);
+                // -----------------------------------------
+                // *****************************************
+                // extensions: elliptic point format
+                // *****************************************
+                // -----------------------------------------
+                if (l_ext_type == 0x000B)
+                {
+                        NDBG_PRINT("[TLS_EC_POINT_FMT]   type: 0x%04x :: len: %u\n",  l_ext_type, l_ext_len);
+                        mem_display((const uint8_t*)l_cur, (uint32_t)l_ext_len, true);
+                        uint8_t l_ec_pf_len = (uint8_t)(*l_cur); _INCR_EXT_BY(1);
+                        m_fp_ec_pt_format_list.clear();
+                        for (int i_pf = 0; i_pf < l_ec_pf_len; ++i_pf)
+                        {
+                                uint8_t l_ec_pf = (uint8_t)(*l_cur); _INCR_EXT_BY(1);
+                                NDBG_PRINT("[TLS_EC_POINT_FMT]   point format: %u\n",  l_ec_pf);
+                                m_fp_ec_pt_format_list.push_back(l_ec_pf);
+                        }
+                        if (l_left <= 0) { return STATUS_ERROR; }
+                        if (l_ext_left <= 0) { break; }
+                }
+                // -----------------------------------------
+                // *****************************************
+                // extensions: elliptic curve groups
+                // *****************************************
+                // -----------------------------------------
+                else if (l_ext_type == 0x000A)
+                {
+                        NDBG_PRINT("[TLS_EC_CURVES]      type: 0x%04x :: len: %u\n",  l_ext_type, l_ext_len);
+                        mem_display((const uint8_t*)l_cur, (uint32_t)l_ext_len, true);
+                        uint16_t l_ecg_len = (ntohs(*((uint16_t*)(l_cur))))/2; _INCR_EXT_BY(2);
+                        NDBG_PRINT("[TLS_EC_CURVES]      l_ecg_len: %u\n",  l_ecg_len);
+                        m_fp_ec_curve_list.clear();
+                        for (int i_ecg = 0; i_ecg < l_ecg_len; ++i_ecg)
+                        {
+                                uint16_t l_ecg = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
+                                NDBG_PRINT("[TLS_EC_GROUP]   group: %u\n",  l_ecg);
+                                m_fp_ec_curve_list.push_back(l_ecg);
+                        }
+                }
+                // -----------------------------------------
+                // extension padding
+                // -----------------------------------------
+                else if (l_ext_type == 0x0015)
+                {
+                        break;
+                }
+                // -----------------------------------------
+                // else skip by ext len
+                // -----------------------------------------
+                else
+                {
+                        _INCR_EXT_BY(l_ext_len);
+                }
+                ++l_ext_idx;
+        }
+        // -------------------------------------------------
+        // display
+        // -------------------------------------------------
+        mem_display((const uint8_t*)a_buf, (uint32_t)a_len, true);
+        // -------------------------------------------------
+        // done
+        // -------------------------------------------------
+        return STATUS_OK;
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 int32_t ja3::extract_fp(SSL* a_ssl)
 {
         // -------------------------------------------------
@@ -226,17 +444,6 @@ int32_t ja3::extract_fp(SSL* a_ssl)
                 return STATUS_ERROR;
         }
         // -------------------------------------------------
-        // *************************************************
-        // extract
-        // *************************************************
-        // -------------------------------------------------
-        // -------------------------------------------------
-        // *************************************************
-        // TODO TEST TEST!!!
-        // *************************************************
-        // -------------------------------------------------
-#if 1
-        // -------------------------------------------------
         // get fd
         // -------------------------------------------------
         int l_fd = -1;
@@ -245,21 +452,25 @@ int32_t ja3::extract_fp(SSL* a_ssl)
         {
                 return STATUS_ERROR;
         }
-        //BIO* l_rbio = nullptr;
-        //l_rbio = SSL_get_rbio(m_ssl);
-        //NDBG_PRINT("  [%sACPT%s] l_rbio: %p\n", ANSI_COLOR_FG_GREEN, ANSI_COLOR_OFF, l_rbio);
-        //BIO_set_callback(l_rbio, _read_bio_cb);
+        // -------------------------------------------------
+        // peek read buffer
+        // -------------------------------------------------
         int l_peek_size = 0;
         char l_buf[512];
         l_peek_size = recvfrom(l_fd, l_buf, 512, MSG_PEEK, NULL, NULL);
-        NDBG_PRINT("  [%sACPT%s] display MSG_PEEK: size: %d\n", ANSI_COLOR_FG_GREEN, ANSI_COLOR_OFF, l_peek_size);
-        if (l_peek_size > 0)
+        if (l_peek_size <= 0)
         {
-        mem_display((const uint8_t*)l_buf, (uint32_t)l_peek_size, true);
+                return STATUS_ERROR;
         }
-        NDBG_PRINT("  [%sACPT%s] *******************\n", ANSI_COLOR_FG_GREEN, ANSI_COLOR_OFF);
-#endif
-        // TODO!!!
+        // -------------------------------------------------
+        // extract
+        // -------------------------------------------------
+        int32_t l_s;
+        l_s = extract_bytes(l_buf, (uint16_t)l_peek_size);
+        if (l_s != STATUS_OK)
+        {
+                return STATUS_ERROR;
+        }
         return STATUS_OK;
 }
 //! ----------------------------------------------------------------------------
