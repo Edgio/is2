@@ -7,25 +7,25 @@
 //! Licensed under the terms of the Apache 2.0 open source license.
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
-//: ----------------------------------------------------------------------------
-//: includes
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! includes
+//! ----------------------------------------------------------------------------
 #include "catch/catch.hpp"
 #include "srvr/t_srvr.h"
 #include "is2/srvr/lsnr.h"
 #include "is2/status.h"
-#include "hurl/support/trace.h"
-#include "hurl/support/ndebug.h"
+#include "is2/support/trace.h"
+#include "is2/support/ndebug.h"
 #include "ups_srvr.h"
 #include <unistd.h>
-//: ----------------------------------------------------------------------------
-//: \details: TODO
-//: \return:  TODO
-//: \param:   TODO
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
 static int32_t timer_cb(void *a_data)
 {
-        NDBG_PRINT(0,"timer fired\n");
+        NDBG_PRINT("timer fired\n");
         if(a_data)
         {
                 int32_t *l_count = ((int32_t *)a_data);
@@ -33,9 +33,9 @@ static int32_t timer_cb(void *a_data)
         }
         return STATUS_OK;
 }
-//: ----------------------------------------------------------------------------
-//: Tests
-//: ----------------------------------------------------------------------------
+//! ----------------------------------------------------------------------------
+//! Tests
+//! ----------------------------------------------------------------------------
 TEST_CASE( "t_srvr test", "[t_srvr]" )
 {
         SECTION("basic t_srvr test")

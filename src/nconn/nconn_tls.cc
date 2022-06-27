@@ -8,24 +8,36 @@
 //! Please refer to the LICENSE file in the project root for the terms.
 //! ----------------------------------------------------------------------------
 //! ----------------------------------------------------------------------------
-//! Includes
+//! includes
 //! ----------------------------------------------------------------------------
+// ---------------------------------------------------------
+// is2 ext
+// ---------------------------------------------------------
 #include "is2/support/time_util.h"
 #include "is2/support/trace.h"
+#include "is2/support/ndebug.h"
+// ---------------------------------------------------------
+// is2 interal
+// ---------------------------------------------------------
 #include "nconn/nconn_tls.h"
 #include "support/tls_util.h"
-#include "is2/support/ndebug.h"
-#include <errno.h>
-#include <string.h>
-#include <unistd.h>
-#define __STDC_FORMAT_MACROS 1
-#include <inttypes.h>
+// ---------------------------------------------------------
+// openssl
+// ---------------------------------------------------------
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/bio.h>
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 #include <openssl/x509v3.h>
+// ---------------------------------------------------------
+// std system libs
+// ---------------------------------------------------------
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#define __STDC_FORMAT_MACROS 1
+#include <inttypes.h>
 //! ----------------------------------------------------------------------------
 //! constants
 //! ----------------------------------------------------------------------------
@@ -136,11 +148,11 @@ SSL_CTX* tls_init_ctx(const std::string &a_cipher_list,
         // TODO Make configurable
         if (a_server_flag)
         {
-                l_ctx = SSL_CTX_new(SSLv23_server_method());
+                l_ctx = SSL_CTX_new(TLS_server_method());
         }
         else
         {
-                l_ctx = SSL_CTX_new(SSLv23_client_method());
+                l_ctx = SSL_CTX_new(TLS_client_method());
         }
         if (l_ctx == NULL)
         {
@@ -327,6 +339,10 @@ int32_t nconn_tls::init(void)
                 }
         }
         // -------------------------------------------------
+        // init ja3
+        // -------------------------------------------------
+        m_ja3.reset();
+        // -------------------------------------------------
         // set fd
         // -------------------------------------------------
         ::SSL_set_fd(m_ssl, m_fd);
@@ -488,6 +504,13 @@ int32_t nconn_tls::tls_connect(void)
 //! ----------------------------------------------------------------------------
 int32_t nconn_tls::tls_accept(void)
 {
+        // -------------------------------------------------
+        // extract fingerprints for ja3
+        // -------------------------------------------------
+        m_ja3.extract_fp(m_ssl);
+        // -------------------------------------------------
+        // SSL_accept
+        // -------------------------------------------------
         int l_s;
         m_tls_state = TLS_STATE_TLS_ACCEPTING;
         l_s = SSL_accept(m_ssl);
@@ -711,6 +734,12 @@ int32_t nconn_tls::get_opt(uint32_t a_opt, void **a_buf, uint32_t *a_len)
         {
                 *a_buf = (void *)m_last_err;
                 *a_len = sizeof(m_last_err);
+                break;
+        }
+        case OPT_TLS_JA3:
+        {
+                *a_buf = (void *)&m_ja3;
+                *a_len = sizeof(m_ja3);
                 break;
         }
         default:
@@ -1291,5 +1320,22 @@ long nconn_get_last_SSL_err(nconn &a_nconn)
                 return 0;
         }
         return l_err;
+}
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+ja3 *nconn_get_ja3(nconn &a_nconn)
+{
+        ja3 *l_ja3;
+        uint32_t l_len;
+        int l_s;
+        l_s = a_nconn.get_opt(nconn_tls::OPT_TLS_JA3, (void **)&l_ja3, &l_len);
+        if (l_s != nconn::NC_STATUS_OK)
+        {
+                return NULL;
+        }
+        return l_ja3;
 }
 } //namespace ns_is2 {

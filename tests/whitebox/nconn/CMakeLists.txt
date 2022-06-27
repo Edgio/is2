@@ -13,7 +13,7 @@ include_directories(
   ../../../src/core/ndebug/
 )
 add_executable(wb_nconn_tcp ${HDRS} ${SRCS})
-target_link_libraries(wb_nconn_tcp compiled_catch ${CMAKE_BINARY_DIR}/src/core/libhurlcore.a ${LIBRARIES})
+target_link_libraries(wb_nconn_tcp ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libis2.a ${LIBRARIES})
 SET_TARGET_PROPERTIES(wb_nconn_tcp PROPERTIES OUTPUT_NAME "wb_nconn_tcp")
 add_test(nconn_tcp wb_nconn_tcp)
 # ------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ include_directories(
   ../../../src/core/ndebug/
 )
 add_executable(wb_nconn_tls ${HDRS} ${SRCS})
-target_link_libraries(wb_nconn_tls compiled_catch ${CMAKE_BINARY_DIR}/src/core/libhurlcore.a ${LIBRARIES})
+target_link_libraries(wb_nconn_tls ${DEBUG_LIBRARIES} compiled_catch ${CMAKE_BINARY_DIR}/src/libis2.a ${LIBRARIES})
 SET_TARGET_PROPERTIES(wb_nconn_tls PROPERTIES OUTPUT_NAME "wb_nconn_tls")
 add_test(nconn_tls wb_nconn_tls)
 endif()

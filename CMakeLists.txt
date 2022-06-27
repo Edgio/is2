@@ -67,6 +67,7 @@ endif()
 # ------------------------------------------------------------------------------
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    SET(OperatingSystem "Mac OS X")
+   INCLUDE_DIRECTORIES(/usr/local/opt/rapidjson/include)
    # Add MacPorts
    if(BUILD_TLS)
      INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
@@ -98,7 +99,7 @@ endmacro(fail_if_not_found_library)
 # ASAN
 # ------------------------------------------------------------------------------
 if(BUILD_ASAN)
-  set(LIBRARIES asan ${LIBRARIES})
+  set(DEBUG_LIBRARIES asan ${DEBUG_LIBRARIES})
   add_definitions(-g3 -fno-omit-frame-pointer -fsanitize=address)
   set(DEBUG_MODE ON)
   set(BUILD_PROFILER OFF)
@@ -107,7 +108,7 @@ if(BUILD_ASAN)
 # UBSAN
 # ------------------------------------------------------------------------------
 elseif(BUILD_UBSAN)
-  set(LIBRARIES ubsan ${LIBRARIES})
+  set(DEBUG_LIBRARIES asan ${DEBUG_LIBRARIES})
   add_definitions(-g3 -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover)
   set(DEBUG_MODE ON)
   set(BUILD_PROFILER OFF)
@@ -232,7 +233,7 @@ if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
-if(BUILD_TESTS)
+if(BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
 # ------------------------------------------------------------------------------

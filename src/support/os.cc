@@ -10,9 +10,20 @@
 //! ----------------------------------------------------------------------------
 //! includes
 //! ----------------------------------------------------------------------------
+// ---------------------------------------------------------
+// is2
+// ---------------------------------------------------------
 #include "is2/support/os.h"
 #include "is2/support/trace.h"
 #include "is2/status.h"
+// ---------------------------------------------------------
+// std libs
+// ---------------------------------------------------------
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 namespace ns_is2 {
 //! ----------------------------------------------------------------------------
 //! \details: get os path
@@ -50,4 +61,53 @@ int32_t get_path(std::string &ao_path,
         }
         return STATUS_OK;
 }
+//! ----------------------------------------------------------------------------
+//! \details: TODO
+//! \return:  TODO
+//! \param:   TODO
+//! ----------------------------------------------------------------------------
+int32_t read_file(const char *a_file, char **a_buf, size_t *a_len)
+{
+        struct stat l_stat;
+        int32_t l_s = STATUS_OK;
+        l_s = stat(a_file, &l_stat);
+        if(l_s != 0)
+        {
+                TRC_ERROR("error performing stat on file: %s.  Reason: %s", a_file, strerror(errno));
+                return STATUS_ERROR;
+        }
+        if(!(l_stat.st_mode & S_IFREG))
+        {
+                TRC_ERROR("error opening file: %s.  Reason: is NOT a regular file", a_file);
+                return STATUS_ERROR;
+        }
+        FILE * l_file;
+        l_file = fopen(a_file,"r");
+        if (NULL == l_file)
+        {
+                TRC_ERROR("error opening file: %s.  Reason: %s", a_file, strerror(errno));
+                return STATUS_ERROR;
+        }
+        int32_t l_size = l_stat.st_size;
+        char *l_buf;
+        l_buf = (char *)malloc(sizeof(char)*l_size+1);
+        int32_t l_read_size;
+        l_read_size = fread(l_buf, 1, l_size, l_file);
+        if(l_read_size != l_size)
+        {
+                TRC_ERROR("error performing fread.  Reason: %s [%d:%d]", strerror(errno), l_read_size, l_size);
+                return STATUS_ERROR;
+        }
+        l_buf[l_size] = '\0';
+        l_s = fclose(l_file);
+        if (l_s != 0)
+        {
+                TRC_ERROR("error performing fclose.  Reason: %s", strerror(errno));
+                return STATUS_ERROR;
+        }
+        *a_buf = l_buf;
+        *a_len = l_size;
+        return STATUS_OK;
+}
+
 }
