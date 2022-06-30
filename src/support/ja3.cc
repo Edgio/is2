@@ -228,8 +228,8 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
                 return STATUS_ERROR;
         }
         //uint8_t l_rh_type = (uint8_t)(*l_cur); _INCR_BY(1);
-        //uint16_t l_rh_p_ver = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
-        //uint16_t l_rh_msg_type = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+        //uint16_t l_rh_p_ver = ntohs(*((const uint16_t*)(l_cur))); _INCR_BY(2);
+        //uint16_t l_rh_msg_type = ntohs(*((const uint16_t*)(l_cur))); _INCR_BY(2);
         _INCR_BY(5);
         // -------------------------------------------------
         // *************************************************
@@ -260,7 +260,7 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         {
                 return STATUS_ERROR;
         }
-        uint16_t l_clnt_ver = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+        uint16_t l_clnt_ver = ntohs(*((const uint16_t*)(l_cur))); _INCR_BY(2);
         m_fp_ssl_version = l_clnt_ver;
         // -------------------------------------------------
         // *************************************************
@@ -280,10 +280,10 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         // cipher suites
         // *************************************************
         // -------------------------------------------------
-        uint16_t l_cs_len = (ntohs(*((uint16_t*)(l_cur))))/2; _INCR_BY(2);
+        uint16_t l_cs_len = (ntohs(*((const uint16_t*)(l_cur))))/2; _INCR_BY(2);
         for (uint16_t i_cs = 0; i_cs < l_cs_len; ++i_cs)
         {
-                uint16_t l_cs = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+                uint16_t l_cs = ntohs(*((const uint16_t*)(l_cur))); _INCR_BY(2);
                 m_fp_cipher_list.push_back(l_cs);
         }
         // -------------------------------------------------
@@ -302,7 +302,7 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         {
                 return STATUS_OK;
         }
-        uint16_t l_ext_len = ntohs(*((uint16_t*)(l_cur))); _INCR_BY(2);
+        uint16_t l_exts_len = ntohs(*((const uint16_t*)(l_cur))); _INCR_BY(2);
         // -------------------------------------------------
         // for each extension
         // -------------------------------------------------
@@ -315,11 +315,11 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         if (l_ext_left <= 0) { break; } \
 } while(0)
         uint16_t l_ext_idx = 0;
-        uint16_t l_ext_left = l_ext_len;
+        uint16_t l_ext_left = l_exts_len;
         while (l_ext_left)
         {
-                uint16_t l_ext_type = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
-                uint16_t l_ext_len = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
+                uint16_t l_ext_type = ntohs(*((const uint16_t*)(l_cur))); _INCR_EXT_BY(2);
+                uint16_t l_cur_ext_len = ntohs(*((const uint16_t*)(l_cur))); _INCR_EXT_BY(2);
                 m_fp_ssl_ext_list.push_back(l_ext_type);
                 // -----------------------------------------
                 // *****************************************
@@ -344,10 +344,10 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
                 // -----------------------------------------
                 else if (l_ext_type == 0x000A)
                 {
-                        uint16_t l_ecg_len = (ntohs(*((uint16_t*)(l_cur))))/2; _INCR_EXT_BY(2);
+                        uint16_t l_ecg_len = (ntohs(*((const uint16_t*)(l_cur))))/2; _INCR_EXT_BY(2);
                         for (int i_ecg = 0; i_ecg < l_ecg_len; ++i_ecg)
                         {
-                                uint16_t l_ecg = ntohs(*((uint16_t*)(l_cur))); _INCR_EXT_BY(2);
+                                uint16_t l_ecg = ntohs(*((const uint16_t*)(l_cur))); _INCR_EXT_BY(2);
                                 m_fp_ec_curve_list.push_back(l_ecg);
                         }
                 }
@@ -363,7 +363,7 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
                 // -----------------------------------------
                 else
                 {
-                        _INCR_EXT_BY(l_ext_len);
+                        _INCR_EXT_BY(l_cur_ext_len);
                 }
                 ++l_ext_idx;
         }
@@ -379,6 +379,10 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
 //! ----------------------------------------------------------------------------
 int32_t ja3::extract_fp(SSL* a_ssl)
 {
+        if (m_fp_ssl_version != 0)
+        {
+                return STATUS_OK;
+        }
         // -------------------------------------------------
         // sanity checking
         // -------------------------------------------------
@@ -424,6 +428,13 @@ int32_t ja3::extract_fp(SSL* a_ssl)
 const std::string& ja3::get_str(void)
 {
         if (!m_str.empty())
+        {
+            return m_str;
+        }
+        // -------------------------------------------------
+        // if unset just return empty str
+        // -------------------------------------------------
+        if (!m_fp_ssl_version)
         {
             return m_str;
         }
@@ -484,6 +495,13 @@ const std::string& ja3::get_md5(void)
         if (!m_md5.empty())
         {
             return m_md5;
+        }
+        // -------------------------------------------------
+        // if unset just return empty str
+        // -------------------------------------------------
+        if (!m_fp_ssl_version)
+        {
+                return m_md5;
         }
         // -------------------------------------------------
         // get string
