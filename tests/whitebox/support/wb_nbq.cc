@@ -126,7 +126,6 @@ int32_t verify_contents(char *l_buf, uint64_t a_len, uint16_t a_offset)
         while(l_read < a_len)
         {
                 char l_cmp = TO_HEX((l_read + a_offset) % 16);
-                int32_t l_s = 0;
                 char l_char;
                 l_char = l_buf[l_read];
                 //NDBG_PRINT("l_cmp: %c l_char: %c -l_read: %lu\n", l_cmp, l_char, l_read);
