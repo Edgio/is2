@@ -2,31 +2,24 @@
 # Project setup
 # ------------------------------------------------------------------------------
 project(is2)
-cmake_minimum_required(VERSION 2.8.0)
-if (POLICY CMP0054)
-    cmake_policy(SET CMP0054 NEW)
-endif()
+cmake_minimum_required(VERSION 3.10)
 # ------------------------------------------------------------------------------
 # Build options
 # ------------------------------------------------------------------------------
 option(GCC_OPTIONS          "Command line options passed to gcc or 'native' to compile for this hardware" OFF)
 option(FORTIFY              "Fortify Source GCC options" OFF)
-option(BUILD_H2             "Build with h2 support (w/ nghttp2)" OFF)
-option(BUILD_TLS            "Build with tls support (w/ openssl)" OFF)
-option(BUILD_CUSTOM_OPENSSL "Build for custom OpenSSL" OFF)
 option(DEBUG_MODE           "Compile in debug mode." OFF)
-option(BUILD_TESTS          "Build the unit tests." ON)
-option(BUILD_EXAMPLES       "Build the examples." ON)
-option(BUILD_SYMBOLS        "Build with Symbols" ON)
-option(BUILD_UDNS           "Build with udns (async dns support)" ON)
+option(BUILD_SYMBOLS        "Build with Symbols" OFF)
 option(BUILD_TCMALLOC       "Build with tcmalloc" OFF)
 option(BUILD_PROFILER       "Enable google cpu and heap profiler support" OFF)
 option(BUILD_ASAN           "Build with Address Sanitizer" OFF)
 option(BUILD_UBSAN          "Build with Undefined Behavior Sanitizer" OFF)
-# ------------------------------------------------------------------------------
-# Compiler options
-# ------------------------------------------------------------------------------
-add_definitions(-Wall -Wformat -Wformat-security)
+option(BUILD_UDNS           "Build with udns (async dns support)" ON)
+option(BUILD_CUSTOM_OPENSSL "Build with custom OpenSSL" OFF)
+option(BUILD_H2             "Build with h2 support (w/ nghttp2)" OFF)
+option(BUILD_TLS            "Build with tls support (w/ openssl)" OFF)
+option(BUILD_TESTS          "Build the unit tests." ON)
+option(BUILD_EXAMPLES       "Build the examples." ON)
 # ------------------------------------------------------------------------------
 # Display the current settings
 # ------------------------------------------------------------------------------
@@ -34,21 +27,20 @@ message(STATUS "Build Configuration:")
 message("")
 message("    Build Option                               Variable                Value                 ")
 message("    -----------------------------------------------------------------------------------------")
-message("    Build with h2 support (w/ nghttp2):        " "BUILD_H2                " ${BUILD_H2})
-message("    Build with tls support (w/ openssl):       " "BUILD_TLS               " ${BUILD_TLS})
-message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
-message("    Debug mode:                                " "DEBUG_MODE              " ${DEBUG_MODE})
-message("    Build unit tests:                          " "BUILD_TESTS             " ${BUILD_TESTS})
-message("    Fortify Source:                            " "FORTIFY                 " ${FORTIFY})
-message("    Build unit tests:                          " "BUILD_TESTS             " ${BUILD_TESTS})
-message("    Build examples:                            " "BUILD_EXAMPLES          " ${BUILD_EXAMPLES})
 message("    Install path:                              " "INSTALL_PREFIX          " ${CMAKE_INSTALL_PREFIX})
+message("    Fortify Source:                            " "FORTIFY                 " ${FORTIFY})
+message("    Debug mode:                                " "DEBUG_MODE              " ${DEBUG_MODE})
 message("    Build Symbols                              " "BUILD_SYMBOLS           " ${BUILD_SYMBOLS})
-message("    Build with udns support:                   " "BUILD_UDNS              " ${BUILD_UDNS})
 message("    Build with tcmalloc:                       " "BUILD_TCMALLOC          " ${BUILD_TCMALLOC})
 message("    Enable google cpu/heap profiler support:   " "BUILD_PROFILER          " ${BUILD_PROFILER})
 message("    Build with Address Sanitizer:              " "BUILD_ASAN              " ${BUILD_ASAN})
 message("    Build with Undefined Behavior Sanitizer:   " "BUILD_UBSAN             " ${BUILD_UBSAN})
+message("    Build with udns support:                   " "BUILD_UDNS              " ${BUILD_UDNS})
+message("    Build for custom OpenSSL:                  " "BUILD_CUSTOM_OPENSSL    " ${BUILD_CUSTOM_OPENSSL})
+message("    Build unit tests:                          " "BUILD_TESTS             " ${BUILD_TESTS})
+message("    Build examples:                            " "BUILD_EXAMPLES          " ${BUILD_EXAMPLES})
+message("    Build with h2 support (w/ nghttp2):        " "BUILD_H2                " ${BUILD_H2})
+message("    Build with tls support (w/ openssl):       " "BUILD_TLS               " ${BUILD_TLS})
 message("")
 # ------------------------------------------------------------------------------
 # build h2
@@ -79,7 +71,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    endif()
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # ------------------------------------------------------------------------------
-# Fortify Options
+# fortify options
 # ------------------------------------------------------------------------------
 if (FORTIFY)
   add_definitions(-D_FORTIFY_SOURCE=2 -O1 -fstack-protector-all -Wl,-z,relro,-z,now)
