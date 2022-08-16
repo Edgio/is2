@@ -26,6 +26,7 @@ endmacro()
 # ------------------------------------------------------------------------------
 # build catch
 # ------------------------------------------------------------------------------
+add_definitions(-std=c++11)
 include_directories(${CMAKE_SOURCE_DIR}/ext)
 add_library(is2_compiled_catch STATIC ${CMAKE_SOURCE_DIR}/ext/catch/catch.hpp _catch.cc)
 # ------------------------------------------------------------------------------
