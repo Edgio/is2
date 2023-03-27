@@ -200,17 +200,24 @@ int32_t ja3::extract_bytes(const char* a_buf, uint16_t a_len)
         }
 #define _TLS_HANDSHAKE_RECORD 0x16
 #define _TLS_CLIENT_HELLO     0x01
-        if (((uint16_t)(a_buf[0]) != _TLS_HANDSHAKE_RECORD) ||
-            ((uint16_t)(a_buf[5]) != _TLS_CLIENT_HELLO))
-        {
+        uint16_t l_idx = 0;
+        while (l_idx < a_len) {
+                if (((uint16_t)(a_buf[l_idx]) == _TLS_HANDSHAKE_RECORD) &&
+                    ((uint16_t)(a_buf[l_idx+5]) == _TLS_CLIENT_HELLO))
+                {
+                        break;
+                }
+                ++l_idx;
+        }
+        if (l_idx >= a_len) {
                 return STATUS_OK;
         }
         // -------------------------------------------------
         // extract
         // -------------------------------------------------
-        const char* l_cur = a_buf;
-        uint16_t l_read = 0;
-        int32_t l_left = a_len;
+        const char* l_cur = a_buf+l_idx;
+        uint16_t l_read = l_idx;
+        int32_t l_left = a_len-l_idx;
         // -------------------------------------------------
         // *************************************************
         // record header
