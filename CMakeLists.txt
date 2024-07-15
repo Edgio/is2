@@ -55,22 +55,6 @@ if(BUILD_TLS)
   add_definitions(-DBUILD_TLS_WITH_OPENSSL=1)
 endif()
 # ------------------------------------------------------------------------------
-# OS X specific code
-# ------------------------------------------------------------------------------
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-   SET(OperatingSystem "Mac OS X")
-   INCLUDE_DIRECTORIES(/usr/local/opt/rapidjson/include)
-   # Add MacPorts
-   if(BUILD_TLS)
-     INCLUDE_DIRECTORIES(/usr/local/opt/openssl/include)
-     LINK_DIRECTORIES(/usr/local/opt/openssl/lib)
-   endif()
-   if(BUILD_TCMALLOC OR BUILD_PROFILER)
-     INCLUDE_DIRECTORIES(/usr/local/opt/gperftools/include)
-     LINK_DIRECTORIES(/usr/local/opt/gperftools/lib)
-   endif()
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-# ------------------------------------------------------------------------------
 # fortify options
 # ------------------------------------------------------------------------------
 if (FORTIFY)
