@@ -12,7 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04, ubuntu-18.04, macos-latest]
+        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-20.04, ubuntu-18.04, macos-12]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -23,7 +23,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install Ubuntu 22 dependencies
-      if: matrix.os == 'ubuntu-22.04'
+      if: matrix.os == 'ubuntu-22.04' || matrix.os == 'ubuntu-24.04'
       run: |
         sudo apt-get update
         sudo apt-get install -y libunwind-dev libgoogle-perftools-dev rapidjson-dev
@@ -35,7 +35,7 @@ jobs:
         sudo apt-get install -y libgoogle-perftools-dev rapidjson-dev
 
     - name: Install macOS dependencies
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-12'
       run: |
         brew install cmake gperftools dpkg rapidjson
 
